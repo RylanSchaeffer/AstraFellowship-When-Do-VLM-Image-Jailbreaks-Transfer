@@ -1,0 +1,6 @@
+[submodule "submodules/LLaVA"]
+	path = submodules/LLaVA
+	url = git@github.com:haotian-liu/LLaVA.git
+[submodule "submodules/AdversarialAttacks"]
+	path = submodules/AdversarialAttacks
+	url = git@github.com:huanranchen/AdversarialAttacks.git
