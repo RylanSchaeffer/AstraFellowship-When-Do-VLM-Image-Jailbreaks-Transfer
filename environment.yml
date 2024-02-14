@@ -1,0 +1,15 @@
+name: image_dan_vlm_env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - transformers
+  - datasets
+  - pytorch
+  - torchvision
+  - pytorch-cuda=12.1
+  - sentencepiece
+  - protobuf
