@@ -24,9 +24,12 @@ def load_replacement(x):
 
 
 def check_safety(x_image: str = "./resources/hbk/knife.jpg"):
-    safety_checker_input = safety_feature_extractor(Image.open(x_image), return_tensors="pt")
+    safety_checker_input = safety_feature_extractor(
+        Image.open(x_image), return_tensors="pt"
+    )
     x_checked_image, has_nsfw_concept = safety_checker(
-        images=get_image(x_image).unsqueeze(0).numpy(), clip_input=safety_checker_input.pixel_values
+        images=get_image(x_image).unsqueeze(0).numpy(),
+        clip_input=safety_checker_input.pixel_values,
     )
     print(x_checked_image.shape, len(has_nsfw_concept))
     assert x_checked_image.shape[0] == len(has_nsfw_concept)

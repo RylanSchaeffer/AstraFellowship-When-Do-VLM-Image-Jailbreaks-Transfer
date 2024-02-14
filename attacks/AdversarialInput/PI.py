@@ -14,16 +14,19 @@ https://github.com/qilong-zhang/Patch-wise-iterative-attack
 
 
 class PI_FGSM(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu: float = 1,
-                 amplification_factor: float = 5,
-                 k: int = 15,
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu: float = 1,
+        amplification_factor: float = 5,
+        k: int = 15,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.criterion = criterion
@@ -79,7 +82,7 @@ class PI_FGSM(AdversarialInputAttacker):
 
     @staticmethod
     def project_kern(kern_size):
-        kern = np.ones((kern_size, kern_size), dtype=np.float32) / (kern_size ** 2 - 1)
+        kern = np.ones((kern_size, kern_size), dtype=np.float32) / (kern_size**2 - 1)
         kern[kern_size // 2, kern_size // 2] = 0.0
         kern = kern.astype(np.float32)
         stack_kern = np.stack([kern, kern, kern])
@@ -92,7 +95,14 @@ class PI_FGSM(AdversarialInputAttacker):
         x = F.conv2d(x, stack_kern, padding=(padding_size, padding_size), groups=3)
         return x
 
-    def attack(self, x, gt, x_min=0, x_max=1, num_iter=10, ):
+    def attack(
+        self,
+        x,
+        gt,
+        x_min=0,
+        x_max=1,
+        num_iter=10,
+    ):
         amplification = self.amplification_factor
         # x_min = torch.clamp(x - self.epsilon, 0.0, 1.0)
         # x_max = torch.clamp(x + self.epsilon, 0.0, 1.0)
@@ -119,7 +129,9 @@ class PI_FGSM(AdversarialInputAttacker):
             noise = momentum * grad + noise
 
             amplification += alpha_beta * torch.sign(noise)
-            cut_noise = torch.clamp(torch.abs(amplification) - eps, 0, 10000.0) * torch.sign(amplification)
+            cut_noise = torch.clamp(
+                torch.abs(amplification) - eps, 0, 10000.0
+            ) * torch.sign(amplification)
             projection = gamma * torch.sign(self.project_noise(cut_noise, *self.kern))
             amplification += projection
 

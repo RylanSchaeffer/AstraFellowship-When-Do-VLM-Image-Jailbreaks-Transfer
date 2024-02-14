@@ -88,7 +88,9 @@ def concatenate_image(
         alls.append(x)
     alls = alls[: row * col]
     x = np.stack(alls)
-    x = x.reshape((row, col, img_shape[0] + padding * 2, img_shape[1] + padding * 2, img_shape[2]))
+    x = x.reshape(
+        (row, col, img_shape[0] + padding * 2, img_shape[1] + padding * 2, img_shape[2])
+    )
     x = torch.from_numpy(x)
     x = (
         x.permute(0, 2, 1, 3, 4)
@@ -107,15 +109,23 @@ def concatenate_image(
 def total_variation(x):
     adv_patch = x
     if len(x.shape) == 3:
-        tvcomp1 = torch.sum(torch.abs(adv_patch[:, :, 1:] - adv_patch[:, :, :-1] + 0.000001), 0)
+        tvcomp1 = torch.sum(
+            torch.abs(adv_patch[:, :, 1:] - adv_patch[:, :, :-1] + 0.000001), 0
+        )
         tvcomp1 = torch.sum(torch.sum(tvcomp1, 0), 0)
-        tvcomp2 = torch.sum(torch.abs(adv_patch[:, 1:, :] - adv_patch[:, :-1, :] + 0.000001), 0)
+        tvcomp2 = torch.sum(
+            torch.abs(adv_patch[:, 1:, :] - adv_patch[:, :-1, :] + 0.000001), 0
+        )
         tvcomp2 = torch.sum(torch.sum(tvcomp2, 0), 0)
         tv = tvcomp1 + tvcomp2
     elif len(x.shape) == 4:
-        tvcomp1 = torch.sum(torch.abs(adv_patch[:, :, :, 1:] - adv_patch[:, :, :, :-1] + 0.000001), 0)
+        tvcomp1 = torch.sum(
+            torch.abs(adv_patch[:, :, :, 1:] - adv_patch[:, :, :, :-1] + 0.000001), 0
+        )
         tvcomp1 = torch.sum(tvcomp1)
-        tvcomp2 = torch.sum(torch.abs(adv_patch[:, :, 1:, :] - adv_patch[:, :, :-1, :] + 0.000001), 0)
+        tvcomp2 = torch.sum(
+            torch.abs(adv_patch[:, :, 1:, :] - adv_patch[:, :, :-1, :] + 0.000001), 0
+        )
         tvcomp2 = torch.sum(tvcomp2)
         tv = tvcomp1 + tvcomp2
     else:

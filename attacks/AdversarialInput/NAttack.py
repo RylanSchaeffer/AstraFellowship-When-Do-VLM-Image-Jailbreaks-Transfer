@@ -4,16 +4,18 @@ from torch import nn
 from typing import Callable, List
 from .AdversarialInputBase import AdversarialInputAttacker
 
-__all__ = ['NAttack']
+__all__ = ["NAttack"]
 
 
 class NAttack(AdversarialInputAttacker):
-    def __init__(self, model: List[nn.Module],
-                 total_step: int = 600,
-                 step_size: float = 0.008,
-                 batch_size=300,
-                 sigma=0.1,
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 600,
+        step_size: float = 0.008,
+        batch_size=300,
+        sigma=0.1,
+    ):
         self.total_step = total_step
         self.step_size = step_size
         self.batch_size = batch_size
@@ -32,8 +34,12 @@ class NAttack(AdversarialInputAttacker):
         return clamp(clamp(noise, mu - self.epsilon, mu + self.epsilon))
 
     @torch.no_grad()
-    def attack(self, x, y, ):
-        assert x.shape[0] == 1, 'now only support batch size = 1'
+    def attack(
+        self,
+        x,
+        y,
+    ):
+        assert x.shape[0] == 1, "now only support batch size = 1"
         x.requires_grad = False
         N, C, H, D = x.shape
         original_x = x.clone()
@@ -58,7 +64,9 @@ class NAttack(AdversarialInputAttacker):
                 z_score = (f - torch.mean(f)) / (torch.std(f) + 1e-7)
                 z_scores.append(z_score)
             z_scores = torch.stack(z_scores).mean(0)  # batch_size
-            mu = mu - self.step_size / (self.batch_size * self.sigma) * (z_scores.view(-1, 1, 1, 1) * epsilons).sum(0)
+            mu = mu - self.step_size / (self.batch_size * self.sigma) * (
+                z_scores.view(-1, 1, 1, 1) * epsilons
+            ).sum(0)
             mu = clamp(mu, min_value=mu_min, max_value=mu_max)
         result = self.proj(original_x, self.g(mu))
         return result

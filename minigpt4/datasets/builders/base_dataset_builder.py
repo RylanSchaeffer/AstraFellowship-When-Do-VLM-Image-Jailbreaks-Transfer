@@ -21,7 +21,6 @@ from minigpt4.common.registry import registry
 from minigpt4.processors.base_processor import BaseProcessor
 
 
-
 class BaseDatasetBuilder:
     train_dataset_cls, eval_dataset_cls = None, None
 
@@ -150,7 +149,6 @@ class BaseDatasetBuilder:
                     download_url(url=url_or_filename, root=dirname, filename=filename)
 
     def _download_vis(self):
-
         storage_path = self.config.build_info.get(self.data_type).storage
         storage_path = utils.get_cache_path(storage_path)
 

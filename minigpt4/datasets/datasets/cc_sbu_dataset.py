@@ -27,13 +27,11 @@ class CCSBUDataset(BaseDataset):
 
 
 class CCSBUAlignDataset(CaptionDataset):
-
     def __getitem__(self, index):
-
         # TODO this assumes image input, not general enough
         ann = self.annotation[index]
 
-        img_file = '{}.jpg'.format(ann["image_id"])
+        img_file = "{}.jpg".format(ann["image_id"])
         image_path = os.path.join(self.vis_root, img_file)
         image = Image.open(image_path).convert("RGB")
 

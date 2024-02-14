@@ -11,18 +11,19 @@ from scipy import stats as st
 
 
 class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = False,
-                 step_size: float = 50,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu=1,
-                 outer_optimizer=None,
-                 *args,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 50,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu=1,
+        outer_optimizer=None,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -37,7 +38,11 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         momentum = torch.zeros_like(x)
@@ -56,10 +61,14 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
                 x.requires_grad = False
                 # update
                 if self.targerted_attack:
-                    momentum = self.mu * momentum - grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
+                    momentum = self.mu * momentum - grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.step_size * momentum
                 else:
-                    momentum = self.mu * momentum + grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
+                    momentum = self.mu * momentum + grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.step_size * momentum
                     # x += self.step_size * grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
                 x = clamp(x)
@@ -76,22 +85,24 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
 
     @torch.no_grad()
     def end_attack(self, now: torch.tensor, ksi=16 / 255 / 5):
-        '''
+        """
         theta: original_patch
         theta_hat: now patch in optimizer
         theta = theta + ksi*(theta_hat - theta), so:
         theta =(1-ksi )theta + ksi* theta_hat
-        '''
+        """
         patch = now
         if self.outer_optimizer is None:
-            fake_grad = (patch - self.original)
-            self.outer_momentum = self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
+            fake_grad = patch - self.original
+            self.outer_momentum = (
+                self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
+            )
             patch.mul_(0)
             patch.add_(self.original)
             patch.add_(ksi * self.outer_momentum.sign())
             # patch.add_(ksi * fake_grad)
         else:
-            fake_grad = - ksi * (patch - self.original)
+            fake_grad = -ksi * (patch - self.original)
             self.outer_optimizer.zero_grad()
             patch.mul_(0)
             patch.add_(self.original)
@@ -105,16 +116,18 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
 
 
 class MI_RandomWeight(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 step_size: float = 16 / 255 / 5,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu: float = 50,
-                 *args,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 5,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu: float = 50,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -129,17 +142,21 @@ class MI_RandomWeight(AdversarialInputAttacker):
         return x
 
     def random_by_mean(self, mean: float = 1, eps=5) -> float:
-        '''
+        """
         random a number in [0, 2*mean]. The expectation is mean.
         :param mean:
         :return:
-        '''
+        """
         x = (random.random() - 0.5) * 2  # with range [-1, 1], mean 0
         x *= eps  # delta = 2*eps
         x = x + mean  # expectation is mean
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         momentum = torch.zeros_like(x)
@@ -161,10 +178,14 @@ class MI_RandomWeight(AdversarialInputAttacker):
             x.requires_grad = False
             # update
             if self.targerted_attack:
-                momentum = self.mu * momentum - grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum - grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             else:
-                momentum = self.mu * momentum + grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum + grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             x = clamp(x)
             x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
@@ -173,21 +194,22 @@ class MI_RandomWeight(AdversarialInputAttacker):
 
 
 class MI_CommonWeakness(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = False,
-                 step_size: float = 16 / 255 / 5,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu=1,
-                 reverse_step_size=16 / 255 / 15,
-                 inner_step_size: float = 250,
-                 DI=False,
-                 TI=False,
-                 *args,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 5,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu=1,
+        reverse_step_size=16 / 255 / 15,
+        inner_step_size: float = 250,
+        DI=False,
+        TI=False,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -200,9 +222,13 @@ class MI_CommonWeakness(AdversarialInputAttacker):
         self.DI = DI
         self.TI = TI
         if DI:
-            self.aug_policy = transforms.Compose([
-                transforms.RandomCrop((int(224 * 0.9), int(224 * 0.9)), padding=224 - int(224 * 0.9)),
-            ])
+            self.aug_policy = transforms.Compose(
+                [
+                    transforms.RandomCrop(
+                        (int(224 * 0.9), int(224 * 0.9)), padding=224 - int(224 * 0.9)
+                    ),
+                ]
+            )
         else:
             self.aug_policy = nn.Identity()
         if TI:
@@ -214,7 +240,11 @@ class MI_CommonWeakness(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         inner_momentum = torch.zeros_like(x)
@@ -259,12 +289,14 @@ class MI_CommonWeakness(AdversarialInputAttacker):
                 if self.TI:
                     grad = self.ti(grad)
                 if self.targerted_attack:
-                    inner_momentum = self.mu * inner_momentum - grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                        N, 1, 1, 1)
+                    inner_momentum = self.mu * inner_momentum - grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.inner_step_size * inner_momentum
                 else:
-                    inner_momentum = self.mu * inner_momentum + grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                        N, 1, 1, 1)
+                    inner_momentum = self.mu * inner_momentum + grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.inner_step_size * inner_momentum
                 x = clamp(x)
                 x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
@@ -280,14 +312,16 @@ class MI_CommonWeakness(AdversarialInputAttacker):
 
     @torch.no_grad()
     def end_attack(self, now: torch.tensor, ksi=16 / 255 / 5):
-        '''
+        """
         theta: original_patch
         theta_hat: now patch in optimizer
         theta = theta + ksi*(theta_hat - theta), so:
         theta =(1-ksi )theta + ksi* theta_hat
-        '''
-        fake_grad = (now - self.original)  # x_n-x
-        self.outer_momentum = self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
+        """
+        fake_grad = now - self.original  # x_n-x
+        self.outer_momentum = self.mu * self.outer_momentum + fake_grad / torch.norm(
+            fake_grad, p=1
+        )
         now.mul_(0)
         now.add_(self.original)
         now.add_(ksi * self.outer_momentum.sign())
@@ -306,28 +340,37 @@ class MI_CommonWeakness(AdversarialInputAttacker):
         kernel_raw = np.outer(kern1d, kern1d)
         kernel = kernel_raw / kernel_raw.sum()
         kernel = torch.tensor(kernel, dtype=torch.float)
-        conv = nn.Conv2d(3, 3, kernel_size=kernlen, stride=1, padding=kernlen // 2, bias=False, groups=3)
+        conv = nn.Conv2d(
+            3,
+            3,
+            kernel_size=kernlen,
+            stride=1,
+            padding=kernlen // 2,
+            bias=False,
+            groups=3,
+        )
         kernel = kernel.repeat(3, 1, 1).view(3, 1, kernlen, kernlen)
         conv.weight.data = kernel
         return conv
 
 
 class Adam_CommonWeakness(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = False,
-                 step_size: float = 1e-3,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu=1,
-                 reverse_step_size=16 / 255 / 15,
-                 inner_step_size: float = 250,
-                 DI=False,
-                 TI=False,
-                 *args,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 1e-3,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu=1,
+        reverse_step_size=16 / 255 / 15,
+        inner_step_size: float = 250,
+        DI=False,
+        TI=False,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -340,9 +383,13 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
         self.DI = DI
         self.TI = TI
         if DI:
-            self.aug_policy = transforms.Compose([
-                transforms.RandomCrop((int(224 * 0.9), int(224 * 0.9)), padding=224 - int(224 * 0.9)),
-            ])
+            self.aug_policy = transforms.Compose(
+                [
+                    transforms.RandomCrop(
+                        (int(224 * 0.9), int(224 * 0.9)), padding=224 - int(224 * 0.9)
+                    ),
+                ]
+            )
         else:
             self.aug_policy = nn.Identity()
         if TI:
@@ -354,7 +401,11 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         inner_momentum = torch.zeros_like(x)
@@ -400,16 +451,20 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
                 if self.TI:
                     grad = self.ti(grad)
                 if self.targerted_attack:
-                    inner_momentum = self.mu * inner_momentum - grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                        N, 1, 1, 1)
+                    inner_momentum = self.mu * inner_momentum - grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.inner_step_size * inner_momentum
                 else:
-                    inner_momentum = self.mu * inner_momentum + grad / torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                        N, 1, 1, 1)
+                    inner_momentum = self.mu * inner_momentum + grad / torch.norm(
+                        grad.reshape(N, -1), p=2, dim=1
+                    ).view(N, 1, 1, 1)
                     x += self.inner_step_size * inner_momentum
                 self.outer_optimizer.zero_grad()
                 x = inplace_clamp(x)
-                x = inplace_clamp(x, original_x - self.epsilon, original_x + self.epsilon)
+                x = inplace_clamp(
+                    x, original_x - self.epsilon, original_x + self.epsilon
+                )
             x = self.end_attack(x)
             x = inplace_clamp(x, original_x - self.epsilon, original_x + self.epsilon)
 
@@ -422,14 +477,14 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
 
     @torch.no_grad()
     def end_attack(self, now: torch.tensor):
-        '''
+        """
         theta: original_patch
         theta_hat: now patch in optimizer
         theta = theta + ksi*(theta_hat - theta), so:
         theta =(1-ksi )theta + ksi* theta_hat
-        '''
+        """
         patch = now
-        fake_grad = (patch - self.original)
+        fake_grad = patch - self.original
         patch.mul_(0)
         patch.add_(self.original)
         patch.grad = fake_grad
@@ -449,7 +504,15 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
         kernel_raw = np.outer(kern1d, kern1d)
         kernel = kernel_raw / kernel_raw.sum()
         kernel = torch.tensor(kernel, dtype=torch.float)
-        conv = nn.Conv2d(3, 3, kernel_size=kernlen, stride=1, padding=kernlen // 2, bias=False, groups=3)
+        conv = nn.Conv2d(
+            3,
+            3,
+            kernel_size=kernlen,
+            stride=1,
+            padding=kernlen // 2,
+            bias=False,
+            groups=3,
+        )
         kernel = kernel.repeat(3, 1, 1).view(3, 1, kernlen, kernlen)
         conv.weight.data = kernel
         return conv

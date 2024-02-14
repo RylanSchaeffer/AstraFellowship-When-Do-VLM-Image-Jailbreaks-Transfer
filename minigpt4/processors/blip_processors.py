@@ -70,7 +70,9 @@ class BlipCaptionProcessor(BaseProcessor):
 
 @registry.register_processor("blip2_image_train")
 class Blip2ImageTrainProcessor(BlipImageBaseProcessor):
-    def __init__(self, image_size=224, mean=None, std=None, min_scale=0.5, max_scale=1.0):
+    def __init__(
+        self, image_size=224, mean=None, std=None, min_scale=0.5, max_scale=1.0
+    ):
         super().__init__(mean=mean, std=std)
 
         self.transform = transforms.Compose(

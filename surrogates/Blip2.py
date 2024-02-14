@@ -41,7 +41,9 @@ class Blip2VisionModel(nn.Module):
         self.model = Blip2Model.from_pretrained("Salesforce/blip2-opt-2.7b")
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
-        self.labels = torch.tensor(self.processor(text=target_text).input_ids).view(1, -1)
+        self.labels = torch.tensor(self.processor(text=target_text).input_ids).view(
+            1, -1
+        )
         self.prompt = torch.tensor(self.processor(text=prompt).input_ids).view(1, -1)
 
     def forward(self, x):
@@ -70,11 +72,17 @@ class Blip2PredictModel(nn.Module):
             ]
         )
         self.processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
-        self.model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b")
+        self.model = Blip2ForConditionalGeneration.from_pretrained(
+            "Salesforce/blip2-opt-2.7b"
+        )
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
-        self.labels = torch.tensor(self.processor(text=target_text).input_ids, device=self.device).view(1, -1)
-        self.prompt = torch.tensor(self.processor(text=prompt).input_ids, device=self.device).view(1, -1)
+        self.labels = torch.tensor(
+            self.processor(text=target_text).input_ids, device=self.device
+        ).view(1, -1)
+        self.prompt = torch.tensor(
+            self.processor(text=prompt).input_ids, device=self.device
+        ).view(1, -1)
         self.eval().requires_grad_(False).cuda()
 
     def forward(self, x):
@@ -82,7 +90,9 @@ class Blip2PredictModel(nn.Module):
         batch_size = x.shape[0]
         inputs_my = dict(pixel_values=self.normalizer(x).cuda())
         # inputs["input_ids"] = self.prompt.repeat(batch_size, 1)
-        inputs = self.processor(images=show_image(x), return_tensors="pt").to(self.device)
+        inputs = self.processor(images=show_image(x), return_tensors="pt").to(
+            self.device
+        )
         print(torch.sum((inputs_my["pixel_values"] - inputs["pixel_values"]) ** 2))
         ids = self.model.generate(**inputs)
         text = self.processor.batch_decode(ids, skip_special_tokens=True)[0].strip()

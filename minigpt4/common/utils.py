@@ -115,7 +115,6 @@ def download_google_drive_url(url: str, output_path: str, output_file_name: str)
     import requests
 
     with requests.Session() as session:
-
         # First get the confirmation token and append it to the URL
         with session.get(url, stream=True, allow_redirects=True) as response:
             for k, v in response.cookies.items():

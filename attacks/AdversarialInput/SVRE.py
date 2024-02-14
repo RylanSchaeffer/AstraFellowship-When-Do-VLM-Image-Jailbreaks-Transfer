@@ -12,16 +12,18 @@ from torch import Tensor
 
 
 class MI_SVRE(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = False,
-                 step_size: float = 1.6 / 255,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu=1,
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 1.6 / 255,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu=1,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -35,7 +37,11 @@ class MI_SVRE(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         momentum = torch.zeros_like(x)
@@ -49,7 +55,9 @@ class MI_SVRE(AdversarialInputAttacker):
             x.requires_grad = True
             loss = 0
             for model in self.models:
-                loss += self.criterion(model(x.to(model.device)), y.to(model.device)).to(self.device)
+                loss += self.criterion(
+                    model(x.to(model.device)), y.to(model.device)
+                ).to(self.device)
             loss.backward()
             ensemble_gradient: Tensor = x.grad.clone()
             x.grad = None
@@ -57,14 +65,18 @@ class MI_SVRE(AdversarialInputAttacker):
             for model in self.models:
                 # with original grad
                 self.original.requires_grad = True
-                loss = self.criterion(model(self.original.to(model.device)), y.to(model.device)).to(self.device)
+                loss = self.criterion(
+                    model(self.original.to(model.device)), y.to(model.device)
+                ).to(self.device)
                 loss.backward()
                 original_grad = self.original.grad.clone()
                 self.original.requires_grad = False
                 self.original.grad = None
                 # normal
                 x.requires_grad = True
-                loss = self.criterion(model(x.to(model.device)), y.to(model.device)).to(self.device)
+                loss = self.criterion(model(x.to(model.device)), y.to(model.device)).to(
+                    self.device
+                )
                 loss.backward()
                 grad: Tensor = x.grad
                 x.requires_grad = False
@@ -88,8 +100,7 @@ class MI_SVRE(AdversarialInputAttacker):
 
     @torch.no_grad()
     def end_attack(self, final_momentum: torch.tensor):
-        '''
-        '''
+        """ """
         self.outer_momentum = self.mu * self.outer_momentum + final_momentum
         x = self.original + self.step_size * self.outer_momentum.sign()
         del self.original

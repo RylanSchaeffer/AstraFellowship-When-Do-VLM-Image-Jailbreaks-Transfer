@@ -28,7 +28,9 @@ def ssa_cw_count_to_index(count, num_models=len(models), ssa_N=20):
     return count
 
 
-ssa_cw_loss = EnsembleFeatureLoss(models, ssa_cw_count_to_index, feature_loss=torch.nn.MSELoss())
+ssa_cw_loss = EnsembleFeatureLoss(
+    models, ssa_cw_count_to_index, feature_loss=torch.nn.MSELoss()
+)
 
 
 attacker = SSA_CommonWeakness(

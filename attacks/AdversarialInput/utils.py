@@ -2,9 +2,9 @@ import torch
 
 
 def cosine_similarity(x: list):
-    '''
+    """
     input a list of tensor with same shape. return the mean cosine_similarity
-    '''
+    """
     x = torch.stack(x, dim=0)
     N = x.shape[0]
     x = x.reshape(N, -1)

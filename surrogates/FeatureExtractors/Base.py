@@ -28,10 +28,12 @@ class EnsembleFeatureExtractor(BaseFeatureExtractor):
 
 
 class EnsembleFeatureLoss(nn.Module):
-    def __init__(self,
-                 extractors: List[BaseFeatureExtractor],
-                 count_to_index: Callable,
-                 feature_loss=nn.MSELoss()):
+    def __init__(
+        self,
+        extractors: List[BaseFeatureExtractor],
+        count_to_index: Callable,
+        feature_loss=nn.MSELoss(),
+    ):
         super(EnsembleFeatureLoss, self).__init__()
         self.extractors = nn.ModuleList(extractors)
         self.count = 0

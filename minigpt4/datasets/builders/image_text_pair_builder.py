@@ -95,11 +95,11 @@ class CCSBUAlignBuilder(BaseDatasetBuilder):
 
         # create datasets
         dataset_cls = self.train_dataset_cls
-        datasets['train'] = dataset_cls(
+        datasets["train"] = dataset_cls(
             vis_processor=self.vis_processors["train"],
             text_processor=self.text_processors["train"],
-            ann_paths=[os.path.join(storage_path, 'filter_cap.json')],
-            vis_root=os.path.join(storage_path, 'image'),
+            ann_paths=[os.path.join(storage_path, "filter_cap.json")],
+            vis_root=os.path.join(storage_path, "image"),
         )
 
         return datasets

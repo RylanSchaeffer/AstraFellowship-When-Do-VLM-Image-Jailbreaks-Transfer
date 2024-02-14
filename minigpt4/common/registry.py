@@ -32,7 +32,9 @@ class Registry:
         """
 
         def wrap(builder_cls):
-            from minigpt4.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+            from minigpt4.datasets.builders.base_dataset_builder import (
+                BaseDatasetBuilder,
+            )
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder

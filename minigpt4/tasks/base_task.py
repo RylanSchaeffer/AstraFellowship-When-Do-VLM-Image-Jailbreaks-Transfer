@@ -10,7 +10,12 @@ import os
 
 import torch
 import torch.distributed as dist
-from minigpt4.common.dist_utils import get_rank, get_world_size, is_main_process, is_dist_avail_and_initialized
+from minigpt4.common.dist_utils import (
+    get_rank,
+    get_world_size,
+    is_main_process,
+    is_dist_avail_and_initialized,
+)
 from minigpt4.common.logger import MetricLogger, SmoothedValue
 from minigpt4.common.registry import registry
 from minigpt4.datasets.data_utils import prepare_sample
@@ -56,9 +61,9 @@ class BaseTask:
             builder = registry.get_builder_class(name)(dataset_config)
             dataset = builder.build_datasets()
 
-            dataset['train'].name = name
-            if 'sample_ratio' in dataset_config:
-                dataset['train'].sample_ratio = dataset_config.sample_ratio
+            dataset["train"].name = name
+            if "sample_ratio" in dataset_config:
+                dataset["train"].sample_ratio = dataset_config.sample_ratio
 
             datasets[name] = dataset
 
@@ -228,8 +233,8 @@ class BaseTask:
             if (i + 1) % accum_grad_iters == 0:
                 if use_amp:
                     scaler.step(optimizer)
-                    scaler.update()                     
-                else:    
+                    scaler.update()
+                else:
                     optimizer.step()
                 optimizer.zero_grad()
 

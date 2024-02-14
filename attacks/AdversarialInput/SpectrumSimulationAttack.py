@@ -23,7 +23,9 @@ def dct1(x):
     x_shape = x.shape
     x = x.view(-1, x_shape[-1])
 
-    return torch.fft.fft(torch.cat([x, x.flip([1])[:, 1:-1]], dim=1), 1).real.view(*x_shape)
+    return torch.fft.fft(torch.cat([x, x.flip([1])[:, 1:-1]], dim=1), 1).real.view(
+        *x_shape
+    )
 
 
 def idct1(X):
@@ -58,13 +60,13 @@ def dct(x, norm=None):
 
     Vc = torch.fft.fft(v)
 
-    k = - torch.arange(N, dtype=x.dtype, device=x.device)[None, :] * np.pi / (2 * N)
+    k = -torch.arange(N, dtype=x.dtype, device=x.device)[None, :] * np.pi / (2 * N)
     W_r = torch.cos(k)
     W_i = torch.sin(k)
 
     # V = Vc[:, :, 0] * W_r - Vc[:, :, 1] * W_i
     V = Vc.real * W_r - Vc.imag * W_i
-    if norm == 'ortho':
+    if norm == "ortho":
         V[:, 0] /= np.sqrt(N) * 2
         V[:, 1:] /= np.sqrt(N / 2) * 2
 
@@ -92,11 +94,15 @@ def idct(X, norm=None):
 
     X_v = X.contiguous().view(-1, x_shape[-1]) / 2
 
-    if norm == 'ortho':
+    if norm == "ortho":
         X_v[:, 0] *= np.sqrt(N) * 2
         X_v[:, 1:] *= np.sqrt(N / 2) * 2
 
-    k = torch.arange(x_shape[-1], dtype=X.dtype, device=X.device)[None, :] * np.pi / (2 * N)
+    k = (
+        torch.arange(x_shape[-1], dtype=X.dtype, device=X.device)[None, :]
+        * np.pi
+        / (2 * N)
+    )
     W_r = torch.cos(k)
     W_i = torch.sin(k)
 
@@ -111,8 +117,8 @@ def idct(X, norm=None):
     v = torch.fft.ifft(tmp)
 
     x = v.new_zeros(v.shape)
-    x[:, ::2] += v[:, :N - (N // 2)]
-    x[:, 1::2] += v.flip([1])[:, :N // 2]
+    x[:, ::2] += v[:, : N - (N // 2)]
+    x[:, 1::2] += v.flip([1])[:, : N // 2]
 
     return x.view(*x_shape).real
 
@@ -187,9 +193,7 @@ def idct_3d(X, norm=None):
     return x3.transpose(-1, -3).transpose(-1, -2)
 
 
-transforms = T.Compose(
-    [T.Resize(299), T.ToTensor()]
-)
+transforms = T.Compose([T.Resize(299), T.ToTensor()])
 
 
 def clip_by_tensor(t, t_min, t_max):
@@ -211,7 +215,7 @@ def save_image(images, names, output_dir):
         os.makedirs(output_dir)
 
     for i, name in enumerate(names):
-        img = Image.fromarray(images[i].astype('uint8'))
+        img = Image.fromarray(images[i].astype("uint8"))
         img.save(output_dir + name)
 
 
@@ -223,15 +227,18 @@ from tqdm import tqdm
 
 
 class SpectrumSimulationAttack(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 step_size: float = 16 / 255 / 10,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu: float = 1,
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 10,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu: float = 1,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -245,7 +252,11 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         """
         The attack algorithm of our proposed Spectrum Simulate Attack
         :param images: the input images
@@ -294,20 +305,21 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
 
 
 class SSA_CommonWeakness(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = False,
-                 step_size: float = 16 / 255 / 5,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu=1,
-                 outer_optimizer=None,
-                 reverse_step_size=16 / 255 / 15,
-                 inner_step_size: float = 250,
-                 *args,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 5,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu=1,
+        outer_optimizer=None,
+        reverse_step_size=16 / 255 / 15,
+        inner_step_size: float = 250,
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -324,7 +336,11 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         inner_momentum = torch.zeros_like(x)
@@ -361,13 +377,15 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
                 # update
                 if self.targerted_attack:
                     inner_momentum = self.mu * inner_momentum - grad / (
-                                torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                                    N, 1, 1, 1) + 1e-5)
+                        torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
+                        + 1e-5
+                    )
                     x += self.inner_step_size * inner_momentum
                 else:
                     inner_momentum = self.mu * inner_momentum + grad / (
-                                torch.norm(grad.reshape(N, -1), p=2, dim=1).view(
-                                    N, 1, 1, 1) + 1e-5)
+                        torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
+                        + 1e-5
+                    )
                     x += self.inner_step_size * inner_momentum
                 x = clamp(x)
                 x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
@@ -382,22 +400,24 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
 
     @torch.no_grad()
     def end_attack(self, now: torch.tensor, ksi=16 / 255 / 5):
-        '''
+        """
         theta: original_patch
         theta_hat: now patch in optimizer
         theta = theta + ksi*(theta_hat - theta), so:
         theta =(1-ksi )theta + ksi* theta_hat
-        '''
+        """
         patch = now
         if self.outer_optimizer is None:
-            fake_grad = (patch - self.original)
-            self.outer_momentum = self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
+            fake_grad = patch - self.original
+            self.outer_momentum = (
+                self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
+            )
             patch.mul_(0)
             patch.add_(self.original)
             patch.add_(ksi * self.outer_momentum.sign())
             # patch.add_(ksi * fake_grad)
         else:
-            fake_grad = - ksi * (patch - self.original)
+            fake_grad = -ksi * (patch - self.original)
             self.outer_optimizer.zero_grad()
             patch.mul_(0)
             patch.add_(self.original)

@@ -1,8 +1,11 @@
 import torch
 import os
 from data import get_NIPS17_loader
-from experiments.bard.FeatureExtractors import BlipFeatureExtractor, ClipFeatureExtractor, \
-    EnsembleFeatureLoss
+from experiments.bard.FeatureExtractors import (
+    BlipFeatureExtractor,
+    ClipFeatureExtractor,
+    EnsembleFeatureLoss,
+)
 from utils import save_image, show_image
 from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
 from tqdm import tqdm
@@ -21,15 +24,17 @@ def ssa_cw_count_to_index(count, num_models=len(models), ssa_N=20):
     return count
 
 
-ssa_cw_loss = EnsembleFeatureLoss(models, ssa_cw_count_to_index,
-                                  feature_loss=torch.nn.MSELoss())
+ssa_cw_loss = EnsembleFeatureLoss(
+    models, ssa_cw_count_to_index, feature_loss=torch.nn.MSELoss()
+)
 
-attacker = SSA_CommonWeakness(models, epsilon=16 / 255, step_size=1 / 255, total_step=80,
-                              criterion=ssa_cw_loss)
+attacker = SSA_CommonWeakness(
+    models, epsilon=16 / 255, step_size=1 / 255, total_step=80, criterion=ssa_cw_loss
+)
 
-dir = './bardadvs/'
+dir = "./bardadvs/"
 for i, (x, y) in tqdm(enumerate(loader)):
     x = x.cuda()
     ssa_cw_loss.set_ground_truth(x)
     adv_x = attacker(x, None)
-    save_image(adv_x, os.path.join(dir, f'{i}.png'))
+    save_image(adv_x, os.path.join(dir, f"{i}.png"))

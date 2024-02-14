@@ -1,6 +1,6 @@
-'''
+"""
 PGD: Projected Gradient Descent
-'''
+"""
 
 import torch
 from torch import nn, Tensor
@@ -10,18 +10,19 @@ from .AdversarialInputBase import AdversarialInputAttacker
 
 
 class PGD(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10,
-                 random_start: bool = True,
-                 step_size: float = 16 / 255 / 10,
-                 eot_step: int = 1,
-                 eot_batch_size: int = 1024,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 *args,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = True,
+        step_size: float = 16 / 255 / 10,
+        eot_step: int = 1,
+        eot_batch_size: int = 1024,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        *args,
+        **kwargs,
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -36,8 +37,12 @@ class PGD(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x: Tensor, y: Tensor, ):
-        assert len(x.shape) == 4, 'input should have size B, C, H, D'
+    def attack(
+        self,
+        x: Tensor,
+        y: Tensor,
+    ):
+        assert len(x.shape) == 4, "input should have size B, C, H, D"
         B, C, H, D = x.shape
         original_x = x.clone()
         if self.random_start:
@@ -45,7 +50,9 @@ class PGD(AdversarialInputAttacker):
 
         for _ in range(self.total_step):
             x.requires_grad = True
-            eot_xs = x.repeat(self.eot_step, 1, 1, 1).split(self.eot_batch_size * B, dim=0)
+            eot_xs = x.repeat(self.eot_step, 1, 1, 1).split(
+                self.eot_batch_size * B, dim=0
+            )
             for eot_x in eot_xs:
                 logit = 0
                 for model in self.models:

@@ -45,7 +45,9 @@ def variance_feature_loss(x, y):
 #     return base_cka(x, y)
 
 
-ssa_cw_loss = EnsembleFeatureLoss(models, ssa_cw_count_to_index, feature_loss=torch.nn.MSELoss())
+ssa_cw_loss = EnsembleFeatureLoss(
+    models, ssa_cw_count_to_index, feature_loss=torch.nn.MSELoss()
+)
 
 
 attacker = SSA_CommonWeakness(

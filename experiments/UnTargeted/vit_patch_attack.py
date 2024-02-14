@@ -11,5 +11,5 @@ attacker = MI_FGSM([model], epsilon=1, step_size=4 / 255, total_step=100)
 for x, y in loader:
     model.set_images(x)
     adv_x = attacker(model.patch, y)
-    save_image(adv_x, './vit_patch_adv.png')
+    save_image(adv_x, "./vit_patch_adv.png")
     assert False

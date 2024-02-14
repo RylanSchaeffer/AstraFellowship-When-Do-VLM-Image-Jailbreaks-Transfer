@@ -24,7 +24,11 @@ from minigpt4.common.dist_utils import (
 )
 from minigpt4.common.registry import registry
 from minigpt4.common.utils import is_url
-from minigpt4.datasets.data_utils import concat_datasets, reorg_datasets_by_split, ChainDataset
+from minigpt4.datasets.data_utils import (
+    concat_datasets,
+    reorg_datasets_by_split,
+    ChainDataset,
+)
 from minigpt4.datasets.datasets.dataloader_utils import (
     IterLoader,
     MultiIterLoader,
@@ -161,7 +165,7 @@ class RunnerBase:
 
             if iters_per_epoch is None:
                 try:
-                    iters_per_epoch = len(self.dataloaders['train'])
+                    iters_per_epoch = len(self.dataloaders["train"])
                 except (AttributeError, TypeError):
                     iters_per_epoch = 10000
 
@@ -197,7 +201,6 @@ class RunnerBase:
             dict: {split_name: (tuples of) dataloader}
         """
         if self._dataloaders is None:
-
             # concatenate map-style datasets and chain wds.DataPipe datasets separately
             # training set becomes a tuple (ConcatDataset, ChainDataset), both are
             # optional but at least one of them is required. The resultant ConcatDataset
@@ -555,7 +558,7 @@ class RunnerBase:
             datasets, batch_sizes, is_trains, collate_fns
         ):
             if isinstance(dataset, list) or isinstance(dataset, tuple):
-                if hasattr(dataset[0], 'sample_ratio') and dataset_ratios is None:
+                if hasattr(dataset[0], "sample_ratio") and dataset_ratios is None:
                     dataset_ratios = [d.sample_ratio for d in dataset]
                 loader = MultiIterLoader(
                     loaders=[
@@ -634,7 +637,7 @@ class RunnerBase:
             raise RuntimeError("checkpoint url or path is invalid")
 
         state_dict = checkpoint["model"]
-        self.unwrap_dist_model(self.model).load_state_dict(state_dict,strict=False)
+        self.unwrap_dist_model(self.model).load_state_dict(state_dict, strict=False)
 
         self.optimizer.load_state_dict(checkpoint["optimizer"])
         if self.scaler and "scaler" in checkpoint:

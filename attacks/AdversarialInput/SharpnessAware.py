@@ -75,15 +75,19 @@ from .AdversarialInputBase import AdversarialInputAttacker
 
 
 class MI_SAM(AdversarialInputAttacker):
-    def __init__(self, model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 step_size: float = 16 / 255 / 5,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu: float = 1,
-                 reverse_step_size: float = 16 / 255 / 10,
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 5,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu: float = 1,
+        reverse_step_size: float = 16 / 255 / 10,
+        *args,
+        **kwargs
+    ):
         self.models = model
         self.random_start = random_start
         self.total_step = total_step
@@ -99,7 +103,11 @@ class MI_SAM(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         momentum = torch.zeros_like(x)
@@ -136,10 +144,14 @@ class MI_SAM(AdversarialInputAttacker):
             x.mul_(0).add_(ori_x)
             # update
             if self.targerted_attack:
-                momentum = self.mu * momentum - grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum - grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             else:
-                momentum = self.mu * momentum + grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum + grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             x = clamp(x)
             x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
@@ -148,17 +160,20 @@ class MI_SAM(AdversarialInputAttacker):
 
 
 class MI_RAP(AdversarialInputAttacker):
-    def __init__(self, model: List[nn.Module],
-                 total_step: int = 400,
-                 random_start: bool = False,
-                 step_size: float = 2 / 255,
-                 criterion: Callable = nn.CrossEntropyLoss(),
-                 targeted_attack=False,
-                 mu: float = 1,
-                 reverse_step_size: float = 2 / 255,
-                 reverse_step=10,
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 400,
+        random_start: bool = False,
+        step_size: float = 2 / 255,
+        criterion: Callable = nn.CrossEntropyLoss(),
+        targeted_attack=False,
+        mu: float = 1,
+        reverse_step_size: float = 2 / 255,
+        reverse_step=10,
+        *args,
+        **kwargs
+    ):
         self.models = model
         self.random_start = random_start
         self.total_step = total_step
@@ -175,7 +190,11 @@ class MI_RAP(AdversarialInputAttacker):
         x = clamp(x)
         return x
 
-    def attack(self, x, y, ):
+    def attack(
+        self,
+        x,
+        y,
+    ):
         N = x.shape[0]
         original_x = x.clone()
         momentum = torch.zeros_like(x)
@@ -212,10 +231,14 @@ class MI_RAP(AdversarialInputAttacker):
             reversed_x.requires_grad = False
             # update
             if self.targerted_attack:
-                momentum = self.mu * momentum - grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum - grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             else:
-                momentum = self.mu * momentum + grad / torch.norm(grad.reshape(N, -1), p=1, dim=1).view(N, 1, 1, 1)
+                momentum = self.mu * momentum + grad / torch.norm(
+                    grad.reshape(N, -1), p=1, dim=1
+                ).view(N, 1, 1, 1)
                 x += self.step_size * momentum.sign()
             x = clamp(x)
             x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)

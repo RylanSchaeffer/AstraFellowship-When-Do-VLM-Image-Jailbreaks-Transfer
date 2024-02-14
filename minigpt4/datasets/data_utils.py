@@ -40,21 +40,24 @@ class ChainDataset(wds.DataPipeline):
     Args:
         datasets (iterable of IterableDataset): datasets to be chained together
     """
+
     def __init__(self, datasets: List[wds.DataPipeline]) -> None:
         super().__init__()
         self.datasets = datasets
         self.prob = []
         self.names = []
         for dataset in self.datasets:
-            if hasattr(dataset, 'name'):
+            if hasattr(dataset, "name"):
                 self.names.append(dataset.name)
             else:
-                self.names.append('Unknown')
-            if hasattr(dataset, 'sample_ratio'):
+                self.names.append("Unknown")
+            if hasattr(dataset, "sample_ratio"):
                 self.prob.append(dataset.sample_ratio)
             else:
                 self.prob.append(1)
-                logging.info("One of the datapipeline doesn't define ratio and set to 1 automatically.")
+                logging.info(
+                    "One of the datapipeline doesn't define ratio and set to 1 automatically."
+                )
 
     def __iter__(self):
         datastreams = [iter(dataset) for dataset in self.datasets]
@@ -172,9 +175,7 @@ def concat_datasets(datasets):
             # if len(iterable_datasets) > 0:
             # concatenate map-style datasets and iterable-style datasets separately
             if len(iterable_datasets) > 1:
-                chained_datasets = (
-                    ChainDataset(iterable_datasets)
-                )
+                chained_datasets = ChainDataset(iterable_datasets)
             elif len(iterable_datasets) == 1:
                 chained_datasets = iterable_datasets[0]
             else:
@@ -193,4 +194,3 @@ def concat_datasets(datasets):
             datasets[split_name] = train_datasets
 
     return datasets
-

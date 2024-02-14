@@ -8,13 +8,16 @@ from .utils import cosine_similarity
 
 
 class DiffusionAttack(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 step_size: float = 16 / 255 / 10,
-                 criterion: Callable = nn.MSELoss(),
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 10,
+        criterion: Callable = nn.MSELoss(),
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -46,20 +49,27 @@ class DiffusionAttack(AdversarialInputAttacker):
             x += self.step_size * grad.sign()
             x = self.clamp(x, original_x)
         diff = torch.abs(original_x - x)
-        logic = (torch.abs(diff - self.epsilon) < 1 / 255).float() + (x < 1 / 255).float() + ((1 - x) < 1 / 255).float()
+        logic = (
+            (torch.abs(diff - self.epsilon) < 1 / 255).float()
+            + (x < 1 / 255).float()
+            + ((1 - x) < 1 / 255).float()
+        )
         print(torch.sum(torch.clamp(logic, max=1)) / diff.numel())
         print(cosine_similarity(grads))
         return x
 
 
 class UNetAttack(AdversarialInputAttacker):
-    def __init__(self,
-                 model: List[nn.Module],
-                 total_step: int = 10, random_start: bool = False,
-                 step_size: float = 16 / 255 / 10,
-                 criterion: Callable = nn.MSELoss(),
-                 *args, **kwargs
-                 ):
+    def __init__(
+        self,
+        model: List[nn.Module],
+        total_step: int = 10,
+        random_start: bool = False,
+        step_size: float = 16 / 255 / 10,
+        criterion: Callable = nn.MSELoss(),
+        *args,
+        **kwargs
+    ):
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
@@ -82,7 +92,9 @@ class UNetAttack(AdversarialInputAttacker):
             x.requires_grad = True
             model = self.models[0]
             transformed = ((x - 0.5) * 2).expand(max_t * B, *x.shape[1:])  # max_t*B
-            tensor_t = torch.arange(max_t).unsqueeze(1).expand(max_t, B).view(-1).to(x.device)  # max_t*B
+            tensor_t = (
+                torch.arange(max_t).unsqueeze(1).expand(max_t, B).view(-1).to(x.device)
+            )  # max_t*B
             pre = model(transformed, tensor_t)
             loss = torch.norm(pre.view(pre.shape[0], -1), p=2, dim=1).mean()
             print(loss)
@@ -94,7 +106,11 @@ class UNetAttack(AdversarialInputAttacker):
             x += self.step_size * grad.sign()
             x = self.clamp(x, original_x)
         diff = torch.abs(original_x - x)
-        logic = (torch.abs(diff - self.epsilon) < 1 / 255).float() + (x < 1 / 255).float() + ((1 - x) < 1 / 255).float()
+        logic = (
+            (torch.abs(diff - self.epsilon) < 1 / 255).float()
+            + (x < 1 / 255).float()
+            + ((1 - x) < 1 / 255).float()
+        )
         print(torch.sum(torch.clamp(logic, max=1)) / diff.numel())
         print(cosine_similarity(grads))
         return x

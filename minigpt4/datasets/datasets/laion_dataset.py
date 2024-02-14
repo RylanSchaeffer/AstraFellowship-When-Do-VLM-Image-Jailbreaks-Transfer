@@ -28,4 +28,3 @@ class LaionDataset(BaseDataset):
             "image": sample[0],
             "text_input": self.text_processor(sample[1]["caption"]),
         }
-

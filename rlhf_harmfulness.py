@@ -29,7 +29,13 @@ from transformers import (
     RobertaTokenizer,
 )
 
-from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create_reference_model, set_seed
+from trl import (
+    AutoModelForCausalLMWithValueHead,
+    PPOConfig,
+    PPOTrainer,
+    create_reference_model,
+    set_seed,
+)
 from trl.core import LengthSampler
 
 
@@ -66,10 +72,18 @@ class ScriptArguments:
 
     # NOTE: gpt2 models use Conv1D instead of Linear layers which are not yet supported in 8 bit mode
     # models like gpt-neo* models are more suitable.
-    model_name: Optional[str] = field(default="ybelkada/gpt-j-6b-sharded-bf16", metadata={"help": "the model name"})
-    log_with: Optional[str] = field(default=None, metadata={"help": "use 'wandb' to log with wandb"})
-    learning_rate: Optional[float] = field(default=(1.47e-5) * 2, metadata={"help": "the learning rate"})
-    mini_batch_size: Optional[int] = field(default=4, metadata={"help": "the PPO minibatch size"})
+    model_name: Optional[str] = field(
+        default="ybelkada/gpt-j-6b-sharded-bf16", metadata={"help": "the model name"}
+    )
+    log_with: Optional[str] = field(
+        default=None, metadata={"help": "use 'wandb' to log with wandb"}
+    )
+    learning_rate: Optional[float] = field(
+        default=(1.47e-5) * 2, metadata={"help": "the learning rate"}
+    )
+    mini_batch_size: Optional[int] = field(
+        default=4, metadata={"help": "the PPO minibatch size"}
+    )
     batch_size: Optional[int] = field(default=16, metadata={"help": "the batch size"})
     gradient_accumulation_steps: Optional[int] = field(
         default=1, metadata={"help": "the number of gradient accumulation steps"}
@@ -98,7 +112,10 @@ config = PPOConfig(
 # from the `datasets` library. One should customize this function to train the model on
 # its own dataset.
 def build_dataset(
-    config, dataset_name="allenai/real-toxicity-prompts", input_min_text_length=5, input_max_text_length=10
+    config,
+    dataset_name="allenai/real-toxicity-prompts",
+    input_min_text_length=5,
+    input_max_text_length=10,
 ):
     """
     Build dataset for training. This builds the dataset from `load_dataset`, one should
@@ -144,7 +161,11 @@ def build_dataset(
 # We retrieve the dataloader by calling the `build_dataset` function.
 min_input_length = 30
 max_input_length = 40
-dataset = build_dataset(config, input_min_text_length=min_input_length, input_max_text_length=max_input_length)
+dataset = build_dataset(
+    config,
+    input_min_text_length=min_input_length,
+    input_max_text_length=max_input_length,
+)
 
 
 def collator(data):
@@ -156,7 +177,9 @@ set_seed(config.seed)
 
 # Now let's build the model, the reference model, and the tokenizer. We first load the model
 # in bfloat16 to save memory using `transformers`.
-model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16)
+model = AutoModelForCausalLM.from_pretrained(
+    config.model_name, torch_dtype=torch.bfloat16
+)
 # And then we pass the loaded model to `AutoModelForCausalLMWithValueHead`.
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 
@@ -164,7 +187,9 @@ model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 ref_model = create_reference_model(model, num_shared_layers=20)
 
 # We make sure to use `Adam` optimizer on the model parameters that require gradients.
-optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
+optimizer = Adam(
+    filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate
+)
 
 # GPT-2 / GPT-J tokenizer has a pad token, but it is not eos_token by default. We need to set it to eos_token.
 # only for this model.
@@ -187,9 +212,9 @@ ppo_trainer = PPOTrainer(
 toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
 toxicity_tokenizer = RobertaTokenizer.from_pretrained(toxicity_model_id)
 # We load the toxicity model in fp16 to save memory.
-toxicity_model = RobertaForSequenceClassification.from_pretrained(toxicity_model_id, torch_dtype=torch.float16).to(
-    ppo_trainer.accelerator.device
-)
+toxicity_model = RobertaForSequenceClassification.from_pretrained(
+    toxicity_model_id, torch_dtype=torch.float16
+).to(ppo_trainer.accelerator.device)
 
 
 # We then define the arguments to pass to the `generate` function. These arguments
@@ -222,9 +247,9 @@ for epoch, batch in tqdm(enumerate(ppo_trainer.dataloader)):
 
     # Compute sentiment score # noqa
     texts = batch["response"]
-    toxicity_inputs = toxicity_tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(
-        ppo_trainer.accelerator.device
-    )
+    toxicity_inputs = toxicity_tokenizer(
+        texts, padding=True, truncation=True, return_tensors="pt"
+    ).to(ppo_trainer.accelerator.device)
     logits = toxicity_model(**toxicity_inputs).logits.float()
     toxicity_labels = (logits[:, 0]).tolist()
 
