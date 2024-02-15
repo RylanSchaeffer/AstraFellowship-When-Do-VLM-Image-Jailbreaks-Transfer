@@ -3,6 +3,7 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
+  - menpo
   - defaults
 dependencies:
   - python=3.10
@@ -13,3 +14,7 @@ dependencies:
   - pytorch-cuda=12.1
   - sentencepiece
   - protobuf
+  - omegaconf
+  - iopath
+  - opencv
+  - webdataset

@@ -4,3 +4,6 @@
 [submodule "submodules/AdversarialAttacks"]
 	path = submodules/AdversarialAttacks
 	url = git@github.com:huanranchen/AdversarialAttacks.git
+[submodule "submodules/hh-rlhf"]
+	path = submodules/hh-rlhf
+	url = git@github.com:anthropics/hh-rlhf.git
