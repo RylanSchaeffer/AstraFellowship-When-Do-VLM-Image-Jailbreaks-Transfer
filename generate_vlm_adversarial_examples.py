@@ -53,6 +53,15 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     else:
         raise ValueError("Invalid target_text: {}".format(wandb_config["target_text"]))
 
+    wandb.log(
+        {
+            "text": wandb.Table(
+                columns=["prompt text", "target text"],
+                data=[[prompt_text, target_text]],  # TODO: Generalize this to many.
+            )
+        }
+    )
+
     models_list = []
     for model_str in wandb_config["models_to_attack"]:
         if model_str == "blip2":
@@ -74,13 +83,20 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         else:
             raise ValueError("Invalid model_str: {}".format(model_str))
 
-    attacker = SSA_CommonWeakness(
-        models_list=models_list,
-        epsilon=16 / 255,
-        step_size=1 / 255,
-        total_step=500,
-        criterion=GPT4AttackCriterion(),
-    )
+    if wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
+        attacker = SSA_CommonWeakness(
+            models_list=models_list,
+            epsilon=wandb_config["attack_kwargs"]["epsilon"],
+            step_size=wandb_config["attack_kwargs"]["step_size"],
+            total_step=wandb_config["attack_kwargs"]["total_steps"],
+            criterion=GPT4AttackCriterion(),
+        )
+    else:
+        raise ValueError(
+            "Invalid attack_name: {}".format(
+                wandb_config["attack_kwargs"]["attack_name"]
+            )
+        )
 
     id = 0
     attacks_dir = os.path.join(wandb_config["wandb_run_dir"], "attacks")
@@ -90,8 +106,11 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
             break
         x = x.cuda()
         adv_x = attacker(x, None)
-        save_multi_images(adv_x, dir, begin_id=id)
+        save_multi_images(adv_x, attacks_dir, begin_id=id)
         id += x.shape[0]
+        wandb.log(
+            {"adversarial_examples": wandb.Image(adv_x, caption="Adversarial Example")}
+        )
 
 
 if __name__ == "__main__":
