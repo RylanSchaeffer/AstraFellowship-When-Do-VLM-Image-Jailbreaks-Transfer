@@ -6,7 +6,7 @@ default_config = {
         "total_steps": 500,
     },
     "image_initialization": "NIPS17",
-    "models_to_attack": "['blip2']",
+    "models_to_attack": "['blip2-opt-2.7b']",
     "models_to_test": "None",
     "prompts_and_targets": "advbench",
     "seed": 0,

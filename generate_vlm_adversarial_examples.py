@@ -9,7 +9,6 @@ from torchvision import transforms
 import wandb
 from typing import Any
 
-from src.attacks import SSA_CommonWeakness
 from src.globals import default_config
 from src.image_handling import save_multi_images, get_list_image
 import src.utils
@@ -31,16 +30,6 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
             )
         )
 
-    class GPT4AttackCriterion:
-        def __init__(self):
-            self.count = 0
-
-        def __call__(self, loss, *args):
-            self.count += 1
-            if self.count % 120 == 0:
-                print(loss)
-            return -loss
-
     prompts, targets = src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]
     )
@@ -49,48 +38,18 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         {
             "text": wandb.Table(
                 columns=["prompt text", "target text"],
-                data=[
-                    [prompt, target] for prompt, target in zip(prompts, targets)
-                ],  # TODO: Generalize this to many.
+                data=[[prompt, target] for prompt, target in zip(prompts, targets)],
             )
         }
     )
 
-    models_list = []
-    for model_str in wandb_config["models_to_attack"]:
-        if model_str == "blip2":
-            from src.models.blip2 import Blip2VisionModel
+    models_list = src.utils.instantiate_models(
+        wandb_config=wandb_config, prompts=prompts, targets=targets
+    )
 
-            models_list.append(
-                Blip2VisionModel(prompt=prompt_text, target_text=target_text)
-            )
-        elif model_str == "instruct_blip":
-            from src.models.instruct_blip import InstructBlipVisionModel
-
-            models_list.append(
-                InstructBlipVisionModel(prompt=prompt_text, target_text=target_text)
-            )
-        elif model_str == "gpt4":
-            from src.models.minigpt4 import get_gpt4_image_model
-
-            models_list.append(get_gpt4_image_model(target_text=target_text))
-        else:
-            raise ValueError("Invalid model_str: {}".format(model_str))
-
-    if wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
-        attacker = SSA_CommonWeakness(
-            models_list=models_list,
-            epsilon=wandb_config["attack_kwargs"]["epsilon"],
-            step_size=wandb_config["attack_kwargs"]["step_size"],
-            total_step=wandb_config["attack_kwargs"]["total_steps"],
-            criterion=GPT4AttackCriterion(),
-        )
-    else:
-        raise ValueError(
-            "Invalid attack_name: {}".format(
-                wandb_config["attack_kwargs"]["attack_name"]
-            )
-        )
+    attacker = src.utils.create_attacker(
+        wandb_config=wandb_config, models_list=models_list
+    )
 
     id = 0
     attacks_dir = os.path.join(wandb_config["wandb_run_dir"], "attacks")

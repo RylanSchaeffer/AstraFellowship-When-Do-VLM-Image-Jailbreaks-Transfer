@@ -25,24 +25,24 @@ __all__ = ["Blip2VisionModel", "Blip2PredictModel"]
 class Blip2VisionModel(nn.Module):
     def __init__(
         self,
-        prompt="Question: describe the image. Answer:",
-        target_text="bomb bomb",
+        prompts="Question: describe the image. Answer:",
+        targets_="bomb bomb",
+        huggingface_name: str = "Salesforce/blip2-opt-2.7b",
     ):
         super(Blip2VisionModel, self).__init__()
+        self.huggingface_name = huggingface_name
         self.normalizer = transforms.Compose(
             [
                 transforms.Resize((224, 224)),
                 transforms.Normalize(mean=OPENAI_CLIP_MEAN, std=OPENAI_CLIP_STD),
             ]
         )
-        self.processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
-        self.model = Blip2Model.from_pretrained("Salesforce/blip2-opt-2.7b")
+        self.processor = Blip2Processor.from_pretrained(huggingface_name)
+        self.model = Blip2Model.from_pretrained(huggingface_name)
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
-        self.labels = torch.tensor(self.processor(text=target_text).input_ids).view(
-            1, -1
-        )
-        self.prompt = torch.tensor(self.processor(text=prompt).input_ids).view(1, -1)
+        self.labels = torch.tensor(self.processor(text=targets_).input_ids).view(1, -1)
+        self.prompt = torch.tensor(self.processor(text=prompts).input_ids).view(1, -1)
 
     def forward(self, x):
         x = torch.clamp(x, min=0, max=1)

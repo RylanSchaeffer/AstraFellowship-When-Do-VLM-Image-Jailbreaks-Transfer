@@ -24,10 +24,12 @@ __all__ = ["InstructBlipVisionModel", "InstructBlipPredictModel"]
 class InstructBlipVisionModel(nn.Module):
     def __init__(
         self,
-        prompt="Question: describe the image. Answer:",
-        target_text="bomb bomb",
+        prompts="Question: describe the image. Answer:",
+        targets="bomb bomb",
+        huggingface_name: str = "Salesforce/instructblip-vicuna-7b",
     ):
         super(InstructBlipVisionModel, self).__init__()
+        self.huggingface_name = huggingface_name
         self.normalizer = transforms.Compose(
             [
                 transforms.Resize((224, 224)),
@@ -35,17 +37,15 @@ class InstructBlipVisionModel(nn.Module):
             ]
         )
         self.processor = InstructBlipProcessor.from_pretrained(
-            "Salesforce/instructblip-vicuna-7b"
+            huggingface_name=huggingface_name,
         )
         self.model = InstructBlipForConditionalGeneration.from_pretrained(
-            "Salesforce/instructblip-vicuna-7b"
+            huggingface_name=huggingface_name,
         )
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
-        self.labels = torch.tensor(self.processor(text=target_text).input_ids).view(
-            1, -1
-        )
-        self.prompt = torch.tensor(self.processor(text=prompt).input_ids).view(1, -1)
+        self.labels = torch.tensor(self.processor(text=targets).input_ids).view(1, -1)
+        self.prompt = torch.tensor(self.processor(text=prompts).input_ids).view(1, -1)
 
     def forward(self, x):
         x = torch.clamp(x, min=0, max=1)
