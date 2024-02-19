@@ -4,8 +4,7 @@ from diffusers.pipelines.stable_diffusion.safety_checker import (
 )
 from PIL import Image
 import numpy as np
-from utils.ImageHandling import get_image, save_image
-
+from src.image_handling import get_image
 
 safety_model_id = "CompVis/stable-diffusion-safety-checker"
 safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)

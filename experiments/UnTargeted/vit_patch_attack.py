@@ -1,8 +1,8 @@
 from models.BaseNormModel import FixPositionPatchModel, BaseNormModel
 from torchvision.models import vit_b_16
-from attacks import MI_FGSM
+from src.attacks import MI_FGSM
 from data import get_NIPS17_loader
-from utils.ImageHandling import save_image
+from src.image_handling import save_image
 
 loader = get_NIPS17_loader(batch_size=1)
 model = FixPositionPatchModel(BaseNormModel(vit_b_16(pretrained=True)))

@@ -13,7 +13,8 @@ model:
   num_query_token: 32
 
   # Vicuna
-  llama_model: "/workspace/home/chenhuanran2022/work/MiniGPT-4/vicuna_weights/"
+  #  llama_model: "/workspace/home/chenhuanran2022/work/MiniGPT-4/vicuna_weights/"
+  llama_model: "Vision-CAIR/vicuna-7b"
 
   # generation configs
   prompt: ""

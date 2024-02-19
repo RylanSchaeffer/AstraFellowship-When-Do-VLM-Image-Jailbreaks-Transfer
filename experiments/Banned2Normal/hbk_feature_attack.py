@@ -1,6 +1,5 @@
 import torch
 import os
-from data import get_NIPS17_loader
 from experiments.bard.FeatureExtractors import (
     BlipFeatureExtractor,
     ClipFeatureExtractor,
@@ -8,7 +7,7 @@ from experiments.bard.FeatureExtractors import (
     VisionTransformerFeatureExtractor,
 )
 from utils import save_image, get_list_image
-from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
+from src.attacks import SSA_CommonWeakness
 from tqdm import tqdm
 from torchvision import transforms
 

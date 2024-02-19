@@ -16,19 +16,33 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 ![image](https://github.com/thu-ml/Attack-Bard/blob/main/dataset/demos/VQA.png)
 
 
+## Setup
 
+1. (Optional) Update conda:
 
-## Getting Started
+`conda update -n base -c defaults conda`
 
----
+2. Create a conda environment with the required packages:
 
-### Installation
+`conda env create --file environment.yml`
+
+3. Activate the environment:
+
+`conda activate universal_vlm_jailbreak_env`
+
+4. Update pip in preparation of the next step.
+
+`pip install --upgrade pip`
+
+5. Manually install a few additional packages using pip that aren't/weren't available via conda:
+
+`pip install joblib`
+
+6. Make sure to log in to W&B by running `wandb login`.
+
 
 The installation of this project is extremely easy. You only need to:
 
-- Configurate the environment, vicuna weights, following the instruction in https://github.com/Vision-CAIR/MiniGPT-4    
-
-and run the following codes
 
 - Image embedding attack against Bard's image description. You can also use this code to attack NSFW detectors by changing the training data.
 ```

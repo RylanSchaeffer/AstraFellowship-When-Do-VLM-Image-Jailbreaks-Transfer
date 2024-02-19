@@ -6,8 +6,8 @@ from experiments.bard.FeatureExtractors import (
     ClipFeatureExtractor,
     EnsembleFeatureLoss,
 )
-from utils import save_image, show_image
-from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
+from utils import save_image
+from src.attacks import SSA_CommonWeakness
 from tqdm import tqdm
 
 loader = get_NIPS17_loader(batch_size=1)

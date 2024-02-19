@@ -3,10 +3,9 @@ import os
 from data import get_NIPS17_loader
 from experiments.bard.FeatureExtractors import (
     BlipFeatureExtractor,
-    ClipFeatureExtractor,
 )
-from utils import save_image, show_image
-from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
+from utils import save_image
+from src.attacks import SpectrumSimulationAttack
 from torch import nn
 
 loader = get_NIPS17_loader(batch_size=1)

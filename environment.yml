@@ -1,4 +1,4 @@
-name: image_dan_vlm_env
+name: universal_vlm_jailbreak_env
 channels:
   - pytorch
   - nvidia

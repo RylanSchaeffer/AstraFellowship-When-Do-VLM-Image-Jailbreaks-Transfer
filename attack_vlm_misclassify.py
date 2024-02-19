@@ -1,11 +1,25 @@
-from tqdm import tqdm
-from surrogates import get_gpt4_image_model, Blip2VisionModel, InstructBlipVisionModel
-from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
-from utils.ImageHandling import save_multi_images, save_image, get_list_image
-from torchvision import transforms
+import ast
 import os
+from tqdm import tqdm
+from torchvision import transforms
+import wandb
 
-images = get_list_image("./dataset/NIPS17")
+# from surrogates import get_gpt4_image_model, Blip2VisionModel, InstructBlipVisionModel
+from src.attacks import SSA_CommonWeakness
+from src.globals import default_config
+from src.image_handling import save_multi_images, get_list_image
+from src.utils import retrieve_wandb_username
+
+
+wandb_username = src.utils.retrieve_wandb_username()
+run = wandb.init(
+    project="maximum-manifold-capacity-representations",
+    config=default_config,
+    entity=wandb_username,
+)
+wandb_config = dict(wandb.config)
+
+images = get_list_image("src/dataset/NIPS17")
 resizer = transforms.Resize((224, 224))
 images = [resizer(i).unsqueeze(0) for i in images]
 
@@ -54,3 +68,4 @@ for i, x in enumerate(tqdm(images)):
     adv_x = attacker(x, None)
     save_multi_images(adv_x, dir, begin_id=id)
     id += x.shape[0]
+

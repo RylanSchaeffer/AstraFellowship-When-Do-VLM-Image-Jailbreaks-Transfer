@@ -1,3 +1,4 @@
+# I think this config is adapted from https://github.com/Vision-CAIR/MiniGPT-4/blob/main/eval_configs/minigpt4_eval.yaml.
 model:
   arch: mini_gpt4
   model_type: pretrain_vicuna
@@ -8,8 +9,8 @@ model:
   low_resource: False
   prompt_path: "prompts/alignment.txt"
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: "/workspace/home/chenhuanran2022/work/MiniGPT-4/vicuna_weights/prerained_minigpt4_7b.pth"
-
+#  ckpt: "/workspace/home/chenhuanran2022/work/MiniGPT-4/vicuna_weights/prerained_minigpt4_7b.pth"
+  ckpt: "/lfs/skampere1/0/rschaef/PerezAstraFellowship-Image-DAN-VLM-Attack/checkpoints/prerained_minigpt4_7b.pth"
 
 datasets:
   cc_sbu_align:

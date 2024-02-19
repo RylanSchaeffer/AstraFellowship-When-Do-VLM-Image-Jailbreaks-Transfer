@@ -8,7 +8,7 @@ from experiments.bard.FeatureExtractors import (
     VisionTransformerFeatureExtractor,
 )
 from utils import save_image
-from attacks import SpectrumSimulationAttack, SSA_CommonWeakness
+from src.attacks import SSA_CommonWeakness
 from tqdm import tqdm
 
 # from optimizer.losses import UnNormalizedSimpleCKA

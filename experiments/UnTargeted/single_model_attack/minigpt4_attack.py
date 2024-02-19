@@ -1,7 +1,7 @@
 from data import get_NIPS17_loader
 from surrogates import get_gpt4_image_model
-from attacks import SpectrumSimulationAttack
-from utils.ImageHandling import save_multi_images
+from src.attacks import SpectrumSimulationAttack
+from src.image_handling import save_multi_images
 
 loader = get_NIPS17_loader(batch_size=4)
 
