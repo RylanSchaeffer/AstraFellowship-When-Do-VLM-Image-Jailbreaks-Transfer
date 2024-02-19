@@ -109,7 +109,10 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         save_multi_images(adv_x, attacks_dir, begin_id=id)
         id += x.shape[0]
         wandb.log(
-            {"adversarial_examples": wandb.Image(adv_x, caption="Adversarial Example")}
+            {
+                "original_image": wandb.Image(x, caption="Original Image"),
+                "adversarial_image": wandb.Image(adv_x, caption="Adversarial Image"),
+            }
         )
 
 

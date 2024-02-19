@@ -2,7 +2,7 @@
 reference:
 https://github.com/yuyang-long/SSA
 """
-
+import numpy as np
 import os
 from torch.autograd import Variable as V
 from torchvision import transforms as T
