@@ -4,9 +4,12 @@ https://github.com/yuyang-long/SSA
 """
 import numpy as np
 import os
+
+import torch
 from torch.autograd import Variable as V
 from torchvision import transforms as T
 from PIL import Image
+from typing import Dict, Tuple
 
 
 def dct1(x):
@@ -327,6 +330,8 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         self.reverse_step_size = reverse_step_size
         super(SSA_CommonWeakness, self).__init__(models_list, *args, **kwargs)
         self.inner_step_size = inner_step_size
+        self.grad_record = None
+        self.loss_record = None
 
     def perturb(self, x):
         x = x + (torch.rand_like(x) - 0.5) * 2 * self.epsilon
@@ -337,7 +342,7 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         self,
         x,
         y,
-    ):
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         N = x.shape[0]
         original_x = x.clone()
         inner_momentum = torch.zeros_like(x)
@@ -345,7 +350,10 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         if self.random_start:
             x = self.perturb(x)
 
-        for _ in tqdm(range(self.total_step)):
+        losses_history = torch.full(
+            size=(self.total_step, len(self.models)), fill_value=float("inf")
+        )
+        for step_idx in tqdm(range(self.total_step)):
             # # --------------------------------------------------------------------------------#
             # # first step
             # self.begin_attack(x.clone().detach())
@@ -366,9 +374,11 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
             # # second step
             x.grad = None
             self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model_idx, model in enumerate(self.models):
                 x.requires_grad = True
-                grad = self.get_grad(x, y, model)
+                loss_and_grad_results = self.compute_loss_and_grad(x, y, model)
+                losses_history[step_idx, model_idx] = loss_and_grad_results["loss"]
+                grad = loss_and_grad_results["noise"]
                 self.grad_record.append(grad)
                 x.requires_grad = False
                 # update
@@ -388,7 +398,7 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
                 x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
             x = self.end_attack(x)
             x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
-        return x
+        return x, losses_history
 
     @torch.no_grad()
     def begin_attack(self, origin: torch.tensor):
@@ -425,9 +435,8 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         del self.original
         return patch
 
-    def get_grad(self, x, y, model):
+    def compute_loss_and_grad(self, x, y, model, N: int = 20) -> Dict[str, float]:
         rho = 0.5
-        N = 20
         sigma = 16
         noise = 0
         for n in range(N):
@@ -445,4 +454,6 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
             noise += x_idct.grad.data
             x.grad = None
         noise = noise / N
-        return noise
+        results = {"loss": loss.item(), "noise": noise}
+
+        return results

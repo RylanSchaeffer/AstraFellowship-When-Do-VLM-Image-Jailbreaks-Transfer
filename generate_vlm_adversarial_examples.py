@@ -1,5 +1,6 @@
 import ast
 import json
+import matplotlib.pyplot as plt
 import os
 import pprint
 from tqdm import tqdm
@@ -105,13 +106,26 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         if i >= 200:
             break
         x = x.cuda()
-        adv_x = attacker(x, None)
+        adv_x, losses_history = attacker(x, None)
         save_multi_images(adv_x, attacks_dir, begin_id=id)
         id += x.shape[0]
+
+        plt.close()
+        for model_idx in range(len(models_list)):
+            plt.plot(
+                list(range(len(losses_history))),
+                losses_history[:, model_idx],
+                label=wandb_config["models_to_attack"][model_idx],
+            )
+        plt.xlabel("Step")
+        plt.ylabel("Loss")
+        plt.legend()
+
         wandb.log(
             {
                 "original_image": wandb.Image(x, caption="Original Image"),
                 "adversarial_image": wandb.Image(adv_x, caption="Adversarial Image"),
+                "loss_curve": wandb.Image(plt),
             }
         )
 

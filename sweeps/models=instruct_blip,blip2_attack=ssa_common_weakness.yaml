@@ -1,0 +1,32 @@
+program: generate_vlm_adversarial_examples.py
+project: universal-vlm-jailbreak
+method: grid
+parameters:
+  attack_kwargs:
+    parameters:
+      attack_name:
+        values: ["ssa_common_weakness"]
+      epsilon:
+        values: [16. / 255.]
+      step_size:
+        values: [1.0 / 255.]
+      total_steps:
+        values: [500]
+  image_initialization:
+    values:
+      ["NIPS17"]
+  models_to_attack:
+    values:
+      ["['instruct_blip','blip2']"]
+  models_to_test:
+    values:
+      ["None"]
+  prompt_text:
+    values:
+      ["robust_bard"]
+  target_text:
+    values:
+      ["None"]
+  seed:
+    values:
+      [0, 1, 2]

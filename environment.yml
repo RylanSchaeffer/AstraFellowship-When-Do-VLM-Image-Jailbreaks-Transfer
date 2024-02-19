@@ -20,5 +20,8 @@ dependencies:
   - webdataset
   - scipy
   - timm
+  - matplotlib
+  - seaborn
+  - plotly
   - pip:
     - decord
