@@ -25,3 +25,4 @@ dependencies:
   - plotly
   - pip:
     - decord
+    - nvidia-htop
