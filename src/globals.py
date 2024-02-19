@@ -1,5 +1,8 @@
 default_config = {
-    "models_to_attack": "[instruct_blip,blip2,minigpt4]",
-    "models_to_test": [""]
-    "prompts": ""
+    "image_initialization": "NIPS17",
+    "models_to_attack": "['instruct_blip','blip2']",
+    "models_to_test": "['minigpt4']",
+    "prompt_text": "robust_bard",
+    "target_text": "robust_bard",
+    "seed": 0,
 }

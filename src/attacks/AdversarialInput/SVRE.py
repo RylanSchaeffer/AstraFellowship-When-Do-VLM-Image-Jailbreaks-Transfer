@@ -1,6 +1,9 @@
-from src.attacks.utils import *
 from torch import nn
 from torch import Tensor
+from typing import List, Callable
+
+from src.attacks.utils import *
+from .AdversarialInputBase import AdversarialInputAttacker
 
 
 class MI_SVRE(AdversarialInputAttacker):

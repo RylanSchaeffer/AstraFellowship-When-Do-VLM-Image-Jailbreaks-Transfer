@@ -1,10 +1,13 @@
-from src.attacks.utils import *
-from .utils import cosine_similarity
-from torch import nn
-import random
-from torchvision import transforms
 import numpy as np
+import random
 from scipy import stats as st
+from torch import nn
+from torchvision import transforms
+from typing import Callable, List
+
+from src.attacks.utils import *
+from .AdversarialInputBase import AdversarialInputAttacker
+from .utils import cosine_similarity
 
 
 class MI_CosineSimilarityEncourager(AdversarialInputAttacker):

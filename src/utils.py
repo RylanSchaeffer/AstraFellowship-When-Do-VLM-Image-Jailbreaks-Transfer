@@ -4,12 +4,9 @@ import random
 import torch
 
 
-
 def retrieve_wandb_username() -> str:
     system_username = getpass.getuser()
-    if system_username == "aunell":
-        wandb_username = "aunell"
-    elif system_username == "rschaef":
+    if system_username == "rschaef":
         wandb_username = "rylan"
     else:
         raise ValueError(f"Unknown system username: {system_username}")

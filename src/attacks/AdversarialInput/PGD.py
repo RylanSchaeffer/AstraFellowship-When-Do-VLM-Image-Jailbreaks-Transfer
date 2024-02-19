@@ -3,6 +3,9 @@ PGD: Projected Gradient Descent
 """
 
 from torch import Tensor
+import torch.nn as nn
+from typing import List, Callable
+
 from src.attacks.utils import *
 from .AdversarialInputBase import AdversarialInputAttacker
 

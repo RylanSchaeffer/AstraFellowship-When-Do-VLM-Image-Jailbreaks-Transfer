@@ -215,10 +215,12 @@ def save_image(images, names, output_dir):
         img.save(output_dir + name)
 
 
-from src.attacks.utils import *
 from torch import nn
 from typing import Callable, List
 from tqdm import tqdm
+
+from src.attacks.utils import *
+from .AdversarialInputBase import AdversarialInputAttacker
 
 
 class SpectrumSimulationAttack(AdversarialInputAttacker):
@@ -302,7 +304,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
 class SSA_CommonWeakness(AdversarialInputAttacker):
     def __init__(
         self,
-        model: List[nn.Module],
+        models_list: List[nn.Module],
         total_step: int = 10,
         random_start: bool = False,
         step_size: float = 16 / 255 / 5,
@@ -323,7 +325,7 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         self.mu = mu
         self.outer_optimizer = outer_optimizer
         self.reverse_step_size = reverse_step_size
-        super(SSA_CommonWeakness, self).__init__(model, *args, **kwargs)
+        super(SSA_CommonWeakness, self).__init__(models_list, *args, **kwargs)
         self.inner_step_size = inner_step_size
 
     def perturb(self, x):

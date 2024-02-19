@@ -18,3 +18,7 @@ dependencies:
   - iopath
   - opencv
   - webdataset
+  - scipy
+  - timm
+  - pip:
+    - decord
