@@ -2,8 +2,8 @@ import ast
 import json
 import matplotlib.pyplot as plt
 import os
-import pandas as pd
 import pprint
+import torch
 from tqdm import tqdm
 from torchvision import transforms
 import wandb
@@ -20,7 +20,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     if wandb_config["image_initialization"] == "NIPS17":
         images = get_list_image("src/dataset/NIPS17")
         resizer = transforms.Resize((224, 224))
-        images = [resizer(i).unsqueeze(0) for i in images]
+        images = [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
     # elif wandb_config["image_initialization"] == "random":
     #     images = torch.rand((1, 3, 224, 224))
     else:
@@ -33,6 +33,8 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     prompts, targets = src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]
     )
+    prompts = prompts[:wandb_config["n_samples"]]
+    targets = targets[:wandb_config["n_samples"]]
 
     wandb.log(
         {

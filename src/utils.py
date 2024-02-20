@@ -60,7 +60,7 @@ def instantiate_models(
 
             model = Blip2VisionModel(
                 prompts=prompts,
-                targets_=targets,
+                targets=targets,
                 huggingface_name=huggingface_name,
             )
 
@@ -81,7 +81,8 @@ def instantiate_models(
                 huggingface_name=huggingface_name,
             )
 
-        elif model_str == "gpt4":
+        # Load MiniGPT4 model.
+        elif model_str.startswith("gpt4"):
             from src.models.minigpt4 import get_gpt4_image_model
 
             model = get_gpt4_image_model(targets=targets)

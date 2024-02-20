@@ -1,12 +1,14 @@
+import os
 import torch
+from torch import nn
+from torchvision import transforms
 from transformers import (
     Blip2Processor,
     Blip2Model,
     Blip2ForConditionalGeneration,
 )
-from torchvision import transforms
-from torch import nn
-import os
+from typing import List
+
 from src.image_handling import show_image
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -25,8 +27,8 @@ __all__ = ["Blip2VisionModel", "Blip2PredictModel"]
 class Blip2VisionModel(nn.Module):
     def __init__(
         self,
-        prompts="Question: describe the image. Answer:",
-        targets_="bomb bomb",
+        prompts: List[str] = ["Question: describe the image. Answer:"],
+        targets: List[str] = ["bomb bomb"],
         huggingface_name: str = "Salesforce/blip2-opt-2.7b",
     ):
         super(Blip2VisionModel, self).__init__()
@@ -37,20 +39,32 @@ class Blip2VisionModel(nn.Module):
                 transforms.Normalize(mean=OPENAI_CLIP_MEAN, std=OPENAI_CLIP_STD),
             ]
         )
-        self.processor = Blip2Processor.from_pretrained(huggingface_name)
-        self.model = Blip2Model.from_pretrained(huggingface_name)
+        self.processor = Blip2Processor.from_pretrained(
+            huggingface_name,
+        )
+        self.model = Blip2Model.from_pretrained(
+            huggingface_name, device_map="auto", torch_dtype=torch.float16
+        )
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
-        self.labels = torch.tensor(self.processor(text=targets_).input_ids).view(1, -1)
-        self.prompt = torch.tensor(self.processor(text=prompts).input_ids).view(1, -1)
+        assert len(prompts) == len(targets)
+        self.batch_size = len(prompts)
+        self.targets_batch_encoding = self.processor(
+            text=targets, return_tensors="pt", padding=True, truncation=True
+        )
+        # self.targets_input_ids = torch.tensor(self.processor(text=targets).input_ids)
+        self.prompts_batch_encoding = self.processor(
+            text=prompts, return_tensors="pt", padding=True, truncation=True
+        )
 
     def forward(self, x):
-        x = torch.clamp(x, min=0, max=1)
-        batch_size = x.shape[0]
-        inputs = dict(pixel_values=self.normalizer(x).to(self.device))
+        x = self.normalizer(torch.clamp(x, min=0, max=1)).repeat(
+            self.batch_size, 1, 1, 1
+        )
+        inputs = dict(pixel_values=x.to(self.device))
         # inputs["input_ids"] = self.prompt.repeat(batch_size, 1)
-        inputs["input_ids"] = self.labels.repeat(batch_size, 1).to(self.device)
-        inputs["labels"] = self.labels.repeat(batch_size, 1).to(self.device)
+        inputs["input_ids"] = self.targets_batch_encoding.input_ids.to(self.device)
+        inputs["labels"] = self.targets_batch_encoding.input_ids.to(self.device)
         outputs = self.model(**inputs)
         return outputs.loss
 
