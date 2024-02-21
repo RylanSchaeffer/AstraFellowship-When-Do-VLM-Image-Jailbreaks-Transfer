@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 from src.attacks import AdversarialInputAttacker, SSA_CommonWeakness
 from src.models.blip2 import Blip2VisionLanguageModel
-from src.models.instruct_blip import InstructBlipVisionModel
+from src.models.instructblip import InstructBlipVisionModel
 
 
 class GPT4AttackCriterion:

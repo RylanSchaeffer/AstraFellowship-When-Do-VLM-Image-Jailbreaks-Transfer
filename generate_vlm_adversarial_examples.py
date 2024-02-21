@@ -51,12 +51,12 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         targets=targets,
         split="train",
     )
-    models_to_eval_list = src.utils.instantiate_models(
-        model_strs=wandb_config["models_to_test"],
-        prompts=prompts,
-        targets=targets,
-        split="eval",
-    )
+    # models_to_eval_list = src.utils.instantiate_models(
+    #     model_strs=wandb_config["models_to_eval"],
+    #     prompts=prompts,
+    #     targets=targets,
+    #     split="eval",
+    # )
 
     attacker = src.utils.create_attacker(
         wandb_config=wandb_config, models_list=models_to_attack_list
