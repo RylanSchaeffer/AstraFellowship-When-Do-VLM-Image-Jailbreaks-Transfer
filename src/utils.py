@@ -43,10 +43,10 @@ def create_attacker(
 
 
 def instantiate_models(
-    wandb_config: Dict[str, Any], prompts: List[str], targets: List[str]
+    model_strs: List[str], prompts: List[str], targets: List[str], split: str = "train"
 ) -> List[torch.nn.Module]:
     models_list = []
-    for model_str in wandb_config["models_to_attack"]:
+    for model_str in model_strs:
         # Load BLIP2 models.
         if model_str.startswith("blip2"):
             if model_str.endswith("flan-t5-xxl"):
@@ -62,6 +62,7 @@ def instantiate_models(
                 prompts=prompts,
                 targets=targets,
                 huggingface_name=huggingface_name,
+                split=split,
             )
 
         # Load Instruct BLIP models.
@@ -79,6 +80,7 @@ def instantiate_models(
                 prompts=prompts,
                 targets=targets,
                 huggingface_name=huggingface_name,
+                split=split,
             )
 
         # Load MiniGPT4 model.
@@ -90,6 +92,7 @@ def instantiate_models(
             raise ValueError("Invalid model_str: {}".format(model_str))
 
         models_list.append(model)
+
     return models_list
 
 

@@ -30,6 +30,7 @@ class Blip2VisionLanguageModel(nn.Module):
         prompts: List[str] = ["Question: describe the image. Answer:"],
         targets: List[str] = ["bomb bomb"],
         huggingface_name: str = "Salesforce/blip2-opt-2.7b",
+        split: str = "train",
     ):
         super(Blip2VisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
@@ -42,9 +43,17 @@ class Blip2VisionLanguageModel(nn.Module):
         self.processor = Blip2Processor.from_pretrained(
             huggingface_name,
         )
-        self.model = Blip2Model.from_pretrained(
-            huggingface_name, device_map="auto", torch_dtype=torch.float16
-        )
+        self.split = split
+        if self.split == "train":
+            self.model = Blip2Model.from_pretrained(
+                huggingface_name, device_map="auto", torch_dtype=torch.float16
+            )
+        elif self.split == "eval":
+            self.model = Blip2ForConditionalGeneration.from_pretrained(
+                huggingface_name, device_map="auto", torch_dtype=torch.float16
+            )
+        else:
+            raise ValueError("Invalid split: {}".format(split))
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
         assert len(prompts) == len(targets)
@@ -74,7 +83,7 @@ class Blip2VisionLanguageModel(nn.Module):
         ]
         self.ce_loss_fn = torch.nn.CrossEntropyLoss(reduce=False)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.normalizer(torch.clamp(x, min=0.0, max=1.0)).repeat(
             self.batch_size, 1, 1, 1
         )
@@ -90,6 +99,20 @@ class Blip2VisionLanguageModel(nn.Module):
             inputs["labels"][batch_idx, :prompt_len] = -100
         outputs = self.model(**inputs)
         return outputs.loss
+
+    def generate(self, x: torch.Tensor) -> List[str]:
+        x = torch.clamp(x, min=0.0, max=1.0)
+        x = x.repeat(self.batch_size, 1, 1, 1)
+        inputs = self.processor(
+            images=x,
+            text=self.prompts_then_targets,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        ).to(self.device)
+        generated_ids = self.model.generate(**inputs)
+        text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
+        return text
 
 
 class Blip2PredictModel(nn.Module):

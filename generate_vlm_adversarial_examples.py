@@ -45,12 +45,21 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         }
     )
 
-    models_list = src.utils.instantiate_models(
-        wandb_config=wandb_config, prompts=prompts, targets=targets
+    models_to_attack_list = src.utils.instantiate_models(
+        model_strs=wandb_config["models_to_attack"],
+        prompts=prompts,
+        targets=targets,
+        split="train",
+    )
+    models_to_eval_list = src.utils.instantiate_models(
+        model_strs=wandb_config["models_to_test"],
+        prompts=prompts,
+        targets=targets,
+        split="eval",
     )
 
     attacker = src.utils.create_attacker(
-        wandb_config=wandb_config, models_list=models_list
+        wandb_config=wandb_config, models_list=models_to_attack_list
     )
 
     id = 0
@@ -65,7 +74,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         id += x.shape[0]
 
         plt.close()
-        for model_idx in range(len(models_list)):
+        for model_idx in range(len(models_to_attack_list)):
             plt.plot(
                 list(range(len(losses_history))),
                 losses_history[:, model_idx],

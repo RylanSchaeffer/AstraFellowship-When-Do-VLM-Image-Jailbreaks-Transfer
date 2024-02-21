@@ -27,6 +27,7 @@ class InstructBlipVisionModel(nn.Module):
         prompts="Question: describe the image. Answer:",
         targets="bomb bomb",
         huggingface_name: str = "Salesforce/instructblip-vicuna-7b",
+        split: str = "train",
     ):
         super(InstructBlipVisionModel, self).__init__()
         self.huggingface_name = huggingface_name
@@ -39,9 +40,15 @@ class InstructBlipVisionModel(nn.Module):
         self.processor = InstructBlipProcessor.from_pretrained(
             huggingface_name=huggingface_name,
         )
-        self.model = InstructBlipForConditionalGeneration.from_pretrained(
-            huggingface_name=huggingface_name,
-        )
+        self.split = split
+        if split in {"train", "eval"}:
+            self.model = InstructBlipForConditionalGeneration.from_pretrained(
+                huggingface_name=huggingface_name,
+                device_map="auto",
+                torch_dtype=torch.float16,
+            )
+        else:
+            raise ValueError("Invalid split: {}".format(split))
         self.device = torch.device("cuda")
         self.eval().requires_grad_(False)
         self.labels = torch.tensor(self.processor(text=targets).input_ids).view(1, -1)
