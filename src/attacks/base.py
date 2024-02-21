@@ -68,6 +68,8 @@ class AdversarialInputAttacker:
                 }
             )
 
+            print(f"Adversarial image {image_idx+1} optimized.")
+
     def disable_model_gradients(self):
         # set the model parameters requires_grad is False
         for wrapper_model in self.models_to_eval_dict.values():

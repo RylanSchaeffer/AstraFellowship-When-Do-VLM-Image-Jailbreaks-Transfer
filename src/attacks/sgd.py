@@ -14,7 +14,7 @@ class SGDAttack(AdversarialInputAttacker):
     def __init__(
         self,
         models_to_attack_dict: Dict[str, nn.Module],
-        total_step: int = 10,
+        total_steps: int = 10,
         random_start: bool = False,
         step_size: float = 0.1,
         criterion: Callable = nn.CrossEntropyLoss(),
@@ -23,7 +23,7 @@ class SGDAttack(AdversarialInputAttacker):
         **kwargs,
     ):
         self.random_start = random_start
-        self.total_step = total_step
+        self.total_steps = total_steps
         self.step_size = step_size
         self.criterion = criterion
         self.targerted_attack = targeted_attack
@@ -48,10 +48,10 @@ class SGDAttack(AdversarialInputAttacker):
             image = self.perturb(image)
 
         losses_history = torch.full(
-            size=(self.total_step, len(self.models_to_attack_dict)),
+            size=(self.total_steps, len(self.models_to_attack_dict)),
             fill_value=float("inf"),
         )
-        for step_idx in range(self.total_step):
+        for step_idx in range(self.total_steps):
             image.requires_grad = True
             loss = 0.0
             for model_idx, (model_str, model) in enumerate(
@@ -67,6 +67,6 @@ class SGDAttack(AdversarialInputAttacker):
             loss.backward()
             grad = image.grad
             image.requires_grad = False
-            image += self.step_size * grad
+            image -= self.step_size * grad
             image = self.clamp(image, original_image)
         return image, losses_history
