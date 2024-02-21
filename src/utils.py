@@ -6,9 +6,10 @@ import random
 import torch
 from typing import Any, Dict, List, Tuple
 
-from src.attacks import AdversarialInputAttacker, SSA_CommonWeakness
+from src.attacks.base import AdversarialInputAttacker
+from src.attacks.SpectrumSimulationAttack import SpectrumSimulationCommonWeaknessAttack
 from src.models.blip2 import Blip2VisionLanguageModel
-from src.models.instructblip import InstructBlipVisionModel
+from src.models.instructblip import InstructBlipVisionLanguageModel
 
 
 class GPT4AttackCriterion:
@@ -26,7 +27,7 @@ def create_attacker(
     wandb_config: Dict[str, Any], models_list: List[torch.nn.Module]
 ) -> AdversarialInputAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
-        attacker = SSA_CommonWeakness(
+        attacker = SpectrumSimulationCommonWeaknessAttack(
             models_list=models_list,
             epsilon=wandb_config["attack_kwargs"]["epsilon"],
             step_size=wandb_config["attack_kwargs"]["step_size"],
@@ -69,16 +70,14 @@ def instantiate_models(
         elif model_str.startswith("instructblip"):
             if model_str.endswith("flan-t5-xxl"):
                 huggingface_name = "Salesforce/instructblip-flan-t5-xxl"
-            elif model_str.endswith("opt-6.7b"):
+            elif model_str.endswith("vicuna-7b"):
                 huggingface_name = "Salesforce/instructblip-vicuna-7b"
             elif model_str.endswith("vicuna-13b"):
                 huggingface_name = "Salesforce/instructblip-vicuna-13b"
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
-            model = InstructBlipVisionModel(
-                prompts=prompts,
-                targets=targets,
+            model = InstructBlipVisionLanguageModel(
                 huggingface_name=huggingface_name,
                 split=split,
             )

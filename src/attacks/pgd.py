@@ -7,10 +7,10 @@ import torch.nn as nn
 from typing import List, Callable
 
 from src.attacks.utils import *
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 
 
-class PGD(AdversarialInputAttacker):
+class PGDAttack(AdversarialInputAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -31,7 +31,7 @@ class PGD(AdversarialInputAttacker):
         self.eot_batch_size = eot_batch_size
         self.criterion = criterion
         self.targerted_attack = targeted_attack
-        super(PGD, self).__init__(model, *args, **kwargs)
+        super(PGDAttack, self).__init__(model, *args, **kwargs)
 
     def perturb(self, x):
         x = x + (torch.rand_like(x) - 0.5) * 2 * self.epsilon

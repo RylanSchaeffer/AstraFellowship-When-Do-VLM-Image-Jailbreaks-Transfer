@@ -7,7 +7,7 @@ from torch import nn
 from typing import List, Callable
 
 from src.attacks.utils import *
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 
 
 class SGD(AdversarialInputAttacker):

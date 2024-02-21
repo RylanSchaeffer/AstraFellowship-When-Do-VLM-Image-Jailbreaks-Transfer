@@ -223,7 +223,7 @@ from typing import Callable, List
 from tqdm import tqdm
 
 from src.attacks.utils import *
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 
 
 class SpectrumSimulationAttack(AdversarialInputAttacker):
@@ -304,7 +304,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
         return x
 
 
-class SSA_CommonWeakness(AdversarialInputAttacker):
+class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
     def __init__(
         self,
         models_list: List[nn.Module],
@@ -328,7 +328,9 @@ class SSA_CommonWeakness(AdversarialInputAttacker):
         self.mu = mu
         self.outer_optimizer = outer_optimizer
         self.reverse_step_size = reverse_step_size
-        super(SSA_CommonWeakness, self).__init__(models_list, *args, **kwargs)
+        super(SpectrumSimulationCommonWeaknessAttack, self).__init__(
+            models_list, *args, **kwargs
+        )
         self.inner_step_size = inner_step_size
         self.grad_record = None
         self.loss_record = None

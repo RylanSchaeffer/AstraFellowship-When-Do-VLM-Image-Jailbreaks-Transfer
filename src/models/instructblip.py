@@ -22,16 +22,15 @@ class InstructBlipVisionLanguageModel(VisionLanguageModel):
     ):
         super(InstructBlipVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
-        self.normalizer = transforms.Compose(
-            [
-                transforms.Resize((224, 224)),
-                transforms.Normalize(mean=OPENAI_CLIP_MEAN, std=OPENAI_CLIP_STD),
-            ]
-        )
         self.processor = InstructBlipProcessor.from_pretrained(
-            huggingface_name=huggingface_name,
+            huggingface_name,
+        )
+        self.normalize = transforms.Normalize(
+            mean=self.processor.image_processor.image_mean,
+            std=self.processor.image_processor.image_std,
         )
         self.split = split
+        self.device = None
         if split in {"train", "eval"}:
             self.model = InstructBlipForConditionalGeneration.from_pretrained(
                 huggingface_name,
@@ -40,15 +39,20 @@ class InstructBlipVisionLanguageModel(VisionLanguageModel):
             )
         else:
             raise ValueError("Invalid split: {}".format(split))
-        self.device = torch.device("cuda")
-        self.eval().requires_grad_(False)
+
+        # Copied from https://huggingface.co/docs/transformers/en/model_doc/instructblip#transformers.InstructBlipForConditionalGeneration.forward.example
+        self.generate_kwargs = {
+            "do_sample": False,
+            "max_length": 256,
+            "min_length": 1,
+        }
 
     def compute_loss(
         self, images: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         x = torch.clamp(x, min=0, max=1)
         batch_size = x.shape[0]
-        inputs = dict(pixel_values=self.normalizer(x).to(self.device))
+        inputs = dict(pixel_values=self.normalize(x).to(self.device))
         # inputs["input_ids"] = self.prompt.repeat(batch_size, 1)
         inputs["input_ids"] = self.labels.repeat(batch_size, 1).to(self.device)
         inputs["labels"] = self.labels.repeat(batch_size, 1).to(self.device)

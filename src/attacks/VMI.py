@@ -1,7 +1,7 @@
 from src.attacks.utils import *
 from torch import nn
 from typing import Callable, List
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 from torchvision import transforms
 from .utils import *
 import numpy as np

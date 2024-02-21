@@ -1,7 +1,7 @@
 from src.attacks.utils import *
 from torch import nn
 from typing import List
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 
 __all__ = ["NAttack"]
 

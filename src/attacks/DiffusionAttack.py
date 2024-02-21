@@ -2,7 +2,7 @@ from src.attacks.utils import *
 from torch import nn
 from typing import Callable, List
 
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 from .utils import cosine_similarity
 
 

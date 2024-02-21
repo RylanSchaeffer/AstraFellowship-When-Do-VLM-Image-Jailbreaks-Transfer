@@ -1,12 +1,18 @@
 from src.attacks.utils import *
 from torch import nn
 from typing import Callable, List
-from .AdversarialInputBase import AdversarialInputAttacker
-import numpy as np
-from scipy import stats as st
+from torchvision import transforms
+
+from .base import AdversarialInputAttacker
 
 
-class MI_TI_FGSM(AdversarialInputAttacker):
+class DI_MI_FGSM(AdversarialInputAttacker):
+    """
+    DI-FGSM is not using data augmentation to increase data for optimizing perturbations.
+    DI-FGSM actually is using differentiable data augmentations,
+    and this data augmentation can be viewed as a part of model(from SI-FGSM)
+    """
+
     def __init__(
         self,
         model: List[nn.Module],
@@ -16,16 +22,22 @@ class MI_TI_FGSM(AdversarialInputAttacker):
         criterion: Callable = nn.CrossEntropyLoss(),
         targeted_attack=False,
         mu: float = 1,
+        *args,
+        **kwargs
     ):
+        super(DI_MI_FGSM, self).__init__(model, *args, **kwargs)
         self.random_start = random_start
         self.total_step = total_step
         self.step_size = step_size
         self.criterion = criterion
         self.targerted_attack = targeted_attack
         self.mu = mu
-        super(MI_TI_FGSM, self).__init__(model, *args, **kwargs)
-        self.conv = self.gkern().to(self.device)
-        self.conv.requires_grad_(False)
+        self.aug_policy = transforms.Compose(
+            [
+                transforms.RandomCrop((224, 224), padding=224 - int(224 * 0.9)),
+            ]
+        )
+        self.init()
 
     def perturb(self, x):
         x = x + (torch.rand_like(x) - 0.5) * 2 * self.epsilon
@@ -45,15 +57,15 @@ class MI_TI_FGSM(AdversarialInputAttacker):
 
         for _ in range(self.total_step):
             x.requires_grad = True
+            aug_x = self.aug_policy(x)
             logit = 0
             for model in self.models:
-                logit += model(x.to(model.device)).to(x.device)
+                logit += model(aug_x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()
             grad = x.grad
             x.requires_grad = False
             # update
-            grad = self.conv(grad)
             if self.targerted_attack:
                 momentum = self.mu * momentum - grad / torch.norm(
                     grad.reshape(N, -1), p=1, dim=1
@@ -68,28 +80,3 @@ class MI_TI_FGSM(AdversarialInputAttacker):
             x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
 
         return x
-
-    @staticmethod
-    def gkern(kernlen=15, nsig=3):
-        """Returns a 2D Gaussian kernel array."""
-        x = np.linspace(-nsig, nsig, kernlen)
-        kern1d = st.norm.pdf(x)
-        kernel_raw = np.outer(kern1d, kern1d)
-        kernel = kernel_raw / kernel_raw.sum()
-        kernel = torch.tensor(kernel, dtype=torch.float)
-        conv = nn.Conv2d(
-            3,
-            3,
-            kernel_size=kernlen,
-            stride=1,
-            padding=kernlen // 2,
-            bias=False,
-            groups=3,
-        )
-        kernel = kernel.repeat(3, 1, 1).view(3, 1, kernlen, kernlen)
-        conv.weight.data = kernel
-        return conv
-
-
-if __name__ == "__main__":
-    MI_TI_FGSM.gkern()

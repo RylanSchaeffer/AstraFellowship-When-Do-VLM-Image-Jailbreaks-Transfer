@@ -62,6 +62,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         wandb_config=wandb_config, models_list=models_to_attack_list
     )
 
+    # TODO: Move all of this into attacker.
     id = 0
     attacks_dir = os.path.join(wandb_config["wandb_run_dir"], "attacks")
     os.makedirs(attacks_dir, exist_ok=True)
@@ -102,11 +103,6 @@ if __name__ == "__main__":
     )
     wandb_config = dict(wandb.config)
 
-    wandb_config["models_to_attack"] = ast.literal_eval(
-        wandb_config["models_to_attack"]
-    )
-    wandb_config["models_to_test"] = ast.literal_eval(wandb_config["models_to_test"])
-
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
     os.makedirs(wandb_run_dir)
@@ -117,4 +113,14 @@ if __name__ == "__main__":
     pp = pprint.PrettyPrinter(indent=4)
     print("W&B Config:")
     pp.pprint(wandb_config)
+
+    # These are both sets of strings.
+    # This needs to be done after writing JSON to disk because sets are not JSON serializable.
+    wandb_config["models_to_attack"] = ast.literal_eval(
+        wandb_config["models_to_attack"]
+    )
+    wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
+    # Ensure that the attacked models are also evaluated.
+    wandb_config["models_to_eval"].update(wandb_config["models_to_attack"])
+
     generate_vlm_adversarial_examples(wandb_config=wandb_config)

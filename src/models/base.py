@@ -9,7 +9,7 @@ IMAGENET_STANDARD_MEAN = [0.5, 0.5, 0.5]
 IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
 
 
-class VisionLanguageModel(abc.ABC, torch.nn.Module):
+class VisionLanguageModel(abc.ABC):
     @abc.abstractmethod
     def __init__(self):
         pass

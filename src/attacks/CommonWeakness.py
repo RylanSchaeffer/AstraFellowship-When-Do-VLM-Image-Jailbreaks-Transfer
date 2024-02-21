@@ -6,7 +6,7 @@ from torchvision import transforms
 from typing import Callable, List
 
 from src.attacks.utils import *
-from .AdversarialInputBase import AdversarialInputAttacker
+from .base import AdversarialInputAttacker
 from .utils import cosine_similarity
 
 
