@@ -21,17 +21,17 @@ IMAGENET_STANDARD_MEAN = [0.5, 0.5, 0.5]
 IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
 
 
-__all__ = ["Blip2VisionModel", "Blip2PredictModel"]
+__all__ = ["Blip2VisionLanguageModel", "Blip2PredictModel"]
 
 
-class Blip2VisionModel(nn.Module):
+class Blip2VisionLanguageModel(nn.Module):
     def __init__(
         self,
         prompts: List[str] = ["Question: describe the image. Answer:"],
         targets: List[str] = ["bomb bomb"],
         huggingface_name: str = "Salesforce/blip2-opt-2.7b",
     ):
-        super(Blip2VisionModel, self).__init__()
+        super(Blip2VisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
         self.normalizer = transforms.Compose(
             [
@@ -49,22 +49,45 @@ class Blip2VisionModel(nn.Module):
         self.eval().requires_grad_(False)
         assert len(prompts) == len(targets)
         self.batch_size = len(prompts)
-        self.targets_batch_encoding = self.processor(
-            text=targets, return_tensors="pt", padding=True, truncation=True
+        self.prompts = prompts
+        self.targets = targets
+        self.prompts_then_targets = [
+            f"{prompt} {target}" for prompt, target in zip(prompts, targets)
+        ]
+        self.prompts_then_targets_batch_encoding = self.processor(
+            text=self.prompts_then_targets,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
         )
-        # self.targets_input_ids = torch.tensor(self.processor(text=targets).input_ids)
-        self.prompts_batch_encoding = self.processor(
-            text=prompts, return_tensors="pt", padding=True, truncation=True
-        )
+        # self.targets_batch_encoding = self.processor(
+        #     text=targets, return_tensors="pt", padding=True, truncation=True
+        # )
+        # self.prompts_batch_encoding = self.processor(
+        #     text=prompts, return_tensors="pt", padding=True, truncation=True
+        # )
+        self.prompts_lengths = [
+            len(l)
+            for l in self.processor(
+                text=prompts,
+            ).input_ids
+        ]
+        self.ce_loss_fn = torch.nn.CrossEntropyLoss(reduce=False)
 
     def forward(self, x):
-        x = self.normalizer(torch.clamp(x, min=0, max=1)).repeat(
+        x = self.normalizer(torch.clamp(x, min=0.0, max=1.0)).repeat(
             self.batch_size, 1, 1, 1
         )
         inputs = dict(pixel_values=x.to(self.device))
-        # inputs["input_ids"] = self.prompt.repeat(batch_size, 1)
-        inputs["input_ids"] = self.targets_batch_encoding.input_ids.to(self.device)
-        inputs["labels"] = self.targets_batch_encoding.input_ids.to(self.device)
+        inputs["input_ids"] = self.prompts_then_targets_batch_encoding.input_ids.to(
+            self.device
+        )
+        inputs["labels"] = self.prompts_then_targets_batch_encoding.input_ids.to(
+            self.device
+        )
+        # Exclude the prompt tokens from the loss computation.
+        for batch_idx, prompt_len in enumerate(self.prompts_lengths):
+            inputs["labels"][batch_idx, :prompt_len] = -100
         outputs = self.model(**inputs)
         return outputs.loss
 

@@ -33,8 +33,8 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     prompts, targets = src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]
     )
-    prompts = prompts[:wandb_config["n_samples"]]
-    targets = targets[:wandb_config["n_samples"]]
+    prompts = prompts[: wandb_config["n_samples"]]
+    targets = targets[: wandb_config["n_samples"]]
 
     wandb.log(
         {

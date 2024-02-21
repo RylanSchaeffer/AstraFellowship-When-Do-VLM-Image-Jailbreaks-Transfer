@@ -7,7 +7,7 @@ import torch
 from typing import Any, Dict, List, Tuple
 
 from src.attacks import AdversarialInputAttacker, SSA_CommonWeakness
-from src.models.blip2 import Blip2VisionModel
+from src.models.blip2 import Blip2VisionLanguageModel
 from src.models.instruct_blip import InstructBlipVisionModel
 
 
@@ -58,7 +58,7 @@ def instantiate_models(
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
-            model = Blip2VisionModel(
+            model = Blip2VisionLanguageModel(
                 prompts=prompts,
                 targets=targets,
                 huggingface_name=huggingface_name,
