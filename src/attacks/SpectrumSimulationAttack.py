@@ -237,7 +237,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
         targeted_attack=False,
         mu: float = 1,
         *args,
-        **kwargs
+        **kwargs,
     ):
         self.random_start = random_start
         self.total_step = total_step
@@ -287,7 +287,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
                 x_idct = idct_2d(x_dct * mask)
                 x_idct = V(x_idct, requires_grad=True)
                 logit = 0
-                for model in self.models:
+                for model in self.models_to_attack_dict:
                     logit += model(x_idct.to(model.device)).to(x_idct.device)
                 loss = self.criterion(logit, y)
                 loss.backward()
@@ -307,7 +307,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
 class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
     def __init__(
         self,
-        models_list: List[nn.Module],
+        models_to_attack_dict: Dict[str, nn.Module],
         total_step: int = 10,
         random_start: bool = False,
         step_size: float = 16 / 255 / 5,
@@ -318,7 +318,7 @@ class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
         reverse_step_size=16 / 255 / 15,
         inner_step_size: float = 250,
         *args,
-        **kwargs
+        **kwargs,
     ):
         self.random_start = random_start
         self.total_step = total_step
@@ -329,11 +329,12 @@ class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
         self.outer_optimizer = outer_optimizer
         self.reverse_step_size = reverse_step_size
         super(SpectrumSimulationCommonWeaknessAttack, self).__init__(
-            models_list, *args, **kwargs
+            models_to_attack_dict=models_to_attack_dict, *args, **kwargs
         )
         self.inner_step_size = inner_step_size
         self.grad_record = None
         self.loss_record = None
+        self.original_image = None
 
     def perturb(self, x):
         x = x + (torch.rand_like(x) - 0.5) * 2 * self.epsilon
@@ -342,18 +343,21 @@ class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
 
     def attack(
         self,
-        x,
-        y,
+        image: torch.Tensor,
+        prompts: List[str],
+        targets: List[str],
+        **kwargs,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        N = x.shape[0]
-        original_x = x.clone()
-        inner_momentum = torch.zeros_like(x)
-        self.outer_momentum = torch.zeros_like(x)
+        N = image.shape[0]
+        original_image = image.clone()
+        inner_momentum = torch.zeros_like(image)
+        self.outer_momentum = torch.zeros_like(image)
         if self.random_start:
-            x = self.perturb(x)
+            image = self.perturb(image)
 
         losses_history = torch.full(
-            size=(self.total_step, len(self.models)), fill_value=float("inf")
+            size=(self.total_step, len(self.models_to_attack_dict)),
+            fill_value=float("inf"),
         )
         for step_idx in tqdm(range(self.total_step)):
             # # --------------------------------------------------------------------------------#
@@ -374,37 +378,45 @@ class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
             # x = self.clamp(x, original_x)
             # # --------------------------------------------------------------------------------#
             # # second step
-            x.grad = None
-            self.begin_attack(x.clone().detach())
-            for model_idx, model in enumerate(self.models):
-                x.requires_grad = True
-                loss_and_grad_results = self.compute_loss_and_grad(x, y, model)
+            image.grad = None
+            self.begin_attack(image.clone().detach())
+            for model_idx, (model_str, model) in enumerate(
+                self.models_to_attack_dict.items()
+            ):
+                image.requires_grad = True
+                loss_and_grad_results = self.compute_loss_and_grad(
+                    image=image, prompts=prompts, targets=targets, model=model
+                )
                 losses_history[step_idx, model_idx] = loss_and_grad_results["loss"]
                 grad = loss_and_grad_results["noise"]
                 self.grad_record.append(grad)
-                x.requires_grad = False
+                image.requires_grad = False
                 # update
                 if self.targerted_attack:
                     inner_momentum = self.mu * inner_momentum - grad / (
                         torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
                         + 1e-5
                     )
-                    x += self.inner_step_size * inner_momentum
+                    image += self.inner_step_size * inner_momentum
                 else:
                     inner_momentum = self.mu * inner_momentum + grad / (
                         torch.norm(grad.reshape(N, -1), p=2, dim=1).view(N, 1, 1, 1)
                         + 1e-5
                     )
-                    x += self.inner_step_size * inner_momentum
-                x = clamp(x)
-                x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
-            x = self.end_attack(x)
-            x = clamp(x, original_x - self.epsilon, original_x + self.epsilon)
-        return x, losses_history
+                    image += self.inner_step_size * inner_momentum
+                image = clamp(image)
+                image = clamp(
+                    image, original_image - self.epsilon, original_image + self.epsilon
+                )
+            image = self.end_attack(image)
+            image = clamp(
+                image, original_image - self.epsilon, original_image + self.epsilon
+            )
+        return image, losses_history
 
     @torch.no_grad()
-    def begin_attack(self, origin: torch.tensor):
-        self.original = origin
+    def begin_attack(self, original_image: torch.tensor):
+        self.original_image = original_image
         self.grad_record = []
 
     @torch.no_grad()
@@ -417,45 +429,51 @@ class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
         """
         patch = now
         if self.outer_optimizer is None:
-            fake_grad = patch - self.original
+            fake_grad = patch - self.original_image
             self.outer_momentum = (
                 self.mu * self.outer_momentum + fake_grad / torch.norm(fake_grad, p=1)
             )
             patch.mul_(0)
-            patch.add_(self.original)
+            patch.add_(self.original_image)
             patch.add_(ksi * self.outer_momentum.sign())
             # patch.add_(ksi * fake_grad)
         else:
-            fake_grad = -ksi * (patch - self.original)
+            fake_grad = -ksi * (patch - self.original_image)
             self.outer_optimizer.zero_grad()
             patch.mul_(0)
-            patch.add_(self.original)
+            patch.add_(self.original_image)
             patch.grad = fake_grad
             self.outer_optimizer.step()
         patch = clamp(patch)
         del self.grad_record
-        del self.original
+        del self.original_image
         return patch
 
-    def compute_loss_and_grad(self, x, y, model, N: int = 20) -> Dict[str, float]:
+    def compute_loss_and_grad(
+        self,
+        image: torch.Tensor,
+        prompts: List[str],
+        targets: List[str],
+        model: torch.nn.Module,
+        N: int = 20,
+    ) -> Dict[str, float]:
         rho = 0.5
         sigma = 16
         noise = 0
+        # image = image.to(model.device)
         for n in range(N):
-            x.requires_grad = True
-            gauss = torch.randn(*x.shape) * (sigma / 255)
-            gauss = gauss.cuda()
-            x_dct = dct_2d(x + gauss).cuda()
-            mask = (torch.rand_like(x) * 2 * rho + 1 - rho).cuda()
+            image.requires_grad = True
+            gauss = torch.randn(*image.shape) * (sigma / 255)
+            gauss = gauss.to(model.device)
+            x_dct = dct_2d(image + gauss).to(model.device)
+            mask = (torch.rand_like(image) * 2 * rho + 1 - rho).to(model.device)
             x_idct = idct_2d(x_dct * mask)
-            x_idct = V(x_idct, requires_grad=True)
-            logit = model(x_idct.to(model.device)).to(x_idct.device)
-            loss = self.criterion(logit, y)
+            x_idct = V(x_idct, requires_grad=True).to(model.device)
+            loss = model.compute_loss(image=x_idct, prompts=prompts, targets=targets)
             loss.backward()
-            x.requires_grad = False
+            image.requires_grad = False
             noise += x_idct.grad.data
-            x.grad = None
+            image.grad = None
         noise = noise / N
         results = {"loss": loss.item(), "noise": noise}
-
         return results

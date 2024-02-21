@@ -37,7 +37,7 @@ class DI_MI_FGSM(AdversarialInputAttacker):
                 transforms.RandomCrop((224, 224), padding=224 - int(224 * 0.9)),
             ]
         )
-        self.init()
+        self.disable_model_gradients()
 
     def perturb(self, x):
         x = x + (torch.rand_like(x) - 0.5) * 2 * self.epsilon
@@ -59,7 +59,7 @@ class DI_MI_FGSM(AdversarialInputAttacker):
             x.requires_grad = True
             aug_x = self.aug_policy(x)
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(aug_x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()

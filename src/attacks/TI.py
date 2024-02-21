@@ -46,7 +46,7 @@ class MI_TI_FGSM(AdversarialInputAttacker):
         for _ in range(self.total_step):
             x.requires_grad = True
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()

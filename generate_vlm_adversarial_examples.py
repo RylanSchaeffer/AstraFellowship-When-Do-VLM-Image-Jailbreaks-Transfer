@@ -10,7 +10,7 @@ import wandb
 from typing import Any
 
 from src.globals import default_config
-from src.image_handling import save_multi_images, get_list_image
+from src.image_handling import get_list_image
 import src.utils
 
 
@@ -45,53 +45,32 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         }
     )
 
-    models_to_attack_list = src.utils.instantiate_models(
-        model_strs=wandb_config["models_to_attack"],
+    models_to_eval_dict = src.utils.instantiate_models(
+        model_strs=wandb_config["models_to_eval"],
         prompts=prompts,
         targets=targets,
-        split="train",
+        split="eval",
     )
-    # models_to_eval_list = src.utils.instantiate_models(
-    #     model_strs=wandb_config["models_to_eval"],
-    #     prompts=prompts,
-    #     targets=targets,
-    #     split="eval",
-    # )
+
+    # Slice the models to attack.
+    models_to_attack_dict = {
+        model_str: model
+        for model_str, model in models_to_eval_dict.items()
+        if model_str in wandb_config["models_to_attack"]
+    }
 
     attacker = src.utils.create_attacker(
-        wandb_config=wandb_config, models_list=models_to_attack_list
+        wandb_config=wandb_config,
+        models_to_attack_dict=models_to_attack_dict,
+        models_to_eval_dict=models_to_eval_dict,
     )
 
-    # TODO: Move all of this into attacker.
-    id = 0
-    attacks_dir = os.path.join(wandb_config["wandb_run_dir"], "attacks")
-    os.makedirs(attacks_dir, exist_ok=True)
-    for i, x in enumerate(tqdm(images)):
-        if i >= 200:
-            break
-        x = x.cuda()
-        adv_x, losses_history = attacker(x, None)
-        save_multi_images(adv_x, attacks_dir, begin_id=id)
-        id += x.shape[0]
-
-        plt.close()
-        for model_idx in range(len(models_to_attack_list)):
-            plt.plot(
-                list(range(len(losses_history))),
-                losses_history[:, model_idx],
-                label=wandb_config["models_to_attack"][model_idx],
-            )
-        plt.xlabel("Step")
-        plt.ylabel("Loss")
-        plt.legend()
-
-        wandb.log(
-            {
-                "original_image": wandb.Image(x, caption="Original Image"),
-                "adversarial_image": wandb.Image(adv_x, caption="Adversarial Image"),
-                "loss_curve": wandb.Image(plt),
-            }
-        )
+    attacker.compute_adversarial_examples(
+        images=images,
+        prompts=prompts,
+        targets=targets,
+        results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+    )
 
 
 if __name__ == "__main__":

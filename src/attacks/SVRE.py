@@ -49,7 +49,7 @@ class MI_SVRE(AdversarialInputAttacker):
             # first calculate the ensemble gradient
             x.requires_grad = True
             loss = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 loss += self.criterion(
                     model(x.to(model.device)), y.to(model.device)
                 ).to(self.device)
@@ -57,7 +57,7 @@ class MI_SVRE(AdversarialInputAttacker):
             ensemble_gradient: Tensor = x.grad.clone()
             x.grad = None
             x.requires_grad = False
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 # with original grad
                 self.original.requires_grad = True
                 loss = self.criterion(

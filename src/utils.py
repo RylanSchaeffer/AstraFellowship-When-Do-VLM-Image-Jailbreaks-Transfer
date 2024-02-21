@@ -7,7 +7,7 @@ import torch
 from typing import Any, Dict, List, Tuple
 
 from src.attacks.base import AdversarialInputAttacker
-from src.attacks.SpectrumSimulationAttack import SpectrumSimulationCommonWeaknessAttack
+
 from src.models.blip2 import Blip2VisionLanguageModel
 from src.models.instructblip import InstructBlipVisionLanguageModel
 
@@ -24,15 +24,28 @@ class GPT4AttackCriterion:
 
 
 def create_attacker(
-    wandb_config: Dict[str, Any], models_list: List[torch.nn.Module]
+    wandb_config: Dict[str, Any],
+    models_to_attack_dict: Dict[str, torch.nn.Module],
+    models_to_eval_dict: Dict[str, torch.nn.Module],
 ) -> AdversarialInputAttacker:
-    if wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
+    if wandb_config["attack_kwargs"]["attack_name"] == "sgd":
+        from src.attacks.sgd import SGDAttack
+
+        attacker = SGDAttack(
+            models_to_attack_dict=models_to_attack_dict,
+            models_to_eval_dict=models_to_eval_dict,
+            **wandb_config["attack_kwargs"],
+        )
+    elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
+        from src.attacks.SpectrumSimulationAttack import (
+            SpectrumSimulationCommonWeaknessAttack,
+        )
+
         attacker = SpectrumSimulationCommonWeaknessAttack(
-            models_list=models_list,
-            epsilon=wandb_config["attack_kwargs"]["epsilon"],
-            step_size=wandb_config["attack_kwargs"]["step_size"],
-            total_step=wandb_config["attack_kwargs"]["total_steps"],
+            models_to_attack_dict=models_to_attack_dict,
+            models_to_eval_dict=models_to_eval_dict,
             criterion=GPT4AttackCriterion(),
+            **wandb_config["attack_kwargs"],
         )
     else:
         raise ValueError(
@@ -45,8 +58,8 @@ def create_attacker(
 
 def instantiate_models(
     model_strs: List[str], prompts: List[str], targets: List[str], split: str = "train"
-) -> List[torch.nn.Module]:
-    models_list = []
+) -> Dict[str, torch.nn.Module]:
+    models_dict = {}
     for model_str in model_strs:
         # Load BLIP2 models.
         if model_str.startswith("blip2"):
@@ -60,8 +73,6 @@ def instantiate_models(
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
             model = Blip2VisionLanguageModel(
-                prompts=prompts,
-                targets=targets,
                 huggingface_name=huggingface_name,
                 split=split,
             )
@@ -84,15 +95,15 @@ def instantiate_models(
 
         # Load MiniGPT4 model.
         elif model_str.startswith("gpt4"):
-            from src.models.minigpt4 import get_gpt4_image_model
+            from src.models.minigpt4v import get_gpt4_image_model
 
             model = get_gpt4_image_model(targets=targets)
         else:
             raise ValueError("Invalid model_str: {}".format(model_str))
 
-        models_list.append(model)
+        models_dict[model_str] = model
 
-    return models_list
+    return models_dict
 
 
 def load_prompts_and_targets(

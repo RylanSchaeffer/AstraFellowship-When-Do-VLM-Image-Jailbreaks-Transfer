@@ -44,10 +44,10 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         else:
             raise ValueError("Invalid split: {}".format(split))
         self.device = torch.device("cuda")
-        self.eval().requires_grad_(False)
+        self.model.eval().requires_grad_(False)
 
     def compute_loss(
-        self, images: torch.Tensor, prompts: List[str], targets: List[str]
+        self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         assert len(prompts) == len(targets)
         batch_size = len(prompts)
@@ -68,7 +68,7 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
             truncation=True,
         )
 
-        x = self.normalizer(torch.clamp(images, min=0.0, max=1.0)).repeat(
+        x = self.normalizer(torch.clamp(image, min=0.0, max=1.0)).repeat(
             batch_size, 1, 1, 1
         )
         inputs = dict(pixel_values=x.to(self.device))

@@ -56,7 +56,7 @@ class PGDAttack(AdversarialInputAttacker):
             )
             for eot_x in eot_xs:
                 logit = 0
-                for model in self.models:
+                for model in self.models_to_attack_dict:
                     logit += model(eot_x.to(model.device)).to(x.device)
                 loss = self.criterion(logit, y.repeat(eot_x.shape[0] // y.shape[0]))
                 loss.backward()

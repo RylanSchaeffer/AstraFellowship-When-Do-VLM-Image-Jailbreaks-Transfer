@@ -36,7 +36,7 @@ class DiffusionAttack(AdversarialInputAttacker):
 
         for step in range(1, self.total_step + 1):
             x.requires_grad = True
-            model = self.models[0]
+            model = self.models_to_attack_dict[0]
             purified = model(x)
             loss = self.criterion(purified, x) * 1e5
             print(loss)
@@ -89,7 +89,7 @@ class UNetAttack(AdversarialInputAttacker):
 
         for step in range(1, self.total_step + 1):
             x.requires_grad = True
-            model = self.models[0]
+            model = self.models_to_attack_dict[0]
             transformed = ((x - 0.5) * 2).expand(max_t * B, *x.shape[1:])  # max_t*B
             tensor_t = (
                 torch.arange(max_t).unsqueeze(1).expand(max_t, B).view(-1).to(x.device)

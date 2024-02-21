@@ -51,7 +51,7 @@ class NAttack(AdversarialInputAttacker):
             samples = self.g(samples)
             samples = self.proj(original_x, samples)
             z_scores = []
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 out = model(samples)
                 pre = torch.max(out, dim=1)[1]
                 mask = (pre != y).float()

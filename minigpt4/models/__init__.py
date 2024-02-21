@@ -29,7 +29,7 @@ def load_model(name, model_type, is_eval=False, device="cpu", checkpoint=None):
     Load supported models.
 
     To list all available models and types in registry:
-    >>> from minigpt4.models import model_zoo
+    >>> from minigpt4.models_to_attack_dict import model_zoo
     >>> print(model_zoo)
 
     Args:
@@ -115,7 +115,7 @@ def load_model_and_preprocess(name, model_type, is_eval=False, device="cpu"):
     Load model and its related preprocessors.
 
     List all available models and types in registry:
-    >>> from minigpt4.models import model_zoo
+    >>> from minigpt4.models_to_attack_dict import model_zoo
     >>> print(model_zoo)
 
     Args:
@@ -162,7 +162,7 @@ class ModelZoo:
     """
     A utility class to create string representation of available model architectures and types.
 
-    >>> from minigpt4.models import model_zoo
+    >>> from minigpt4.models_to_attack_dict import model_zoo
     >>> # list all available models
     >>> print(model_zoo)
     >>> # show total number of models

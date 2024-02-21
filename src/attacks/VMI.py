@@ -88,7 +88,7 @@ class VMI_FGSM(AdversarialInputAttacker):
         now = now.view(N * B, C, H, D)
         now.requires_grad = True
         logit = 0
-        for model in self.models:
+        for model in self.models_to_attack_dict:
             logit += model(now.to(model.device)).to(now.device)
         loss = self.criterion(logit, y.repeat(N))
         loss.backward()
@@ -164,7 +164,7 @@ class VMI_Inner_CommonWeakness(AdversarialInputAttacker):
             self.begin_attack(x.clone().detach())
             x.requires_grad = True
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()
@@ -179,7 +179,7 @@ class VMI_Inner_CommonWeakness(AdversarialInputAttacker):
             # # second step
             x.grad = None
             # self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 grad = self.calculate_v(x, y, model)
                 self.grad_record.append(grad)
                 # update
@@ -348,7 +348,7 @@ class VMI_Outer_CommonWeakness(AdversarialInputAttacker):
             self.begin_attack(x.clone().detach())
             x.requires_grad = True
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()
@@ -370,7 +370,7 @@ class VMI_Outer_CommonWeakness(AdversarialInputAttacker):
             # second step
             x.grad = None
             # self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 x.requires_grad = True
                 aug_x = self.aug_policy(x)
                 loss = self.criterion(model(aug_x.to(model.device)), y.to(model.device))

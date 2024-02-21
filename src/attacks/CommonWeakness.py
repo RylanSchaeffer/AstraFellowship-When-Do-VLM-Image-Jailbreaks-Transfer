@@ -52,7 +52,7 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
 
         for _ in range(self.total_step):
             self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 x.requires_grad = True
                 loss = self.criterion(model(x.to(model.device)), y.to(model.device))
                 loss.backward()
@@ -170,7 +170,7 @@ class MI_RandomWeight(AdversarialInputAttacker):
             #     loss += self.criterion(model(x.to(model.device)), y.to(model.device)).to(x.device) \
             #             * self.random_by_mean()
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device) * self.random_by_mean()
             loss = self.criterion(logit, y)
             loss.backward()
@@ -258,7 +258,7 @@ class MI_CommonWeakness(AdversarialInputAttacker):
             self.begin_attack(x.clone().detach())
             x.requires_grad = True
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()
@@ -277,7 +277,7 @@ class MI_CommonWeakness(AdversarialInputAttacker):
             # second step, MI-CSE
             x.grad = None
             # self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 x.requires_grad = True
                 aug_x = self.aug_policy(x)
                 loss = self.criterion(model(aug_x.to(model.device)), y.to(model.device))
@@ -419,7 +419,7 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
             self.begin_attack(x.clone().detach())
             x.requires_grad = True
             logit = 0
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 logit += model(x.to(model.device)).to(x.device)
             loss = self.criterion(logit, y)
             loss.backward()
@@ -439,7 +439,7 @@ class Adam_CommonWeakness(AdversarialInputAttacker):
             # second step
             x.grad = None
             # self.begin_attack(x.clone().detach())
-            for model in self.models:
+            for model in self.models_to_attack_dict:
                 x.requires_grad = True
                 aug_x = self.aug_policy(x)
                 loss = self.criterion(model(aug_x.to(model.device)), y.to(model.device))
