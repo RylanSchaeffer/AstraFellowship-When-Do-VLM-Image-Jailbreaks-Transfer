@@ -84,7 +84,6 @@ class SGDAttack(AdversarialInputAttacker):
                                 ],
                             )
                         },
-                        step=step_idx + 1,
                     )
 
             loss.backward()
@@ -99,7 +98,6 @@ class SGDAttack(AdversarialInputAttacker):
                     f"loss_{model_str}": losses_history[step_idx, model_idx]
                     for model_idx, model_str in enumerate(self.models_to_attack_dict)
                 },
-                step=step_idx + 1,
             )
             print(f"Step {step_idx + 1}/{self.total_steps}: {loss.item()}")
 

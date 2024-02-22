@@ -20,6 +20,7 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         self,
         huggingface_name: str = "Salesforce/blip2-opt-2.7b",
         split: str = "train",
+        min_new_tokens_to_generate: int = 20,
     ):
         super(Blip2VisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
@@ -43,13 +44,14 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         )
         self.device = torch.device("cuda")
         self.model.eval().requires_grad_(False)
+        self.min_new_tokens_to_generate = min_new_tokens_to_generate
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         assert len(prompts) == len(targets)
         prompts_then_targets = [
-            f"{prompt} {target}" for prompt, target in zip(prompts, targets)
+            f"{prompt}.\n{target}:" for prompt, target in zip(prompts, targets)
         ]
         prompts_lengths = [
             len(l)
@@ -89,6 +91,8 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
             padding=True,
             truncation=True,
         ).to(self.device)
-        generated_ids = self.conditional_generation_model.generate(**inputs)
+        generated_ids = self.conditional_generation_model.generate(
+            **inputs, min_new_tokens=self.min_new_tokens_to_generate
+        )
         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
         return text

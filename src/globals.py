@@ -2,7 +2,7 @@ default_config = {
     "attack_kwargs": {
         "attack_name": "sgd",
         # "attack_name": "ssa_common_weakness",
-        "step_size": 0.05,
+        "step_size": 0.01,
         "total_steps": 5000,
     },
     "image_initialization": "NIPS17",

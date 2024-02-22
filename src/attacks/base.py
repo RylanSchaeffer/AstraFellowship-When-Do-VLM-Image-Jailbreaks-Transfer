@@ -58,6 +58,7 @@ class AdversarialInputAttacker:
                 )
             plt.xlabel("Step")
             plt.ylabel("Loss")
+            plt.ylim(bottom=0.0)
             plt.legend()
 
             wandb.log(
