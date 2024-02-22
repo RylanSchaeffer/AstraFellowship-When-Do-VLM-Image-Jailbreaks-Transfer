@@ -59,21 +59,20 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
             ).input_ids
         ]
 
-        prompts_then_targets_batch_encoding = self.processor(
+        images_prompts_then_targets_batch_encoding = self.processor(
+            images=image.repeat(batch_size, 1, 1, 1),
             text=prompts_then_targets,
             return_tensors="pt",
             padding=True,
             truncation=True,
         )
 
-        x = self.normalizer(torch.clamp(image, min=0.0, max=1.0)).repeat(
-            batch_size, 1, 1, 1
-        )
-        inputs = dict(pixel_values=x.to(self.device))
-        inputs["input_ids"] = prompts_then_targets_batch_encoding.input_ids.to(
+        inputs = images_prompts_then_targets_batch_encoding.data
+        for key, value in inputs.items():
+            inputs[key] = value.to(self.device)
+        inputs["labels"] = images_prompts_then_targets_batch_encoding.input_ids.to(
             self.device
-        )
-        inputs["labels"] = prompts_then_targets_batch_encoding.input_ids.to(self.device)
+        ).clone()
         # Exclude the prompt tokens from the loss computation.
         for batch_idx, prompt_len in enumerate(prompts_lengths):
             inputs["labels"][batch_idx, :prompt_len] = -100
@@ -81,9 +80,10 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         return outputs.loss
 
     def generate(self, image: torch.Tensor, prompts) -> List[str]:
-        x = torch.clamp(image, min=0.0, max=1.0).repeat(len(prompts), 1, 1, 1)
+        # images = torch.clamp(image, min=0.0, max=1.0).repeat(len(prompts), 1, 1, 1)
+        images = image.repeat(len(prompts), 1, 1, 1)
         inputs = self.processor(
-            images=x,
+            images=images,
             text=prompts,
             return_tensors="pt",
             padding=True,
