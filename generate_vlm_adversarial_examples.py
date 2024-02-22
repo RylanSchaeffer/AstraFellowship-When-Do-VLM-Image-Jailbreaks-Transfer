@@ -36,15 +36,6 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     prompts = prompts[: wandb_config["n_samples"]]
     targets = targets[: wandb_config["n_samples"]]
 
-    wandb.log(
-        {
-            "text": wandb.Table(
-                columns=["prompt text", "target text"],
-                data=[[prompt, target] for prompt, target in zip(prompts, targets)],
-            )
-        }
-    )
-
     models_to_eval_dict = src.utils.instantiate_models(
         model_strs=wandb_config["models_to_eval"],
         prompts=prompts,
