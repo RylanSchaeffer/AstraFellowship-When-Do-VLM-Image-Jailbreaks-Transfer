@@ -48,7 +48,6 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         assert len(prompts) == len(targets)
-        batch_size = len(prompts)
         prompts_then_targets = [
             f"{prompt} {target}" for prompt, target in zip(prompts, targets)
         ]
@@ -59,20 +58,21 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
             ).input_ids
         ]
 
-        images_prompts_then_targets_batch_encoding = self.processor(
-            images=image.repeat(batch_size, 1, 1, 1),
+        prompts_then_targets_batch_encoding = self.processor(
             text=prompts_then_targets,
             return_tensors="pt",
             padding=True,
             truncation=True,
         )
 
-        inputs = images_prompts_then_targets_batch_encoding.data
-        for key, value in inputs.items():
-            inputs[key] = value.to(self.device)
-        inputs["labels"] = images_prompts_then_targets_batch_encoding.input_ids.to(
+        x = self.normalizer(torch.clamp(image, min=0.0, max=1.0)).repeat(
+            len(prompts), 1, 1, 1
+        )
+        inputs = dict(pixel_values=x.to(self.device))
+        inputs["input_ids"] = prompts_then_targets_batch_encoding.input_ids.to(
             self.device
-        ).clone()
+        )
+        inputs["labels"] = prompts_then_targets_batch_encoding.input_ids.to(self.device)
         # Exclude the prompt tokens from the loss computation.
         for batch_idx, prompt_len in enumerate(prompts_lengths):
             inputs["labels"][batch_idx, :prompt_len] = -100
