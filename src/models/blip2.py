@@ -33,16 +33,14 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
             huggingface_name,
         )
         self.split = split
-        if self.split == "train":
-            self.model = Blip2Model.from_pretrained(
+        self.model = Blip2Model.from_pretrained(
+            huggingface_name, device_map="auto", torch_dtype=torch.float16
+        )
+        self.conditional_generation_model = (
+            Blip2ForConditionalGeneration.from_pretrained(
                 huggingface_name, device_map="auto", torch_dtype=torch.float16
             )
-        elif self.split == "eval":
-            self.model = Blip2ForConditionalGeneration.from_pretrained(
-                huggingface_name, device_map="auto", torch_dtype=torch.float16
-            )
-        else:
-            raise ValueError("Invalid split: {}".format(split))
+        )
         self.device = torch.device("cuda")
         self.model.eval().requires_grad_(False)
 
@@ -82,16 +80,15 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         outputs = self.model(**inputs)
         return outputs.loss
 
-    def generate(self, images: torch.Tensor, prompts) -> List[str]:
-        x = torch.clamp(x, min=0.0, max=1.0)
-        x = x.repeat(self.batch_size, 1, 1, 1)
+    def generate(self, image: torch.Tensor, prompts) -> List[str]:
+        x = torch.clamp(image, min=0.0, max=1.0).repeat(len(prompts), 1, 1, 1)
         inputs = self.processor(
             images=x,
-            text=self.prompts_then_targets,
+            text=prompts,
             return_tensors="pt",
             padding=True,
             truncation=True,
         ).to(self.device)
-        generated_ids = self.model.generate(**inputs)
+        generated_ids = self.conditional_generation_model.generate(**inputs)
         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
         return text

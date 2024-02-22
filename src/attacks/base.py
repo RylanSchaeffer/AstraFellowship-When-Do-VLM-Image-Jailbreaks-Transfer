@@ -44,6 +44,8 @@ class AdversarialInputAttacker:
             adv_x, losses_history = self.attack(
                 image=image, prompts=prompts, targets=targets, **kwargs
             )
+            # TODO: Compute probability masses for loss history.
+            # prob_masses_history = torch.exp(-losses_history)
 
             save_multi_images(adv_x, results_dir, begin_id=image_idx)
 

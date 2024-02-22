@@ -5,6 +5,7 @@ import torch
 from torch import Tensor
 from torch import nn
 from typing import Callable, Dict, List, Tuple
+import wandb
 
 from src.attacks.utils import *
 from .base import AdversarialInputAttacker
@@ -64,9 +65,42 @@ class SGDAttack(AdversarialInputAttacker):
                 ).to(image.device)
                 losses_history[step_idx, model_idx] = model_loss.item()
                 loss += model_loss
+
+                if step_idx % 100 == 0:
+                    generations = model.generate(image, prompts)
+                    wandb.log(
+                        {
+                            f"generations_{model_str}": wandb.Table(
+                                columns=[
+                                    "prompt text",
+                                    "generated text",
+                                    "target text",
+                                ],
+                                data=[
+                                    [prompt, generation, target]
+                                    for prompt, generation, target in zip(
+                                        prompts, generations, targets
+                                    )
+                                ],
+                            )
+                        },
+                        step=step_idx,
+                    )
+
             loss.backward()
-            grad = image.grad
-            image.requires_grad = False
-            image -= self.step_size * grad
-            image = self.clamp(image, original_image)
+            with torch.no_grad():
+                grad = image.grad
+                # image.requires_grad = False
+                image = image - self.step_size * grad
+                image = self.clamp(image, original_image)
+
+            wandb.log(
+                {
+                    f"loss_{model_str}": losses_history[step_idx, model_idx]
+                    for model_idx, model_str in enumerate(self.models_to_attack_dict)
+                },
+                step=step_idx,
+            )
+            print(f"Step {step_idx + 1}/{self.total_steps}: {loss.item()}")
+
         return image, losses_history
