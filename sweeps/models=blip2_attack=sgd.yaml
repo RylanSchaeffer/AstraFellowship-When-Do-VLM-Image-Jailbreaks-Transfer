@@ -5,28 +5,32 @@ parameters:
   attack_kwargs:
     parameters:
       attack_name:
-        values: ["ssa_common_weakness"]
-      epsilon:
-        values: [16. / 255.]
+        values: ["sgd"]
       step_size:
-        values: [1.0 / 255.]
+        values: [0.01, 0.00316, 0.001]
       total_steps:
-        values: [500]
+        values: [25000]
   image_initialization:
     values:
       ["NIPS17"]
   models_to_attack:
     values:
-      ["['instruct_blip','blip2']"]
+      ["['blip2-opt-2.7b']"]
   models_to_test:
     values:
-      ["None"]
-  prompt_text:
+      ["['blip2-opt-2.7b']"]
+  n_prompts_and_targets:
     values:
-      ["robust_bard"]
+      [32, 56, 100, 178, 316]
+  n_samples:
+    values:
+      [10]
+  prompts_and_targets:
+    values:
+      ["advbench"]
   target_text:
     values:
       ["None"]
   seed:
     values:
-      [0, 1, 2]
+      [0]

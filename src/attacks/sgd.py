@@ -20,6 +20,7 @@ class SGDAttack(AdversarialInputAttacker):
         step_size: float = 0.1,
         criterion: Callable = nn.CrossEntropyLoss(),
         targeted_attack=False,
+        generate_every_n_steps: int = 1000,
         *args,
         **kwargs,
     ):
@@ -28,6 +29,7 @@ class SGDAttack(AdversarialInputAttacker):
         self.step_size = step_size
         self.criterion = criterion
         self.targerted_attack = targeted_attack
+        self.generate_every_n_steps = generate_every_n_steps
         super(SGDAttack, self).__init__(
             models_to_attack_dict=models_to_attack_dict, *args, **kwargs
         )
@@ -66,7 +68,7 @@ class SGDAttack(AdversarialInputAttacker):
                 losses_history[step_idx, model_idx] = model_loss.item()
                 loss += model_loss
 
-                if step_idx % 100 == 0:
+                if step_idx % self.generate_every_n_steps == 0:
                     generations = model.generate(image, prompts)
                     wandb.log(
                         {

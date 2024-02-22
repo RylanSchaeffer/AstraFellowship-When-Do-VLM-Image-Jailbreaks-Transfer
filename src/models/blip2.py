@@ -86,13 +86,15 @@ class Blip2VisionLanguageModel(VisionLanguageModel):
         images = image.repeat(len(prompts), 1, 1, 1)
         inputs = self.processor(
             images=images,
-            text=prompts,
+            text=[prompt + ".\n" for prompt in prompts],
             return_tensors="pt",
             padding=True,
             truncation=True,
         ).to(self.device)
         generated_ids = self.conditional_generation_model.generate(
-            **inputs, min_new_tokens=self.min_new_tokens_to_generate
+            **inputs,
+            min_new_tokens=self.min_new_tokens_to_generate,
+            max_new_tokens=self.min_new_tokens_to_generate,
         )
         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
         return text

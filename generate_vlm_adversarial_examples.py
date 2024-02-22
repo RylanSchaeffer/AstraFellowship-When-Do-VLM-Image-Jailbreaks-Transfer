@@ -29,12 +29,13 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
                 wandb_config["image_initialization"]
             )
         )
+    images = images[: wandb_config["n_samples"]]
 
     prompts, targets = src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]
     )
-    prompts = prompts[: wandb_config["n_samples"]]
-    targets = targets[: wandb_config["n_samples"]]
+    prompts = prompts[: wandb_config["n_prompts_and_targets"]]
+    targets = targets[: wandb_config["n_prompts_and_targets"]]
 
     models_to_eval_dict = src.utils.instantiate_models(
         model_strs=wandb_config["models_to_eval"],

@@ -11,6 +11,7 @@ default_config = {
     "models_to_eval": "{'blip2-opt-2.7b'}",
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "prompts_and_targets": "advbench",
-    "n_samples": 53,
+    "n_prompts_and_targets": 53,
+    "n_samples": 15,
     "seed": 0,
 }
