@@ -12,7 +12,7 @@ from old.how_robust_is_bard.src import get_list_image
 import old.how_robust_is_bard.src.utils
 
 
-def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
+def generate_adversarial_examples_against_vlms(wandb_config: dict[str, Any]):
     old.how_robust_is_bard.src.utils.set_seed(seed=wandb_config["seed"])
 
     if wandb_config["image_initialization"] == "NIPS17":
@@ -93,4 +93,4 @@ if __name__ == "__main__":
     # Ensure that the attacked models are also evaluated.
     wandb_config["models_to_eval"].update(wandb_config["models_to_attack"])
 
-    generate_vlm_adversarial_examples(wandb_config=wandb_config)
+    generate_adversarial_examples_against_vlms(wandb_config=wandb_config)

@@ -1,4 +1,4 @@
-program: generate_vlm_adversarial_examples.py
+program: generate_adversarial_examples_against_vlms.py
 project: universal-vlm-jailbreak
 method: grid
 parameters:

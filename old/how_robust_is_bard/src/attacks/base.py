@@ -7,7 +7,7 @@ from torch import Tensor
 from typing import Dict, List
 import wandb
 
-from old.how_robust_is_bard.src.image_handling import save_multi_images
+from src.image_handling import save_multi_images
 
 
 class AdversarialInputAttacker:
