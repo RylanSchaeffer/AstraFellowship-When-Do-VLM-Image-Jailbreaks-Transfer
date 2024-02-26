@@ -9,6 +9,22 @@ from typing import List, Callable
 from tqdm import tqdm
 
 
+OPENAI_CLIP_MEAN = [0.48145466, 0.4578275, 0.40821073]
+OPENAI_CLIP_STD = [0.26862954, 0.26130258, 0.27577711]
+IMAGENET_DEFAULT_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_DEFAULT_STD = [0.229, 0.224, 0.225]
+IMAGENET_STANDARD_MEAN = [0.5, 0.5, 0.5]
+IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
+
+
+def normalize_images(images: torch.Tensor) -> torch.Tensor:
+    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).cuda()
+    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).cuda()
+    images = images - mean[None, :, None, None]
+    images = images / std[None, :, None, None]
+    return images
+
+
 @torch.no_grad()
 def show_image(x: Tensor) -> Image.Image:
     if len(x.shape) == 4:
@@ -158,3 +174,11 @@ def synthesize_images_and_show(
     if not reserve_temporary_directory:
         os.rmdir(path)
     return result
+
+
+def unnormalize_images(images: torch.Tensor) -> torch.Tensor:
+    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).cuda()
+    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).cuda()
+    images = images * std[None, :, None, None]
+    images = images + mean[None, :, None, None]
+    return images

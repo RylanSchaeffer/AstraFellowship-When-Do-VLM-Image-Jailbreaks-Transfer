@@ -7,3 +7,6 @@
 [submodule "submodules/hh-rlhf"]
 	path = submodules/hh-rlhf
 	url = git@github.com:anthropics/hh-rlhf.git
+[submodule "submodules/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models"]
+	path = submodules/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models
+	url = git@github.com:Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models.git
