@@ -1,24 +1,22 @@
 import ast
 import json
-import matplotlib.pyplot as plt
 import os
 import pprint
 import torch
-from tqdm import tqdm
 from torchvision import transforms
 import wandb
-from typing import Any
+from typing import Any, List
 
-from src.globals import default_config
-from src.image_handling import get_list_image
-import src.utils
+from old.how_robust_is_bard.src.globals import default_config
+from old.how_robust_is_bard.src import get_list_image
+import old.how_robust_is_bard.src.utils
 
 
 def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
-    src.utils.set_seed(seed=wandb_config["seed"])
+    old.how_robust_is_bard.src.utils.set_seed(seed=wandb_config["seed"])
 
     if wandb_config["image_initialization"] == "NIPS17":
-        images = get_list_image("src/dataset/NIPS17")
+        images = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         resizer = transforms.Resize((224, 224))
         images = [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
     # elif wandb_config["image_initialization"] == "random":
@@ -29,15 +27,16 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
                 wandb_config["image_initialization"]
             )
         )
-    images = images[: wandb_config["n_samples"]]
+    # Only use one image for one attack.
+    images: List[torch.Tensor] = [images[wandb_config["datum_index"]]]
 
-    prompts, targets = src.utils.load_prompts_and_targets(
+    prompts, targets = old.how_robust_is_bard.src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]
     )
     prompts = prompts[: wandb_config["n_prompts_and_targets"]]
     targets = targets[: wandb_config["n_prompts_and_targets"]]
 
-    models_to_eval_dict = src.utils.instantiate_models(
+    models_to_eval_dict = old.how_robust_is_bard.src.utils.instantiate_models(
         model_strs=wandb_config["models_to_eval"],
         prompts=prompts,
         targets=targets,
@@ -51,7 +50,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         if model_str in wandb_config["models_to_attack"]
     }
 
-    attacker = src.utils.create_attacker(
+    attacker = old.how_robust_is_bard.src.utils.create_attacker(
         wandb_config=wandb_config,
         models_to_attack_dict=models_to_attack_dict,
         models_to_eval_dict=models_to_eval_dict,
@@ -66,7 +65,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
 
 
 if __name__ == "__main__":
-    wandb_username = src.utils.retrieve_wandb_username()
+    wandb_username = old.how_robust_is_bard.src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak",
         config=default_config,

@@ -1,0 +1,33 @@
+program: generate_vlm_adversarial_examples.py
+project: universal-vlm-jailbreak
+method: grid
+parameters:
+  attack_kwargs:
+    parameters:
+      attack_name:
+        values: ["sgd"]
+      step_size:
+        values: [0.001, 0.01, 0.00316]
+      total_steps:
+        values: [25000]
+  datum_index:
+    values:
+      [1, 3, 5]
+  image_initialization:
+    values:
+      ["NIPS17"]
+  models_to_attack:
+    values:
+      ["['blip2-opt-2.7b']"]
+  models_to_test:
+    values:
+      ["['blip2-opt-2.7b']"]
+  n_prompts_and_targets:
+    values:
+      [32, 56, 100, 178]
+  prompts_and_targets:
+    values:
+      ["advbench"]
+  seed:
+    values:
+      [0]
