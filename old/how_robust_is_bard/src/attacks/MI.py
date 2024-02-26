@@ -1,9 +1,9 @@
 from torch import nn
 from typing import Callable, List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
-class MI_FGSM(AdversarialInputAttacker):
+class MI_FGSM(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

@@ -6,7 +6,7 @@ import random
 import torch
 from typing import Any, Dict, List, Tuple
 
-from old.how_robust_is_bard.src.attacks.base import AdversarialInputAttacker
+from old.how_robust_is_bard.src.attacks.base import AdversarialImageAttacker
 
 from old.how_robust_is_bard.src.models.blip2 import Blip2VisionLanguageModel
 from old.how_robust_is_bard.src.models.instructblip import (
@@ -29,7 +29,7 @@ def create_attacker(
     wandb_config: Dict[str, Any],
     models_to_attack_dict: Dict[str, torch.nn.Module],
     models_to_eval_dict: Dict[str, torch.nn.Module],
-) -> AdversarialInputAttacker:
+) -> AdversarialImageAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "sgd":
         from old.how_robust_is_bard.src.attacks.sgd import SGDAttack
 

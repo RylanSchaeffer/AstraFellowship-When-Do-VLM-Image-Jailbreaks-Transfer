@@ -222,10 +222,10 @@ from torch import nn
 from typing import Callable, List
 from tqdm import tqdm
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
-class SpectrumSimulationAttack(AdversarialInputAttacker):
+class SpectrumSimulationAttack(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -303,7 +303,7 @@ class SpectrumSimulationAttack(AdversarialInputAttacker):
         return x
 
 
-class SpectrumSimulationCommonWeaknessAttack(AdversarialInputAttacker):
+class SpectrumSimulationCommonWeaknessAttack(AdversarialImageAttacker):
     def __init__(
         self,
         models_to_attack_dict: Dict[str, nn.Module],

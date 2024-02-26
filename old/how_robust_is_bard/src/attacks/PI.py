@@ -1,6 +1,6 @@
 from torch import nn
 from typing import Callable, List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 import numpy as np
 from torch.nn import functional as F
 from torch.autograd import Variable as V
@@ -11,7 +11,7 @@ https://github.com/qilong-zhang/Patch-wise-iterative-attack
 """
 
 
-class PI_FGSM(AdversarialInputAttacker):
+class PI_FGSM(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

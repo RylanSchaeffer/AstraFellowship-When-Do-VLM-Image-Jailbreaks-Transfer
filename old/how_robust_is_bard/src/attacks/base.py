@@ -10,7 +10,7 @@ import wandb
 from src.image_handling import save_multi_images
 
 
-class AdversarialInputAttacker:
+class AdversarialImageAttacker:
     def __init__(
         self,
         models_to_attack_dict: Dict[str, torch.nn.Module],

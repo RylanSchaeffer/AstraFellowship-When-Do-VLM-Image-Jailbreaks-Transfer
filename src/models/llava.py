@@ -6,6 +6,14 @@ from transformers import (
 )
 from typing import List
 
+from submodules.LLaVA.llava_llama_2_utils import prompt_wrapper
+from llava.model.builder import load_pretrained_model
+from llava.mm_utils import get_model_name_from_path
+from llava.eval.run_llava import eval_model
+
+model_path = "liuhaotian/llava-v1.5-7b"
+
+
 from src.models.base import VisionLanguageModel
 
 
@@ -17,23 +25,20 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     ):
         super(LlavaVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
-        self.processor = LlavaProcessor.from_pretrained(
-            huggingface_name,
+
+        (
+            self.tokenizer,
+            self.model,
+            self.image_processor,
+            self.context_len,
+        ) = load_pretrained_model(
+            model_path=model_path,
+            model_base=None,
+            model_name=get_model_name_from_path(model_path),
         )
-        self.normalize = transforms.Normalize(
-            mean=self.processor.image_processor.image_mean,
-            std=self.processor.image_processor.image_std,
-        )
+
         self.split = split
         self.device = None
-        if split in {"train", "eval"}:
-            self.model = LlavaForConditionalGeneration.from_pretrained(
-                huggingface_name,
-                device_map="auto",
-                torch_dtype=torch.float16,
-            )
-        else:
-            raise ValueError("Invalid split: {}".format(split))
 
         # Copied from https://huggingface.co/docs/transformers/en/model_doc/instructblip#transformers.InstructBlipForConditionalGeneration.forward.example
         self.generate_kwargs = {
@@ -42,7 +47,12 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             "min_length": 1,
         }
 
-        self.template = "<image>\nUSER: What's the content of the image?\nASSISTANT:"
+        self.text_prompt_template = prompt_wrapper.prepare_text_prompt("")
+        print(self.text_prompt_template)
+
+        self.prompt_template = (
+            "<image>\nUSER: What's the content of the image?\nASSISTANT:"
+        )
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
@@ -91,6 +101,9 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             padding=True,
             truncation=True,
         ).to(self.device)
-        generated_ids = self.model.generate(**inputs)
+        generated_ids = self.model.generate(
+            **inputs,
+            **self.generate_kwargs,
+        )
         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
         return text

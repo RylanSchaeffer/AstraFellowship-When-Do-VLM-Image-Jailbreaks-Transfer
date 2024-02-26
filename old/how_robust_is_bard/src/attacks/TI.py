@@ -1,11 +1,11 @@
 from torch import nn
 from typing import Callable, List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 import numpy as np
 from scipy import stats as st
 
 
-class MI_TI_FGSM(AdversarialInputAttacker):
+class MI_TI_FGSM(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

@@ -6,10 +6,10 @@ from torch import Tensor
 import torch.nn as nn
 from typing import List, Callable
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
-class PGDAttack(AdversarialInputAttacker):
+class PGDAttack(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

@@ -2,10 +2,10 @@ from torch import nn
 from torch import Tensor
 from typing import List, Callable
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
-class MI_SVRE(AdversarialInputAttacker):
+class MI_SVRE(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

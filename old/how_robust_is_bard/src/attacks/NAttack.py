@@ -1,11 +1,11 @@
 from torch import nn
 from typing import List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 __all__ = ["NAttack"]
 
 
-class NAttack(AdversarialInputAttacker):
+class NAttack(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

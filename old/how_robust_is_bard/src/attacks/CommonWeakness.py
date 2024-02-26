@@ -5,11 +5,11 @@ from torch import nn
 from torchvision import transforms
 from typing import Callable, List
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 from .utils import cosine_similarity
 
 
-class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
+class MI_CosineSimilarityEncourager(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -114,7 +114,7 @@ class MI_CosineSimilarityEncourager(AdversarialInputAttacker):
         return patch
 
 
-class MI_RandomWeight(AdversarialInputAttacker):
+class MI_RandomWeight(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -192,7 +192,7 @@ class MI_RandomWeight(AdversarialInputAttacker):
         return x
 
 
-class MI_CommonWeakness(AdversarialInputAttacker):
+class MI_CommonWeakness(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -353,7 +353,7 @@ class MI_CommonWeakness(AdversarialInputAttacker):
         return conv
 
 
-class Adam_CommonWeakness(AdversarialInputAttacker):
+class Adam_CommonWeakness(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

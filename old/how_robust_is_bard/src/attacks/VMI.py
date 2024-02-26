@@ -1,13 +1,13 @@
 from torch import nn
 from typing import Callable, List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 from torchvision import transforms
 from .utils import *
 import numpy as np
 from scipy import stats as st
 
 
-class VMI_FGSM(AdversarialInputAttacker):
+class VMI_FGSM(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -96,7 +96,7 @@ class VMI_FGSM(AdversarialInputAttacker):
         return v
 
 
-class VMI_Inner_CommonWeakness(AdversarialInputAttacker):
+class VMI_Inner_CommonWeakness(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -276,7 +276,7 @@ class VMI_Inner_CommonWeakness(AdversarialInputAttacker):
         return conv
 
 
-class VMI_Outer_CommonWeakness(AdversarialInputAttacker):
+class VMI_Outer_CommonWeakness(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

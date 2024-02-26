@@ -1,6 +1,6 @@
 from torch import nn
 from typing import Callable, List
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
 # class MI_SAM(AdversarialInputAttacker):
@@ -72,7 +72,7 @@ from .base import AdversarialInputAttacker
 #         return x
 
 
-class MI_SAM(AdversarialInputAttacker):
+class MI_SAM(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -157,7 +157,7 @@ class MI_SAM(AdversarialInputAttacker):
         return x
 
 
-class MI_RAP(AdversarialInputAttacker):
+class MI_RAP(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

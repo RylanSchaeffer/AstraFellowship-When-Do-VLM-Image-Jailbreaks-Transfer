@@ -1,11 +1,11 @@
 from torch import nn
 from typing import Callable, List
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 from .utils import cosine_similarity
 
 
-class DiffusionAttack(AdversarialInputAttacker):
+class DiffusionAttack(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],
@@ -57,7 +57,7 @@ class DiffusionAttack(AdversarialInputAttacker):
         return x
 
 
-class UNetAttack(AdversarialInputAttacker):
+class UNetAttack(AdversarialImageAttacker):
     def __init__(
         self,
         model: List[nn.Module],

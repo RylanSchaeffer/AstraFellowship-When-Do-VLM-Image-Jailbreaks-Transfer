@@ -9,7 +9,7 @@ import torch
 import torch.distributed
 from typing import Any, Dict, List, Tuple
 
-from old.how_robust_is_bard.src.attacks.base import AdversarialInputAttacker
+from old.how_robust_is_bard.src.attacks.base import AdversarialImageAttacker
 
 
 class GPT4AttackCriterion:
@@ -33,7 +33,7 @@ def create_attacker(
     wandb_config: Dict[str, Any],
     models_to_attack_dict: Dict[str, torch.nn.Module],
     models_to_eval_dict: Dict[str, torch.nn.Module],
-) -> AdversarialInputAttacker:
+) -> AdversarialImageAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "sgd":
         from old.how_robust_is_bard.src.attacks.sgd import SGDAttack
 
@@ -107,9 +107,23 @@ def instantiate_models(
 
         # Load MiniGPT4 model.
         elif model_str.startswith("gpt4"):
-            from old.how_robust_is_bard.src.models.minigpt4v import get_gpt4_image_model
+            from src.models.minigpt4v import get_gpt4_image_model
 
             model = get_gpt4_image_model(targets=targets)
+
+        elif model_str.startswith("llava"):
+            from src.models.llava import LlavaVisionLanguageModel
+
+            if model_str.endswith("v1.5-7b"):
+                huggingface_name = "liuhaotian/llava-v1.5-7b"
+            else:
+                raise ValueError("Invalid model_str: {}".format(model_str))
+
+            model = LlavaVisionLanguageModel(
+                huggingface_name=huggingface_name,
+                split=split,
+            )
+
         else:
             raise ValueError("Invalid model_str: {}".format(model_str))
 

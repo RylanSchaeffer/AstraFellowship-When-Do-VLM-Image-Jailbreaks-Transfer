@@ -6,10 +6,10 @@ from torch import nn
 from typing import Callable, Dict, List, Tuple
 import wandb
 
-from .base import AdversarialInputAttacker
+from .base import AdversarialImageAttacker
 
 
-class SGDAttack(AdversarialInputAttacker):
+class SGDAttack(AdversarialImageAttacker):
     def __init__(
         self,
         models_to_attack_dict: Dict[str, nn.Module],
