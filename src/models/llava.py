@@ -12,6 +12,17 @@ from llava.eval.run_llava import eval_model
 
 from src.models.base import VisionLanguageModel
 from src.models.conversation import conversation_templates
+from src.models.llava_llama_2.constants import (
+    IGNORE_INDEX,
+    IMAGE_TOKEN_INDEX,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    DEFAULT_IM_END_TOKEN,
+)
+from src.models.llava_llama_2.mm_utils import (
+    process_images,
+    tokenizer_image_token,
+)
 from src.models.llava_llama_2.prompt_wrapper import (
     prepare_text_prompt,
     LlavaLlama2Prompt,
@@ -29,7 +40,11 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self.huggingface_name = huggingface_name
         self.generation_kwargs = generation_kwargs
 
-        self.conversation_template = conversation_templates[self.huggingface_name]
+        if self.huggingface_name == "llava-hf/llava-1.5-7b-hf":
+            self.conv_template_name = "vicuna_v1"
+        else:
+            self.conv_template_name = "default"
+        self.conv_template = conversation_templates[self.conv_template_name]
 
         (
             self.tokenizer,
@@ -88,35 +103,68 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
 
     @torch.no_grad()
     def generate(self, image: torch.Tensor, prompts) -> List[str]:
-        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50.
+        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
+        # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
         images = image.repeat(len(prompts), 1, 1, 1).half()
 
-        input_ids = (
-            tokenizer_image_token(
-                prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt"
-            )
-            .unsqueeze(0)
-            .cuda()
-        )
+        prompts_with_image_tokens = [
+            DEFAULT_IM_START_TOKEN
+            + DEFAULT_IMAGE_TOKEN
+            + DEFAULT_IM_END_TOKEN
+            + "\n"
+            + prompt
+            for prompt in prompts
+        ]
 
-        inputs = self.processor(
-            images=images,
-            text=self.prompts_then_targets,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-        ).to(self.device)
+        templated_prompts = []
+        for prompt in prompts_with_image_tokens:
+            conv = self.conv_template.copy()
+            conv.append_message(conv.roles[0], prompt)
+            conv.append_message(conv.roles[1], None)
+            templated_prompt = conv.get_prompt()
+            templated_prompts.append(templated_prompt)
+
+        input_ids_list: List[List[int]] = [
+            tokenizer_image_token(
+                templated_prompt,
+                self.tokenizer,
+                IMAGE_TOKEN_INDEX,
+            )
+            for templated_prompt in templated_prompts
+        ]
+
+        # Pad all input_ids to be the same length using the tokenizer's padding token.
+        max_length = max([len(input_ids) for input_ids in input_ids_list])
+        for idx, input_ids in enumerate(input_ids_list):
+            input_ids.extend(
+                [self.tokenizer.pad_token_id] * (max_length - len(input_ids))
+            )
+        input_ids_list = torch.tensor(input_ids_list).to(self.device)
+
+        image_pixel_values = self.image_processor(images, return_tensors="pt")[
+            "pixel_values"
+        ]
+
+        # inputs = self.processor(
+        #     images=images,
+        #     text=self.prompts_then_targets,
+        #     return_tensors="pt",
+        #     padding=True,
+        #     truncation=True,
+        # ).to(self.device)
         generated_ids = self.model.generate(
-            **inputs,
-            **self.generate_kwargs,
+            input_ids_list,
+            images=image_pixel_values,
+            do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
+            **self.generation_kwargs,
         )
-        text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
+        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         return text
 
-    def wrap_prompts(self, prompts: List[str]) -> LlavaLlama2Prompt:
-        return LlavaLlama2Prompt(
-            model=self.model,
-            tokenizer=self.tokenizer,
-            text_prompts=prompts,
-            device=self.device,
-        )
+    # def wrap_prompts(self, prompts: List[str]):
+    #     return LlavaLlama2Prompt(
+    #         model=self.model,
+    #         tokenizer=self.tokenizer,
+    #         text_prompts=prompts,
+    #         device=self.device,
+    #     )

@@ -11,7 +11,7 @@ def load_image_from_base64(image):
     return Image.open(BytesIO(base64.b64decode(image)))
 
 
-def process_images(images, image_processor, model_cfg):
+def process_images(images, image_processor):
     return image_processor(images, return_tensors="pt")["pixel_values"]
 
 

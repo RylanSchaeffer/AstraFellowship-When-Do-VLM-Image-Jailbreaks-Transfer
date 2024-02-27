@@ -16,6 +16,6 @@ class VisionLanguageModel(abc.ABC):
     def generate(self, images, prompts):
         pass
 
-    @abc.abstractmethod
-    def wrap_prompts(self, prompts: List[str]):
-        pass
+    # @abc.abstractmethod
+    # def wrap_prompts(self, prompts: List[str]):
+    #     pass

@@ -17,6 +17,7 @@ default_config = {
         "llava-v1.5-7b": {
             "temperature": 0.0,
             "top_p": 0.9,
+            "max_new_tokens": 1024,
         },
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
