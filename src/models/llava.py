@@ -44,12 +44,12 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             "min_length": 1,
         }
 
-        self.text_prompt_template = prompt_wrapper.prepare_text_prompt("")
+        self.text_prompt_template = prepare_text_prompt("")
         print(self.text_prompt_template)
 
-        self.prompt_template = (
-            "<image>\nUSER: What's the content of the image?\nASSISTANT:"
-        )
+        # self.prompt_template = (
+        #     "<image>\nUSER: What's the content of the image?\nASSISTANT:"
+        # )
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]

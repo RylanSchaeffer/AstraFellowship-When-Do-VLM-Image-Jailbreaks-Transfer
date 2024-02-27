@@ -1,10 +1,11 @@
 default_config = {
     "attack_kwargs": {
-        "attack_name": "sgd",
+        "attack_name": "pgd",
         # "attack_name": "ssa_common_weakness",
         # "clip_gradients": True,
         # "normalize_gradients": True,
         "step_size": 0.01,
+        "batch_size": 32,
         "total_steps": 5000,
     },
     "image_initialization": "random",

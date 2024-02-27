@@ -5,28 +5,32 @@ from torch import Tensor
 import tqdm
 from typing import Dict, List
 
-from src.attacks.base import AdversarialImageAttacker
+from src.attacks.base import AdversarialAttacker
 
 
-class PGDAttack(AdversarialImageAttacker):
+class PGDAttacker(AdversarialAttacker):
     def __init__(
         self,
         models_to_attack_dict: Dict[str, torch.nn.Module],
         models_to_eval_dict: Dict[str, torch.nn.Module],
+        attack_kwargs: Dict[str, any],
     ):
-        super(PGDAttack, self).__init__(
+        super(PGDAttacker, self).__init__(
             models_to_attack_dict=models_to_attack_dict,
             models_to_eval_dict=models_to_eval_dict,
+            attack_kwargs=attack_kwargs,
         )
 
         self.loss_buffer = []
 
-    def attack_unconstrained(
-        self, text_prompt, img, batch_size=8, num_iter=2000, alpha=1 / 255
+    def attack(
+        self,
+        image: torch.Tensor,
+        prompts: List[str],
+        targets: List[str],
+        **kwargs,
     ):
-        print(">>> batch_size:", batch_size)
-
-        my_generator = generator.Generator(model=self.model, tokenizer=self.tokenizer)
+        # my_generator = generator.Generator(model=self.model, tokenizer=self.tokenizer)
 
         adv_noise = torch.rand_like(img).cuda()  # [0,1]
         adv_noise.requires_grad_(True)
@@ -36,30 +40,31 @@ class PGDAttack(AdversarialImageAttacker):
             self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
         )
 
-        for t in tqdm(range(num_iter + 1)):
+        for step_idx in tqdm(range(self.attack_kwargs["total_steps"])):
             batch_targets = random.sample(self.targets, batch_size)
 
             x_adv = normalize(adv_noise)
 
-            target_loss = self.attack_loss(prompt, x_adv, batch_targets)
+            target_loss = self._compute_loss(prompt, x_adv, batch_targets)
 
             target_loss.backward()
 
             adv_noise.data = (
-                adv_noise.data - alpha * adv_noise.grad.detach().sign()
-            ).clamp(0, 1)
+                adv_noise.data
+                - self.attack_kwargs["step_size"] * adv_noise.grad.detach().sign()
+            ).clamp(0.0, 1.0)
             adv_noise.grad.zero_()
-            self.model.zero_grad()
+            self.model.model.zero_grad()
 
             self.loss_buffer.append(target_loss.item())
 
             print("target_loss: %f" % (target_loss.item()))
 
-            if t % 20 == 0:
+            if step_idx % 20 == 0:
                 self.plot_loss()
 
-            if t % 100 == 0:
-                print("######### Output - Iter = %d ##########" % t)
+            if step_idx % 100 == 0:
+                print("######### Output - Iter = %d ##########" % step_idx)
                 x_adv = normalize(adv_noise)
                 response = my_generator.generate(prompt, x_adv)
                 print(">>>", response)
@@ -68,7 +73,8 @@ class PGDAttack(AdversarialImageAttacker):
                 adv_img_prompt = adv_img_prompt.squeeze(0)
                 save_image(
                     adv_img_prompt,
-                    "%s/bad_prompt_temp_%d.bmp" % (self.wandb_config.save_dir, t),
+                    "%s/bad_prompt_temp_%d.bmp"
+                    % (self.wandb_config.save_dir, step_idx),
                 )
 
         return adv_img_prompt
@@ -94,7 +100,9 @@ class PGDAttack(AdversarialImageAttacker):
 
         torch.save(self.loss_buffer, "%s/loss" % (self.wandb_config.save_dir))
 
-    def attack_loss(self, prompts, images, targets):
+    def _compute_loss(
+        self, image: torch.Tensor, prompts: List[str], targets: List[str]
+    ):
         context_length = prompts.context_length
         context_input_ids = prompts.input_ids
         batch_size = len(targets)
@@ -103,7 +111,7 @@ class PGDAttack(AdversarialImageAttacker):
             context_length = context_length * batch_size
             context_input_ids = context_input_ids * batch_size
 
-        images = images.repeat(batch_size, 1, 1, 1)
+        images = image.repeat(batch_size, 1, 1, 1).half()
 
         assert len(context_input_ids) == len(
             targets
@@ -165,7 +173,7 @@ class PGDAttack(AdversarialImageAttacker):
             attention_mask=attention_mask,
             return_dict=True,
             labels=labels,
-            images=images.half(),
+            images=images,
         )
         loss = outputs.loss
 

@@ -10,17 +10,20 @@ import wandb
 from src.image_handling import save_multi_images
 
 
-class AdversarialImageAttacker:
+class AdversarialAttacker:
     def __init__(
         self,
         models_to_attack_dict: Dict[str, torch.nn.Module],
         models_to_eval_dict: Dict[str, torch.nn.Module],
-        batch_size: int = 32,
+        attack_kwargs: Dict[str, any],
         **kwargs,
     ):
         self.models_to_attack_dict = models_to_attack_dict
         self.models_to_eval_dict = models_to_eval_dict
-        self.batch_size = batch_size
+        # Check that attack kwargs has the required keys.
+        assert "batch_size" in attack_kwargs
+
+        self.attack_kwargs = attack_kwargs
         self.disable_model_gradients()
         self.distribute_models()
         self.device = torch.device("cuda")
@@ -101,21 +104,3 @@ class AdversarialImageAttacker:
             wrapper_model.model.to(device)
             wrapper_model.model.device = device
         self.device = device
-
-    def clamp(self, x: Tensor, ori_x: Tensor) -> Tensor:
-        # B = x.shape[0]
-        # if self.norm == "Linf":
-        #     x = torch.clamp(x, min=ori_x - self.epsilon, max=ori_x + self.epsilon)
-        # elif self.norm == "L2":
-        #     difference = x - ori_x
-        #     distance = torch.norm(difference.view(B, -1), p=2, dim=1)
-        #     mask = distance > self.epsilon
-        #     if torch.sum(mask) > 0:
-        #         difference[mask] = (
-        #             difference[mask]
-        #             / distance[mask].view(torch.sum(mask), 1, 1, 1)
-        #             * self.epsilon
-        #         )
-        #         x = ori_x + difference
-        x = torch.clamp(x, min=0.0, max=1.0)
-        return x

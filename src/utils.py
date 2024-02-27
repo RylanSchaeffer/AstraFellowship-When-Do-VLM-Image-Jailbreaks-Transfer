@@ -34,13 +34,13 @@ def create_attacker(
     models_to_attack_dict: Dict[str, torch.nn.Module],
     models_to_eval_dict: Dict[str, torch.nn.Module],
 ) -> AdversarialImageAttacker:
-    if wandb_config["attack_kwargs"]["attack_name"] == "sgd":
-        from src.attacks.sgd import SGDAttack
+    if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
+        from src.attacks.pgd import PGDAttacker
 
-        attacker = SGDAttack(
+        attacker = PGDAttacker(
             models_to_attack_dict=models_to_attack_dict,
             models_to_eval_dict=models_to_eval_dict,
-            **wandb_config["attack_kwargs"],
+            attack_kwargs=wandb_config["attack_kwargs"],
         )
     elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
         from old.how_robust_is_bard.src.attacks.SpectrumSimulationAttack import (
