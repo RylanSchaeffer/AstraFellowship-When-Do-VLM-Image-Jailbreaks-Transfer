@@ -66,13 +66,19 @@ class PGDAttacker(AdversarialAttacker):
             batch_idx = random.sample(
                 range(dataset_size), self.attack_kwargs["batch_size"]
             )
+            batch_prompts = [
+                prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
+            ]
+            target_prompts = [
+                target for idx, target in enumerate(targets) if idx in batch_idx
+            ]
 
             # Occasionally generate to see what the VLM is outputting.
             if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
                 for model_name, model_wrapper in self.models_to_eval_dict.items():
                     model_generations = model_wrapper.generate(
                         image=image,
-                        prompts=prompts,
+                        prompts=prompts[:10],  # First 10 are arbitrarily chosen.
                     )
                     wandb.log(
                         {
@@ -97,12 +103,8 @@ class PGDAttacker(AdversarialAttacker):
             for model_name, model_wrapper in self.models_to_attack_dict.items():
                 target_loss_for_model = model_wrapper.compute_loss(
                     image=image,
-                    prompts=[
-                        prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
-                    ],
-                    targets=[
-                        target for idx, target in enumerate(targets) if idx in batch_idx
-                    ],
+                    prompts=batch_prompts,
+                    targets=target_prompts,
                 )
                 target_loss_per_model[model_name] = target_loss_for_model
             total_target_loss = torch.mean(target_loss_per_model.values())

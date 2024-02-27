@@ -15,9 +15,10 @@ default_config = {
     "models_to_eval": "{'llava-v1.5-7b'}",
     "model_generation_kwargs": {
         "llava-v1.5-7b": {
-            "temperature": 0.0,
+            "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 1024,
+            "min_new_tokens": 32,
         },
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
