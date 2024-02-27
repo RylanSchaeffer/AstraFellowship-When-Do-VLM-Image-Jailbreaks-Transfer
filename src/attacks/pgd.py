@@ -1,7 +1,10 @@
 # Adapted from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/llava_llama_2_utils/visual_attacker.py#L20
+import matplotlib.pyplot as plt
 import random
+
+import numpy as np
+import seaborn as sns
 import torch
-from torch import Tensor
 import tqdm
 from typing import Dict, List
 import wandb
@@ -23,7 +26,7 @@ class PGDAttacker(AdversarialAttacker):
             attack_kwargs=attack_kwargs,
         )
 
-        self.loss_history: List[float] = []
+        self.loss_history: np.ndarray = np.zeros(1)
 
     def attack(
         self,
@@ -31,9 +34,14 @@ class PGDAttacker(AdversarialAttacker):
         prompts: List[str],
         targets: List[str],
         **kwargs,
-    ):
+    ) -> Dict[str, torch.Tensor]:
         # Ensure loss history is empty.
-        self.loss_history = []
+        self.loss_history = np.zeros(
+            shape=(
+                self.attack_kwargs["total_steps"] + 1,
+                len(self.models_to_attack_dict),
+            )
+        )
 
         assert len(prompts) == len(targets)
         dataset_size = len(prompts)
@@ -48,6 +56,8 @@ class PGDAttacker(AdversarialAttacker):
         # )
 
         # Ensure gradients are computed for the image.
+        original_image = image.clone()
+        image = image.half()
         image = image.cuda()
         image.requires_grad_(True)
         image.retain_grad()
@@ -57,6 +67,32 @@ class PGDAttacker(AdversarialAttacker):
                 range(dataset_size), self.attack_kwargs["batch_size"]
             )
 
+            # Occasionally generate to see what the VLM is outputting.
+            if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
+                for model_name, model_wrapper in self.models_to_eval_dict.items():
+                    model_generations = model_wrapper.generate(
+                        image=image,
+                        prompts=prompts,
+                    )
+                    wandb.log(
+                        {
+                            f"generations_{model_name}_step={step_idx}": wandb.Table(
+                                columns=[
+                                    "prompt",
+                                    "generated",
+                                    "target text",
+                                ],
+                                data=[
+                                    [prompt, model_generation, target]
+                                    for prompt, model_generation, target in zip(
+                                        prompts, model_generations, targets
+                                    )
+                                ],
+                            )
+                        },
+                    )
+
+            # Always calculate loss per model and use for updating the adversarial example.
             target_loss_per_model: Dict[str, torch.Tensor] = {}
             for model_name, model_wrapper in self.models_to_attack_dict.items():
                 target_loss_for_model = model_wrapper.compute_loss(
@@ -100,98 +136,91 @@ class PGDAttacker(AdversarialAttacker):
             #         % (self.wandb_config.save_dir, step_idx),
             #     )
 
-        return x_adv
+        return original_image, image
 
     def plot_loss(self):
-        sns.set_theme()
-        num_iters = len(self.loss_history)
-
-        x_ticks = list(range(0, num_iters))
-
-        # Plot and label the training and validation loss values
-        plt.plot(x_ticks, self.loss_history, label="Target Loss")
-
-        # Add in a title and axes labels
-        plt.title("Loss Plot")
-        plt.xlabel("Iters")
+        plt.close()
+        for model_idx, model_str in enumerate(self.models_to_attack_dict):
+            plt.plot(
+                list(range(len(self.losses_history))),
+                losses_history[:, model_idx],
+                label=model_str,
+            )
+        plt.xlabel("Step")
         plt.ylabel("Loss")
+        plt.ylim(bottom=0.0)
+        plt.legend()
 
-        # Display the plot
-        plt.legend(loc="best")
-        plt.savefig("%s/loss_curve.png" % (self.wandb_config.save_dir))
-        plt.clf()
-
-        torch.save(self.loss_history, "%s/loss" % (self.wandb_config.save_dir))
-
-    def _compute_loss(
-        self, image: torch.Tensor, prompts: List[str], targets: List[str]
-    ):
-        context_length = prompts.context_length
-        context_input_ids = prompts.input_ids
-        batch_size = len(targets)
-
-        if len(context_input_ids) == 1:
-            context_length = context_length * batch_size
-            context_input_ids = context_input_ids * batch_size
-
-        to_regress_tokens = [
-            torch.as_tensor([item[1:]]).cuda()
-            for item in self.tokenizer(targets).input_ids
-        ]  # get rid of the default <bos> in targets tokenization.
-
-        seq_tokens_length = []
-        labels = []
-        input_ids = []
-
-        for i, item in enumerate(to_regress_tokens):
-            L = item.shape[1] + context_length[i]
-            seq_tokens_length.append(L)
-
-            context_mask = torch.full(
-                [1, context_length[i]],
-                -100,
-                dtype=to_regress_tokens[0].dtype,
-                device=to_regress_tokens[0].device,
-            )
-            labels.append(torch.cat([context_mask, item], dim=1))
-            input_ids.append(torch.cat([context_input_ids[i], item], dim=1))
-
-        # padding token
-        pad = torch.full(
-            [1, 1],
-            0,
-            dtype=to_regress_tokens[0].dtype,
-            device=to_regress_tokens[0].device,
-        ).cuda()  # it does not matter ... Anyway will be masked out from attention...
-
-        max_length = max(seq_tokens_length)
-        attention_mask = []
-
-        for i in range(batch_size):
-            # padding to align the length
-            num_to_pad = max_length - seq_tokens_length[i]
-
-            padding_mask = torch.full(
-                [1, num_to_pad], -100, dtype=torch.long, device=self.device
-            )
-            labels[i] = torch.cat([labels[i], padding_mask], dim=1)
-
-            input_ids[i] = torch.cat([input_ids[i], pad.repeat(1, num_to_pad)], dim=1)
-            attention_mask.append(
-                torch.LongTensor([[1] * (seq_tokens_length[i]) + [0] * num_to_pad])
-            )
-
-        labels = torch.cat(labels, dim=0).cuda()
-        input_ids = torch.cat(input_ids, dim=0).cuda()
-        attention_mask = torch.cat(attention_mask, dim=0).cuda()
-
-        outputs = self.model(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            return_dict=True,
-            labels=labels,
-            images=images,
+        wandb.log(
+            {
+                "original_image": wandb.Image(image, caption="Original Image"),
+                "adversarial_image": wandb.Image(adv_x, caption="Adversarial Image"),
+                "loss_curve": wandb.Image(plt),
+            }
         )
-        loss = outputs.loss
 
-        return loss
+    # def _compute_loss(
+    #     self, image: torch.Tensor, prompts: List[str], targets: List[str]
+    # ):
+    #
+    #     to_regress_tokens = [
+    #         torch.as_tensor([item[1:]]).cuda()
+    #         for item in self.tokenizer(targets).input_ids
+    #     ]  # get rid of the default <bos> in targets tokenization.
+    #
+    #     seq_tokens_length = []
+    #     labels = []
+    #     input_ids = []
+    #
+    #     for i, item in enumerate(to_regress_tokens):
+    #         L = item.shape[1] + context_length[i]
+    #         seq_tokens_length.append(L)
+    #
+    #         context_mask = torch.full(
+    #             [1, context_length[i]],
+    #             -100,
+    #             dtype=to_regress_tokens[0].dtype,
+    #             device=to_regress_tokens[0].device,
+    #         )
+    #         labels.append(torch.cat([context_mask, item], dim=1))
+    #         input_ids.append(torch.cat([context_input_ids[i], item], dim=1))
+    #
+    #     # padding token
+    #     pad = torch.full(
+    #         [1, 1],
+    #         0,
+    #         dtype=to_regress_tokens[0].dtype,
+    #         device=to_regress_tokens[0].device,
+    #     ).cuda()  # it does not matter ... Anyway will be masked out from attention...
+    #
+    #     max_length = max(seq_tokens_length)
+    #     attention_mask = []
+    #
+    #     for i in range(batch_size):
+    #         # padding to align the length
+    #         num_to_pad = max_length - seq_tokens_length[i]
+    #
+    #         padding_mask = torch.full(
+    #             [1, num_to_pad], -100, dtype=torch.long, device=self.device
+    #         )
+    #         labels[i] = torch.cat([labels[i], padding_mask], dim=1)
+    #
+    #         input_ids[i] = torch.cat([input_ids[i], pad.repeat(1, num_to_pad)], dim=1)
+    #         attention_mask.append(
+    #             torch.LongTensor([[1] * (seq_tokens_length[i]) + [0] * num_to_pad])
+    #         )
+    #
+    #     labels = torch.cat(labels, dim=0).cuda()
+    #     input_ids = torch.cat(input_ids, dim=0).cuda()
+    #     attention_mask = torch.cat(attention_mask, dim=0).cuda()
+    #
+    #     outputs = self.model(
+    #         input_ids=input_ids,
+    #         attention_mask=attention_mask,
+    #         return_dict=True,
+    #         labels=labels,
+    #         images=images,
+    #     )
+    #     loss = outputs.loss
+    #
+    #     return loss

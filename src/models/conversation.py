@@ -377,7 +377,7 @@ conv_llava_v1_mmtag = Conversation(
 )
 
 default_conversation = conv_vicuna_v0
-conv_templates = {
+conversation_templates = {
     "default": conv_vicuna_v0,
     "v0": conv_vicuna_v0,
     "v1": conv_vicuna_v1,

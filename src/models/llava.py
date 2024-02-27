@@ -11,6 +11,7 @@ from llava.mm_utils import get_model_name_from_path
 from llava.eval.run_llava import eval_model
 
 from src.models.base import VisionLanguageModel
+from src.models.conversation import conversation_templates
 from src.models.llava_llama_2.prompt_wrapper import (
     prepare_text_prompt,
     LlavaLlama2Prompt,
@@ -26,6 +27,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         super(LlavaVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
 
+        self.conversation_template = conversation_templates[self.huggingface_name]
         (
             self.tokenizer,
             self.model,
@@ -63,6 +65,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         prompts_then_targets = [
             f"{prompt} {target}" for prompt, target in zip(prompts, targets)
         ]
+
         prompts_lengths = [
             len(l)
             for l in self.processor(
@@ -91,11 +94,12 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         outputs = self.model(**inputs)
         return outputs.loss
 
-    def generate(self, images: torch.Tensor, prompts) -> List[str]:
-        x = torch.clamp(x, min=0.0, max=1.0)
-        x = x.repeat(self.batch_size, 1, 1, 1)
+    @torch.no_grad()
+    def generate(self, image: torch.Tensor, prompts) -> List[str]:
+        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50.
+        images = image.repeat(len(prompts), 1, 1, 1).half()
         inputs = self.processor(
-            images=x,
+            images=images,
             text=self.prompts_then_targets,
             return_tensors="pt",
             padding=True,

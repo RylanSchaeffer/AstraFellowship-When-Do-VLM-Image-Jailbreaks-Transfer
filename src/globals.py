@@ -7,6 +7,7 @@ default_config = {
         "step_size": 0.01,
         "batch_size": 32,
         "total_steps": 5000,
+        "generate_every_n_steps": 100,
     },
     "image_initialization": "random",
     # "models_to_attack": "{'blip2-opt-2.7b'}",
