@@ -35,7 +35,7 @@ def create_attacker(
     models_to_eval_dict: Dict[str, torch.nn.Module],
 ) -> AdversarialImageAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "sgd":
-        from old.how_robust_is_bard.src.attacks.sgd import SGDAttack
+        from src.attacks.sgd import SGDAttack
 
         attacker = SGDAttack(
             models_to_attack_dict=models_to_attack_dict,

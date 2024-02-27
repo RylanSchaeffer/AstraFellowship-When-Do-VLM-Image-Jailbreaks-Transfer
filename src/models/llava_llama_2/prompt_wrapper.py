@@ -1,12 +1,12 @@
 import torch
-from llava_llama_2.conversation import conv_llava_llama_2
-from llava_llama_2.constants import (
+from src.models.llava_llama_2.conversation import conv_llava_llama_2
+from src.models.llava_llama_2.constants import (
     IMAGE_TOKEN_INDEX,
     DEFAULT_IMAGE_TOKEN,
     DEFAULT_IM_START_TOKEN,
     DEFAULT_IM_END_TOKEN,
 )
-from llava_llama_2.mm_utils import tokenizer_image_token
+from src.models.llava_llama_2.mm_utils import tokenizer_image_token
 
 
 def prepare_text_prompt(user_prompt):

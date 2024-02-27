@@ -10,11 +10,8 @@ from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path
 from llava.eval.run_llava import eval_model
 
-
-model_path = "liuhaotian/llava-v1.5-7b"
-
-
 from src.models.base import VisionLanguageModel
+from src.models.llava_llama_2.prompt_wrapper import prepare_text_prompt
 
 
 class LlavaVisionLanguageModel(VisionLanguageModel):
@@ -32,9 +29,9 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             self.image_processor,
             self.context_len,
         ) = load_pretrained_model(
-            model_path=model_path,
+            model_path=self.huggingface_name,
             model_base=None,
-            model_name=get_model_name_from_path(model_path),
+            model_name=get_model_name_from_path(self.huggingface_name),
         )
 
         self.split = split
