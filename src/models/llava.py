@@ -154,7 +154,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         # ).to(self.device)
         generated_ids = self.model.generate(
             input_ids_list,
-            images=image_pixel_values,
+            images=image_pixel_values.half(),
             do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
             **self.generation_kwargs,
         )
