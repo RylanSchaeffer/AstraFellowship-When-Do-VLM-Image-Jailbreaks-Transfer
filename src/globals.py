@@ -13,6 +13,12 @@ default_config = {
     # "models_to_attack": "{'blip2-opt-2.7b'}",
     "models_to_attack": "{'llava-v1.5-7b'}",
     "models_to_eval": "{'llava-v1.5-7b'}",
+    "model_generation_kwargs": {
+        "llava-v1.5-7b": {
+            "temperature": 0.0,
+            "top_p": 0.9,
+        },
+    },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "prompts_and_targets": "advbench",
     "n_prompts_and_targets": 53,

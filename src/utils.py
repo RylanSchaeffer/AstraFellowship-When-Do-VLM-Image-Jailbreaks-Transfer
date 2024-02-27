@@ -63,7 +63,9 @@ def create_attacker(
 
 
 def instantiate_models(
-    model_strs: List[str], prompts: List[str], targets: List[str], split: str = "train"
+    model_strs: List[str],
+    model_generation_kwargs: Dict[str, Dict[str, Any]],
+    split: str = "train",
 ) -> Dict[str, torch.nn.Module]:
     models_dict = {}
     for model_str in model_strs:
@@ -105,11 +107,11 @@ def instantiate_models(
                 split=split,
             )
 
-        # Load MiniGPT4 model.
-        elif model_str.startswith("gpt4"):
-            from src.models.minigpt4v import get_gpt4_image_model
-
-            model = get_gpt4_image_model(targets=targets)
+        # # Load MiniGPT4 model.
+        # elif model_str.startswith("gpt4"):
+        #     from src.models.minigpt4v import get_gpt4_image_model
+        #
+        #     model = get_gpt4_image_model(targets=targets)
 
         elif model_str.startswith("llava"):
             from src.models.llava import LlavaVisionLanguageModel
@@ -122,6 +124,7 @@ def instantiate_models(
             model = LlavaVisionLanguageModel(
                 huggingface_name=huggingface_name,
                 split=split,
+                generation_kwargs=model_generation_kwargs[model_str],
             )
 
         else:

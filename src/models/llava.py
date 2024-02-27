@@ -4,7 +4,7 @@ from transformers import (
     LlavaProcessor,
     LlavaForConditionalGeneration,
 )
-from typing import List
+from typing import Any, Dict, List
 
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path
@@ -23,11 +23,14 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self,
         huggingface_name: str = "llava-hf/llava-1.5-7b-hf",
         split: str = "train",
+        generation_kwargs: Dict[str, Any] = None,
     ):
         super(LlavaVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
+        self.generation_kwargs = generation_kwargs
 
         self.conversation_template = conversation_templates[self.huggingface_name]
+
         (
             self.tokenizer,
             self.model,
@@ -42,19 +45,8 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self.split = split
         self.device = None
 
-        # Copied from https://huggingface.co/docs/transformers/en/model_doc/instructblip#transformers.InstructBlipForConditionalGeneration.forward.example
-        self.generate_kwargs = {
-            "do_sample": False,
-            "max_length": 256,
-            "min_length": 1,
-        }
-
         self.text_prompt_template = prepare_text_prompt("")
         print(self.text_prompt_template)
-
-        # self.prompt_template = (
-        #     "<image>\nUSER: What's the content of the image?\nASSISTANT:"
-        # )
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
@@ -98,6 +90,15 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     def generate(self, image: torch.Tensor, prompts) -> List[str]:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50.
         images = image.repeat(len(prompts), 1, 1, 1).half()
+
+        input_ids = (
+            tokenizer_image_token(
+                prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt"
+            )
+            .unsqueeze(0)
+            .cuda()
+        )
+
         inputs = self.processor(
             images=images,
             text=self.prompts_then_targets,

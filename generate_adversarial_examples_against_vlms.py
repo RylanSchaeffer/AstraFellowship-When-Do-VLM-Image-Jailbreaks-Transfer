@@ -38,8 +38,7 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
 
     models_to_eval_dict = src.utils.instantiate_models(
         model_strs=wandb_config["models_to_eval"],
-        prompts=prompts,
-        targets=targets,
+        model_generation_kwargs=wandb_config["model_generation_kwargs"],
         split="eval",
     )
 
@@ -92,5 +91,10 @@ if __name__ == "__main__":
     wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
     # Ensure that the attacked models are also evaluated.
     wandb_config["models_to_eval"].update(wandb_config["models_to_attack"])
+
+    assert all(
+        model_str in wandb_config["model_generation_kwargs"]
+        for model_str in wandb_config["models_to_eval"]
+    )
 
     generate_vlm_adversarial_examples(wandb_config=wandb_config)
