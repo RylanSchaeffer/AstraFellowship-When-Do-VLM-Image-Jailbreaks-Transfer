@@ -21,7 +21,7 @@ def prepare_text_prompt(user_prompt):
 
 
 # support batch implementation
-class Prompt:
+class LlavaLlama2Prompt:
     # tokenization
     # turn to embeddings
 

@@ -11,7 +11,10 @@ from llava.mm_utils import get_model_name_from_path
 from llava.eval.run_llava import eval_model
 
 from src.models.base import VisionLanguageModel
-from src.models.llava_llama_2.prompt_wrapper import prepare_text_prompt
+from src.models.llava_llama_2.prompt_wrapper import (
+    prepare_text_prompt,
+    LlavaLlama2Prompt,
+)
 
 
 class LlavaVisionLanguageModel(VisionLanguageModel):
@@ -104,3 +107,11 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         )
         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)
         return text
+
+    def wrap_prompts(self, prompts: List[str]) -> LlavaLlama2Prompt:
+        return LlavaLlama2Prompt(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            text_prompts=prompts,
+            device=self.device,
+        )

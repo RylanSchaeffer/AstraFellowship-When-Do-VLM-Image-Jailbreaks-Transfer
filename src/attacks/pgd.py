@@ -4,8 +4,10 @@ import torch
 from torch import Tensor
 import tqdm
 from typing import Dict, List
+import wandb
 
 from src.attacks.base import AdversarialAttacker
+from src.image_handling import normalize_images
 
 
 class PGDAttacker(AdversarialAttacker):
@@ -21,7 +23,7 @@ class PGDAttacker(AdversarialAttacker):
             attack_kwargs=attack_kwargs,
         )
 
-        self.loss_buffer = []
+        self.loss_history: List[float] = []
 
     def attack(
         self,
@@ -30,63 +32,84 @@ class PGDAttacker(AdversarialAttacker):
         targets: List[str],
         **kwargs,
     ):
-        # my_generator = generator.Generator(model=self.model, tokenizer=self.tokenizer)
+        # Ensure loss history is empty.
+        self.loss_history = []
 
-        adv_noise = torch.rand_like(img).cuda()  # [0,1]
-        adv_noise.requires_grad_(True)
-        adv_noise.retain_grad()
+        assert len(prompts) == len(targets)
+        dataset_size = len(prompts)
 
-        prompt = prompt_wrapper.Prompt(
-            self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
-        )
+        # TODO: Tokenize the prompts once.
+        # prompts_per_model = {
+        #     model_str: prompts for model_str, model_wrapper in self.models_to_attack_dict.items()
+        # }
+        #
+        # prompt = prompt_wrapper.LlavaLlama2Prompt(
+        #     self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
+        # )
 
-        for step_idx in tqdm(range(self.attack_kwargs["total_steps"])):
-            batch_targets = random.sample(self.targets, batch_size)
+        # Ensure gradients are computed for the image.
+        image = image.cuda()
+        image.requires_grad_(True)
+        image.retain_grad()
 
-            x_adv = normalize(adv_noise)
+        for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
+            batch_idx = random.sample(
+                range(dataset_size), self.attack_kwargs["batch_size"]
+            )
 
-            target_loss = self._compute_loss(prompt, x_adv, batch_targets)
-
-            target_loss.backward()
-
-            adv_noise.data = (
-                adv_noise.data
-                - self.attack_kwargs["step_size"] * adv_noise.grad.detach().sign()
-            ).clamp(0.0, 1.0)
-            adv_noise.grad.zero_()
-            self.model.model.zero_grad()
-
-            self.loss_buffer.append(target_loss.item())
-
-            print("target_loss: %f" % (target_loss.item()))
-
-            if step_idx % 20 == 0:
-                self.plot_loss()
-
-            if step_idx % 100 == 0:
-                print("######### Output - Iter = %d ##########" % step_idx)
-                x_adv = normalize(adv_noise)
-                response = my_generator.generate(prompt, x_adv)
-                print(">>>", response)
-
-                adv_img_prompt = denormalize(x_adv).detach().cpu()
-                adv_img_prompt = adv_img_prompt.squeeze(0)
-                save_image(
-                    adv_img_prompt,
-                    "%s/bad_prompt_temp_%d.bmp"
-                    % (self.wandb_config.save_dir, step_idx),
+            target_loss_per_model: Dict[str, torch.Tensor] = {}
+            for model_name, model_wrapper in self.models_to_attack_dict.items():
+                target_loss_for_model = model_wrapper.compute_loss(
+                    image=image,
+                    prompts=[
+                        prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
+                    ],
+                    targets=[
+                        target for idx, target in enumerate(targets) if idx in batch_idx
+                    ],
                 )
+                target_loss_per_model[model_name] = target_loss_for_model
+            total_target_loss = torch.mean(target_loss_per_model.values())
+            target_loss_per_model["total"] = total_target_loss
+            total_target_loss.backward()
 
-        return adv_img_prompt
+            image.data = (
+                image.data
+                - self.attack_kwargs["step_size"] * image.grad.detach().sign()
+            ).clamp(0.0, 1.0)
+            image.grad.zero_()
+
+            self.loss_history.append(total_target_loss.item())
+
+            wandb.log(
+                {k: v.item() for k, v in target_loss_per_model.items()},
+                step=step_idx + 1,
+            )
+
+            # if step_idx % 100 == 0:
+            #     print("######### Output - Iter = %d ##########" % step_idx)
+            #     x_adv = normalize(image)
+            #     response = my_generator.generate(prompt, x_adv)
+            #     print(">>>", response)
+            #
+            #     adv_img_prompt = denormalize(x_adv).detach().cpu()
+            #     adv_img_prompt = adv_img_prompt.squeeze(0)
+            #     save_image(
+            #         adv_img_prompt,
+            #         "%s/bad_prompt_temp_%d.bmp"
+            #         % (self.wandb_config.save_dir, step_idx),
+            #     )
+
+        return x_adv
 
     def plot_loss(self):
         sns.set_theme()
-        num_iters = len(self.loss_buffer)
+        num_iters = len(self.loss_history)
 
         x_ticks = list(range(0, num_iters))
 
         # Plot and label the training and validation loss values
-        plt.plot(x_ticks, self.loss_buffer, label="Target Loss")
+        plt.plot(x_ticks, self.loss_history, label="Target Loss")
 
         # Add in a title and axes labels
         plt.title("Loss Plot")
@@ -98,7 +121,7 @@ class PGDAttacker(AdversarialAttacker):
         plt.savefig("%s/loss_curve.png" % (self.wandb_config.save_dir))
         plt.clf()
 
-        torch.save(self.loss_buffer, "%s/loss" % (self.wandb_config.save_dir))
+        torch.save(self.loss_history, "%s/loss" % (self.wandb_config.save_dir))
 
     def _compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
@@ -110,12 +133,6 @@ class PGDAttacker(AdversarialAttacker):
         if len(context_input_ids) == 1:
             context_length = context_length * batch_size
             context_input_ids = context_input_ids * batch_size
-
-        images = image.repeat(batch_size, 1, 1, 1).half()
-
-        assert len(context_input_ids) == len(
-            targets
-        ), f"Unmathced batch size of prompts and targets {len(context_input_ids)} != {len(targets)}"
 
         to_regress_tokens = [
             torch.as_tensor([item[1:]]).cuda()

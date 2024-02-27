@@ -66,7 +66,7 @@ class Attacker:
         adv_noise.requires_grad_(True)
         adv_noise.retain_grad()
 
-        prompt = prompt_wrapper.Prompt(
+        prompt = prompt_wrapper.LlavaLlama2Prompt(
             self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
         )
 
@@ -128,7 +128,7 @@ class Attacker:
         adv_noise.requires_grad_(True)
         adv_noise.retain_grad()
 
-        prompt = prompt_wrapper.Prompt(
+        prompt = prompt_wrapper.LlavaLlama2Prompt(
             self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
         )
 

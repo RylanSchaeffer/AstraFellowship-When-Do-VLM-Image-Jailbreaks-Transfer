@@ -1,5 +1,6 @@
 import abc
 import torch.nn
+from typing import List
 
 
 class VisionLanguageModel(abc.ABC):
@@ -13,4 +14,8 @@ class VisionLanguageModel(abc.ABC):
 
     @abc.abstractmethod
     def generate(self, images, prompts):
+        pass
+
+    @abc.abstractmethod
+    def wrap_prompts(self, prompts: List[str]):
         pass
