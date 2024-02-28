@@ -26,7 +26,7 @@ class PGDAttacker(AdversarialAttacker):
             attack_kwargs=attack_kwargs,
         )
 
-        self.loss_history: np.ndarray = np.zeros(1)
+        self.losses_history: np.ndarray = np.zeros(1)
 
     def attack(
         self,
@@ -36,7 +36,7 @@ class PGDAttacker(AdversarialAttacker):
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
         # Ensure loss history is empty.
-        self.loss_history = np.zeros(
+        self.losses_history = np.zeros(
             shape=(
                 self.attack_kwargs["total_steps"] + 1,
                 len(self.models_to_attack_dict),
@@ -115,7 +115,7 @@ class PGDAttacker(AdversarialAttacker):
                     targets=target_prompts,
                 )
                 target_loss_per_model[model_name] = target_loss_for_model.item()
-                self.loss_history[step_idx, model_idx] = target_loss_for_model.item()
+                self.losses_history[step_idx, model_idx] = target_loss_for_model.item()
                 total_target_loss = total_target_loss + target_loss_for_model.cpu()
             total_target_loss = total_target_loss / len(self.models_to_attack_dict)
             target_loss_per_model["avg"] = total_target_loss.item()
@@ -135,7 +135,7 @@ class PGDAttacker(AdversarialAttacker):
         attack_results = {
             "original_image": original_image,
             "adversarial_image": image,
-            "loss_history": self.loss_history.copy(),
+            "losses_history": self.losses_history.copy(),
         }
 
         return attack_results
@@ -145,7 +145,7 @@ class PGDAttacker(AdversarialAttacker):
         for model_idx, model_str in enumerate(self.models_to_attack_dict):
             plt.plot(
                 list(range(len(self.losses_history))),
-                losses_history[:, model_idx],
+                self.losses_history[:, model_idx],
                 label=model_str,
             )
         plt.xlabel("Step")
