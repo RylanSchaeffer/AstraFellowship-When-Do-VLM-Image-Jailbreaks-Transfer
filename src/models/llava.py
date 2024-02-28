@@ -4,7 +4,7 @@ from transformers import (
     LlavaProcessor,
     LlavaForConditionalGeneration,
 )
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path
@@ -66,39 +66,23 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
-        # Adapted from https://github.com/centerforaisafety/HarmBench/blob/main/multimodalmodels/instructblip/instructblip_model.py#L39.
-        assert len(prompts) == len(targets)
-        batch_size = len(prompts)
-        prompts_then_targets = [
-            f"{prompt} {target}" for prompt, target in zip(prompts, targets)
-        ]
+        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
+        # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
+        images = image.repeat(len(prompts), 1, 1, 1).half()
 
-        prompts_lengths = [
-            len(l)
-            for l in self.processor(
-                text=prompts,
-            ).input_ids
-        ]
-        prompts_then_targets_batch_encoding = self.processor(
-            text=prompts_then_targets,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-        ).to(self.device)
-        prompts_then_targets_batch_encoding["pixel_values"] = (
-            self.normalize(torch.clamp(image, min=0.0, max=1.0))
-            .unsqueeze(0)
-            .to(self.device)
+        results = (
+            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=targets,
+            )
         )
 
-        batch_size = x.shape[0]
-        inputs = dict(pixel_values=self.normalize(x).to(self.device))
-        # inputs["input_ids"] = self.prompt.repeat(batch_size, 1)
-        inputs["input_ids"] = self.labels.repeat(batch_size, 1).to(self.device)
-        inputs["labels"] = self.labels.repeat(batch_size, 1).to(self.device)
-        inputs["qformer_input_ids"] = self.labels.repeat(batch_size, 1).to(self.device)
-        # inputs["labels"] = self.labels.repeat(batch_size, 1)
-        outputs = self.model(**inputs)
+        outputs = self.model(
+            input_ids=results["input_ids"],
+            attention_mask=results["attention_mask"],
+            labels=results["labels"],
+            images=images.half(),
+        )
         return outputs.loss
 
     @torch.no_grad()
@@ -106,6 +90,33 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
         images = image.repeat(len(prompts), 1, 1, 1).half()
+        image_pixel_values = self.image_processor(
+            images, do_rescale=False, return_tensors="pt"
+        )["pixel_values"]
+
+        input_ids = (
+            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=None,
+            )["input_ids"].to(self.device)
+        )
+
+        generated_ids = self.model.generate(
+            input_ids,
+            images=image_pixel_values.half(),
+            do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
+            **self.generation_kwargs,
+        )
+        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        return text
+
+    def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+        self,
+        prompts: List[str],
+        targets: Optional[List[str]] = None,
+    ) -> Dict[str, torch.Tensor]:
+        if targets is None:
+            targets = [None for _ in range(len(prompts))]
 
         prompts_with_image_tokens = [
             DEFAULT_IM_START_TOKEN
@@ -117,10 +128,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         ]
 
         templated_prompts = []
-        for prompt in prompts_with_image_tokens:
+        for prompt, target in zip(prompts_with_image_tokens, targets):
             conv = self.conv_template.copy()
             conv.append_message(conv.roles[0], prompt)
-            conv.append_message(conv.roles[1], None)
+            conv.append_message(conv.roles[1], target)
             templated_prompt = conv.get_prompt()
             templated_prompts.append(templated_prompt)
 
@@ -134,37 +145,40 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         ]
 
         # Pad all input_ids to be the same length using the tokenizer's padding token.
+        attention_mask = []
         max_length = max([len(input_ids) for input_ids in input_ids_list])
         for idx, input_ids in enumerate(input_ids_list):
-            input_ids.extend(
-                [self.tokenizer.pad_token_id] * (max_length - len(input_ids))
+            padding_length = max_length - len(input_ids)
+            attention_mask.append(
+                [1 for _ in range(max_length - padding_length)]
+                + [0 for _ in range(padding_length)]
             )
-        input_ids_list = torch.tensor(input_ids_list).to(self.device)
+            input_ids.extend(
+                [self.tokenizer.pad_token_id for _ in range(padding_length)]
+            )
+        input_ids = torch.tensor(input_ids_list)
+        attention_mask = torch.tensor(attention_mask)
 
-        image_pixel_values = self.image_processor(images, return_tensors="pt")[
-            "pixel_values"
-        ]
+        results = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+        }
 
-        # inputs = self.processor(
-        #     images=images,
-        #     text=self.prompts_then_targets,
-        #     return_tensors="pt",
-        #     padding=True,
-        #     truncation=True,
-        # ).to(self.device)
-        generated_ids = self.model.generate(
-            input_ids_list,
-            images=image_pixel_values.half(),
-            do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
-            **self.generation_kwargs,
-        )
-        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        return text
+        if targets[0] is not None:
+            labels = input_ids.clone()
+            last_nonpadding_indices = torch.argmin((labels != 0).float(), axis=1)
 
-    # def wrap_prompts(self, prompts: List[str]):
-    #     return LlavaLlama2Prompt(
-    #         model=self.model,
-    #         tokenizer=self.tokenizer,
-    #         text_prompts=prompts,
-    #         device=self.device,
-    #     )
+            # Find the last non-zero token. Then set labels to ignore for anything
+            # before and before the targets (plus two).
+            tokenized_labels = self.tokenizer(targets).input_ids
+            for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
+                zip(last_nonpadding_indices, tokenized_labels)
+            ):
+                target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
+                labels[batch_idx, :target_start_idx] = IGNORE_INDEX
+
+            # Also mask out the padding tokens.
+            labels[labels == 0.0] = IGNORE_INDEX
+            results["labels"] = labels
+
+        return results
