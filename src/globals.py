@@ -2,7 +2,7 @@ default_config = {
     "attack_kwargs": {
         "attack_name": "pgd",
         # "attack_name": "ssa_common_weakness",
-        "batch_size": 8,
+        "batch_size": 2,
         # "clip_gradients": True,
         # "normalize_gradients": True,
         "generate_every_n_steps": 5,
@@ -26,6 +26,7 @@ default_config = {
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-    "prompts_and_targets": "advbench",
+    # "prompts_and_targets": "advbench",
+    "prompts_and_targets": "anthropic_hhh",
     "seed": 0,
 }

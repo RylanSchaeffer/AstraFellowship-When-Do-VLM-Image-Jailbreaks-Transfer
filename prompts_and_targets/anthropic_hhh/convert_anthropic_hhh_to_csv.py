@@ -1,5 +1,6 @@
 from datasets import load_dataset
 import pandas as pd
+from typing import Dict, List
 
 dataset = load_dataset("Anthropic/hh-rlhf")
 
@@ -155,7 +156,8 @@ tuples_of_harmful_generations = [
     (383, (1, 7), (8,)),
 ]
 
-rylan_extracted_transcripts = []
+rylan_extracted_transcripts: List[Dict[str, str]] = []
+max_target_string_length = 100
 for tuples_of_harmful_generation in tuples_of_harmful_generations:
     (
         transcript_idx,
@@ -165,11 +167,11 @@ for tuples_of_harmful_generation in tuples_of_harmful_generations:
     rylan_extracted_transcripts.append(
         {
             "prompt": " ".join(
-                transcripts[transcript_idx][idx] for idx in human_prompt_indices
+                [transcripts[transcript_idx][idx] for idx in human_prompt_indices]
             ),
             "target": " ".join(
-                transcripts[transcript_idx][idx] for idx in model_generation_indices
-            ),
+                [transcripts[transcript_idx][idx] for idx in model_generation_indices]
+            )[:max_target_string_length],
         }
     )
 
@@ -178,4 +180,4 @@ rylan_extracted_df.to_csv(
     "prompts_and_targets/anthropic_hhh/red_team_attempts.csv", index=False
 )
 
-print(1)
+# print(1)

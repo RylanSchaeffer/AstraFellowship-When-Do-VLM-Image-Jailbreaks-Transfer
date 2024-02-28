@@ -153,7 +153,7 @@ def load_prompts_and_targets(
         )
     elif prompts_and_targets_str == "anthropic_hhh":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic", "hhh.csv"
+            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
         )
     elif prompts_and_targets_str == "robust_bard":
         prompts_and_targets_path = os.path.join(
