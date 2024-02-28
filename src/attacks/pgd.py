@@ -67,7 +67,7 @@ class PGDAttacker(AdversarialAttacker):
             batch_prompts = [
                 prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
             ]
-            target_prompts = [
+            batch_targets = [
                 target for idx, target in enumerate(targets) if idx in batch_idx
             ]
 
@@ -89,7 +89,7 @@ class PGDAttacker(AdversarialAttacker):
                                 data=[
                                     [prompt, model_generation, target]
                                     for prompt, model_generation, target in zip(
-                                        prompts, model_generations, targets
+                                        batch_prompts, model_generations, batch_targets
                                     )
                                 ],
                             ),
@@ -112,7 +112,7 @@ class PGDAttacker(AdversarialAttacker):
                 target_loss_for_model = model_wrapper.compute_loss(
                     image=image,
                     prompts=batch_prompts,
-                    targets=target_prompts,
+                    targets=batch_targets,
                 )
                 target_loss_per_model[model_name] = target_loss_for_model.item()
                 self.losses_history[step_idx, model_idx] = target_loss_for_model.item()
