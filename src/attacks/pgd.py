@@ -107,7 +107,9 @@ class PGDAttacker(AdversarialAttacker):
                     targets=target_prompts,
                 )
                 target_loss_per_model[model_name] = target_loss_for_model
-            total_target_loss = torch.mean(target_loss_per_model.values())
+            total_target_loss = torch.mean(
+                torch.tensor(list(target_loss_per_model.values()))
+            )
             target_loss_per_model["total"] = total_target_loss
             total_target_loss.backward()
 

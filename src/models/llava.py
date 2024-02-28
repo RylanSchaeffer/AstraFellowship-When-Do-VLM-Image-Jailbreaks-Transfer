@@ -68,7 +68,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     ) -> torch.Tensor:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
-        images = image.repeat(len(prompts), 1, 1, 1).half()
+        images = image.repeat(len(prompts), 1, 1, 1)
+        image_pixel_values = self.image_processor(
+            images, do_rescale=False, return_tensors="pt"
+        )["pixel_values"].half()
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -76,12 +79,14 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
                 targets=targets,
             )
         )
+        for k, v in results.items():
+            results[k] = v.to(self.device)
 
         outputs = self.model(
             input_ids=results["input_ids"],
             attention_mask=results["attention_mask"],
             labels=results["labels"],
-            images=images.half(),
+            images=image_pixel_values,
         )
         return outputs.loss
 
@@ -178,7 +183,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
 
             # Also mask out the padding tokens.
-            labels[labels == 0.0] = IGNORE_INDEX
+            labels[labels == 0] = IGNORE_INDEX
             results["labels"] = labels
 
         return results
