@@ -57,8 +57,6 @@ class PGDAttacker(AdversarialAttacker):
 
         # Ensure gradients are computed for the image.
         original_image = image.clone()
-        image = image.half()
-        image = image.cuda()
         image.requires_grad_(True)
         image.retain_grad()
 
@@ -100,13 +98,16 @@ class PGDAttacker(AdversarialAttacker):
 
             # Always calculate loss per model and use for updating the adversarial example.
             target_loss_per_model: Dict[str, torch.Tensor] = {}
-            for model_name, model_wrapper in self.models_to_attack_dict.items():
+            for model_idx, (model_name, model_wrapper) in enumerate(
+                self.models_to_attack_dict.items()
+            ):
                 target_loss_for_model = model_wrapper.compute_loss(
                     image=image,
                     prompts=batch_prompts,
                     targets=target_prompts,
                 )
                 target_loss_per_model[model_name] = target_loss_for_model
+                self.loss_history[step_idx, model_idx] = target_loss_for_model.item()
             total_target_loss = torch.mean(
                 torch.tensor(list(target_loss_per_model.values()))
             )
@@ -118,8 +119,6 @@ class PGDAttacker(AdversarialAttacker):
                 - self.attack_kwargs["step_size"] * image.grad.detach().sign()
             ).clamp(0.0, 1.0)
             image.grad.zero_()
-
-            self.loss_history.append(total_target_loss.item())
 
             wandb.log(
                 {k: v.item() for k, v in target_loss_per_model.items()},
@@ -140,7 +139,9 @@ class PGDAttacker(AdversarialAttacker):
             #         % (self.wandb_config.save_dir, step_idx),
             #     )
 
-        return original_image, image
+        attack_results = {"original_image": original_image, "adversarial_image": image}
+
+        return attack_results
 
     def plot_loss(self):
         plt.close()

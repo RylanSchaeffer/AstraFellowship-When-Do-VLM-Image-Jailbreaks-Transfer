@@ -1,6 +1,7 @@
 import torch
 from transformers import StoppingCriteria, StoppingCriteriaList
-from llava_llama_2.conversation import conv_llava_llama_2, SeparatorStyle
+
+from src.models.conversation import conv_llava_llama_2, SeparatorStyle
 
 
 class KeywordsStoppingCriteria(StoppingCriteria):

@@ -1,19 +1,18 @@
 import torch
 from tqdm import tqdm
 import random
-from llava_llama_2_utils import prompt_wrapper, generator
 from torchvision.utils import save_image
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
 import seaborn as sns
 
+from src.models.llava_llama_2 import prompt_wrapper, generator
 
-def normalize(images):
-    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).cuda()
-    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).cuda()
+
+def normalize(images: torch.Tensor) -> torch.Tensor:
+    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).to(images.device)
+    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).to(images.device)
     images = images - mean[None, :, None, None]
     images = images / std[None, :, None, None]
     return images

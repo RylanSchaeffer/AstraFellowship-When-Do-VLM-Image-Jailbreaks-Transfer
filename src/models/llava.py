@@ -27,6 +27,7 @@ from src.models.llava_llama_2.prompt_wrapper import (
     prepare_text_prompt,
     LlavaLlama2Prompt,
 )
+from src.models.llava_llama_2.visual_attacker import normalize
 
 
 class LlavaVisionLanguageModel(VisionLanguageModel):
@@ -69,9 +70,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
         images = image.repeat(len(prompts), 1, 1, 1)
-        image_pixel_values = self.image_processor(
-            images, do_rescale=False, return_tensors="pt"
-        )["pixel_values"].half()
+        # image_pixel_values = self.image_processor(
+        #     images, do_rescale=False, return_tensors="pt"
+        # )["pixel_values"].half()
+        image_pixel_values = normalize(images).half()
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(

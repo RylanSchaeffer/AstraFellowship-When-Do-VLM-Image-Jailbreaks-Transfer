@@ -22,7 +22,8 @@ def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
         # Only use one image for one attack.
         images_list: List[torch.Tensor] = [images_list[wandb_config["datum_index"]]]
     elif wandb_config["image_initialization"] == "random":
-        images_list: List[torch.Tensor] = [torch.rand((1, 3, 512, 512))]
+        image_size = wandb_config["data_kwargs"]["image_size"]
+        images_list: List[torch.Tensor] = [torch.rand((1, 3, image_size, image_size))]
     else:
         raise ValueError(
             "Invalid image_initialization: {}".format(

@@ -6,8 +6,11 @@ default_config = {
         # "normalize_gradients": True,
         "step_size": 0.01,
         "batch_size": 32,
-        "total_steps": 5000,
-        "generate_every_n_steps": 100,
+        "total_steps": 10,
+        "generate_every_n_steps": 5,
+    },
+    "data_kwargs": {
+        "image_size": 336,
     },
     "image_initialization": "random",
     # "models_to_attack": "{'blip2-opt-2.7b'}",
