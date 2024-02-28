@@ -13,14 +13,14 @@ from src.attacks.base import AdversarialAttacker
 from src.image_handling import normalize_images
 
 
-class PGDAttacker(AdversarialAttacker):
+class FGSMAttacker(AdversarialAttacker):
     def __init__(
         self,
         models_to_attack_dict: Dict[str, torch.nn.Module],
         models_to_eval_dict: Dict[str, torch.nn.Module],
         attack_kwargs: Dict[str, any],
     ):
-        super(PGDAttacker, self).__init__(
+        super(FGSMAttacker, self).__init__(
             models_to_attack_dict=models_to_attack_dict,
             models_to_eval_dict=models_to_eval_dict,
             attack_kwargs=attack_kwargs,

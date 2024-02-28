@@ -151,6 +151,10 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
         )
+    elif prompts_and_targets_str == "anthropic_hhh":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "anthropic", "hhh.csv"
+        )
     elif prompts_and_targets_str == "robust_bard":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "coco", "default.csv"
