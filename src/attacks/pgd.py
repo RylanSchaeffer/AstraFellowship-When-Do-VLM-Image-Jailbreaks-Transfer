@@ -76,7 +76,7 @@ class PGDAttacker(AdversarialAttacker):
                 for model_name, model_wrapper in self.models_to_eval_dict.items():
                     model_generations = model_wrapper.generate(
                         image=image,
-                        prompts=prompts[:10],  # First 10 are arbitrarily chosen.
+                        prompts=batch_prompts,
                     )
                     wandb.log(
                         {
