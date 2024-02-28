@@ -92,12 +92,20 @@ class PGDAttacker(AdversarialAttacker):
                                         prompts, model_generations, targets
                                     )
                                 ],
-                            )
+                            ),
+                            # Pytorch expected c, h, w, but wandb expects h, w, c.
+                            # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
+                            "adversarial_image": wandb.Image(
+                                image[0].detach().numpy().transpose(1, 2, 0),
+                                caption="Adversarial Image",
+                            ),
                         },
+                        step=step_idx + 1,
                     )
 
             # Always calculate loss per model and use for updating the adversarial example.
             target_loss_per_model: Dict[str, torch.Tensor] = {}
+            total_target_loss = torch.zeros(1, requires_grad=True, device="cpu")
             for model_idx, (model_name, model_wrapper) in enumerate(
                 self.models_to_attack_dict.items()
             ):
@@ -106,12 +114,11 @@ class PGDAttacker(AdversarialAttacker):
                     prompts=batch_prompts,
                     targets=target_prompts,
                 )
-                target_loss_per_model[model_name] = target_loss_for_model
+                target_loss_per_model[model_name] = target_loss_for_model.item()
                 self.loss_history[step_idx, model_idx] = target_loss_for_model.item()
-            total_target_loss = torch.mean(
-                torch.tensor(list(target_loss_per_model.values()))
-            )
-            target_loss_per_model["total"] = total_target_loss
+                total_target_loss = total_target_loss + target_loss_for_model.cpu()
+            total_target_loss = total_target_loss / len(self.models_to_attack_dict)
+            target_loss_per_model["avg"] = total_target_loss.item()
             total_target_loss.backward()
 
             image.data = (
@@ -121,25 +128,15 @@ class PGDAttacker(AdversarialAttacker):
             image.grad.zero_()
 
             wandb.log(
-                {k: v.item() for k, v in target_loss_per_model.items()},
+                target_loss_per_model,
                 step=step_idx + 1,
             )
 
-            # if step_idx % 100 == 0:
-            #     print("######### Output - Iter = %d ##########" % step_idx)
-            #     x_adv = normalize(image)
-            #     response = my_generator.generate(prompt, x_adv)
-            #     print(">>>", response)
-            #
-            #     adv_img_prompt = denormalize(x_adv).detach().cpu()
-            #     adv_img_prompt = adv_img_prompt.squeeze(0)
-            #     save_image(
-            #         adv_img_prompt,
-            #         "%s/bad_prompt_temp_%d.bmp"
-            #         % (self.wandb_config.save_dir, step_idx),
-            #     )
-
-        attack_results = {"original_image": original_image, "adversarial_image": image}
+        attack_results = {
+            "original_image": original_image,
+            "adversarial_image": image,
+            "loss_history": self.loss_history.copy(),
+        }
 
         return attack_results
 

@@ -5,7 +5,7 @@ default_config = {
         # "clip_gradients": True,
         # "normalize_gradients": True,
         "step_size": 0.01,
-        "batch_size": 32,
+        "batch_size": 4,
         "total_steps": 10,
         "generate_every_n_steps": 5,
     },

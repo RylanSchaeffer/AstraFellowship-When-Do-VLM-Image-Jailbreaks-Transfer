@@ -93,7 +93,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         return outputs.loss
 
     @torch.no_grad()
-    def generate(self, image: torch.Tensor, prompts) -> List[str]:
+    def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
         images = image.repeat(len(prompts), 1, 1, 1).half()

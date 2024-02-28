@@ -46,9 +46,11 @@ class AdversarialAttacker:
         os.makedirs(results_dir, exist_ok=True)
 
         for image_idx, image in enumerate(images):
-            adv_x, losses_history = self.attack(
+            attack_results = self.attack(
                 image=image, prompts=prompts, targets=targets, **kwargs
             )
+            adv_x = attack_results["adversarial_image"]
+            losses_history = attack_results["losses_history"]
             # TODO: Compute probability masses for loss history.
             # prob_masses_history = torch.exp(-losses_history)
 
