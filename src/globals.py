@@ -2,7 +2,7 @@ default_config = {
     "attack_kwargs": {
         "attack_name": "pgd",
         # "attack_name": "ssa_common_weakness",
-        "batch_size": 2,
+        "batch_size": 1,
         # "clip_gradients": True,
         # "normalize_gradients": True,
         "generate_every_n_steps": 5,

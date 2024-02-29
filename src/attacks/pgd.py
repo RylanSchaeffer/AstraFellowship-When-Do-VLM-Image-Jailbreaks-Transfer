@@ -20,6 +20,7 @@ class PGDAttacker(AdversarialAttacker):
         models_to_eval_dict: Dict[str, torch.nn.Module],
         attack_kwargs: Dict[str, any],
     ):
+        assert "step_size" in attack_kwargs
         super(PGDAttacker, self).__init__(
             models_to_attack_dict=models_to_attack_dict,
             models_to_eval_dict=models_to_eval_dict,
@@ -78,6 +79,14 @@ class PGDAttacker(AdversarialAttacker):
                         image=image,
                         prompts=batch_prompts,
                     )
+                    model_generation_begins_with_target = np.mean(
+                        [
+                            gen.startswith(target)
+                            for gen, target in zip(
+                                batch_model_generations, batch_targets
+                            )
+                        ]
+                    )
                     wandb.log(
                         {
                             f"generations_{model_name}_step={step_idx}": wandb.Table(
@@ -101,6 +110,7 @@ class PGDAttacker(AdversarialAttacker):
                                 image[0].detach().numpy().transpose(1, 2, 0),
                                 caption="Adversarial Image",
                             ),
+                            "model_generation_begins_with_target": model_generation_begins_with_target,
                         },
                         step=step_idx + 1,
                     )
