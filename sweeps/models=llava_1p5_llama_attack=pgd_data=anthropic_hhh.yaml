@@ -7,7 +7,7 @@ parameters:
       attack_name:
         values: ["pgd"]
       batch_size:
-        values: [4, 2, 6]
+        values: [2]
       generate_every_n_steps:
         values: [1000]
       step_size:
