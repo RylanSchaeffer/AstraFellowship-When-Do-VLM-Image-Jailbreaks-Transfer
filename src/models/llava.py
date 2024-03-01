@@ -92,31 +92,6 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         )
         return outputs.loss
 
-    @torch.no_grad()
-    def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
-        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
-        # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
-        images = image.repeat(len(prompts), 1, 1, 1).half()
-        image_pixel_values = self.image_processor(
-            images, do_rescale=False, return_tensors="pt"
-        )["pixel_values"]
-
-        input_ids = (
-            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-                prompts=prompts,
-                targets=None,
-            )["input_ids"].to(self.device)
-        )
-
-        generated_ids = self.model.generate(
-            input_ids,
-            images=image_pixel_values.half(),
-            do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
-            **self.generation_kwargs,
-        )
-        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        return text
-
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
         self,
         prompts: List[str],
@@ -189,3 +164,28 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             results["labels"] = labels
 
         return results
+
+    @torch.no_grad()
+    def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
+        # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
+        # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
+        images = image.repeat(len(prompts), 1, 1, 1).half()
+        image_pixel_values = self.image_processor(
+            images, do_rescale=False, return_tensors="pt"
+        )["pixel_values"]
+
+        input_ids = (
+            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=None,
+            )["input_ids"].to(self.device)
+        )
+
+        generated_ids = self.model.generate(
+            input_ids,
+            images=image_pixel_values.half(),
+            do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
+            **self.generation_kwargs,
+        )
+        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        return text

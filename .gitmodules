@@ -10,3 +10,6 @@
 [submodule "submodules/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models"]
 	path = submodules/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models
 	url = git@github.com:Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models.git
+[submodule "submodules/prismatic-vlms"]
+	path = submodules/prismatic-vlms
+	url = git@github.com:TRI-ML/prismatic-vlms.git

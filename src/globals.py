@@ -13,9 +13,10 @@ default_config = {
         "image_size": 336,
     },
     "image_initialization": "random",
-    # "models_to_attack": "{'blip2-opt-2.7b'}",
-    "models_to_attack": "{'llava-v1.5-7b'}",
-    "models_to_eval": "{'llava-v1.5-7b'}",
+    # "models_to_attack": "{'llava-v1.5-7b'}",
+    "models_to_attack": "{'prism-dinosiglip+7b'}",
+    # "models_to_eval": "{'llava-v1.5-7b'}",
+    "models_to_eval": "{'prism-dinosiglip+7b'}",
     "model_generation_kwargs": {
         "llava-v1.5-7b": {
             "temperature": 0.1,

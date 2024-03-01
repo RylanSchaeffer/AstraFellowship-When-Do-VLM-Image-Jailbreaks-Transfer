@@ -127,6 +127,15 @@ def instantiate_models(
                 generation_kwargs=model_generation_kwargs[model_str],
             )
 
+        elif model_str.startswith("prism"):
+            from src.models.prismatic import PrismaticVisionLanguageModel
+
+            model = PrismaticVisionLanguageModel(
+                model_str=model_str,
+                split=split,
+                generation_kwargs=model_generation_kwargs[model_str],
+            )
+
         else:
             raise ValueError("Invalid model_str: {}".format(model_str))
 
