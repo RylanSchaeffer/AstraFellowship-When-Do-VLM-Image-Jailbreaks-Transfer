@@ -58,8 +58,9 @@ class PGDAttacker(AdversarialAttacker):
 
         # Ensure gradients are computed for the image.
         original_image = image.clone()
-        image.requires_grad_(True)
-        image.retain_grad()
+        adv_image = image
+        adv_image.requires_grad_(True)
+        adv_image.retain_grad()
 
         for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
             batch_idx = random.sample(
@@ -75,17 +76,25 @@ class PGDAttacker(AdversarialAttacker):
             # Occasionally generate to see what the VLM is outputting.
             if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
                 for model_name, model_wrapper in self.models_to_eval_dict.items():
-                    batch_model_generations = model_wrapper.generate(
-                        image=image,
+                    batch_nonadv_model_generations = model_wrapper.generate(
+                        image=original_image,
                         prompts=batch_prompts,
                     )
-                    model_generation_begins_with_target = np.mean(
-                        [
-                            gen.startswith(target)
-                            for gen, target in zip(
-                                batch_model_generations, batch_targets
-                            )
-                        ]
+                    model_nonadv_generation_begins_with_target = (
+                        self.compute_whether_generation_begins_with_target(
+                            model_generations=batch_nonadv_model_generations,
+                            targets=batch_targets,
+                        )
+                    )
+                    batch_adv_model_generations = model_wrapper.generate(
+                        image=adv_image,
+                        prompts=batch_prompts,
+                    )
+                    model_adv_generation_begins_with_target = (
+                        self.compute_whether_generation_begins_with_target(
+                            model_generations=batch_adv_model_generations,
+                            targets=batch_targets,
+                        )
                     )
                     wandb.log(
                         {
@@ -93,13 +102,20 @@ class PGDAttacker(AdversarialAttacker):
                                 columns=[
                                     "prompt",
                                     "generated",
-                                    "target text",
+                                    "target",
+                                    "adv_generated",
                                 ],
                                 data=[
-                                    [prompt, model_generation, target]
-                                    for prompt, model_generation, target in zip(
+                                    [
+                                        prompt,
+                                        nonadv_model_generation,
+                                        target,
+                                        adv_model_generation,
+                                    ]
+                                    for prompt, nonadv_model_generation, adv_model_generation, target in zip(
                                         batch_prompts,
-                                        batch_model_generations,
+                                        batch_nonadv_model_generations,
+                                        batch_adv_model_generations,
                                         batch_targets,
                                     )
                                 ],
@@ -107,10 +123,11 @@ class PGDAttacker(AdversarialAttacker):
                             # Pytorch expected c, h, w, but wandb expects h, w, c.
                             # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
                             "adversarial_image": wandb.Image(
-                                image[0].detach().numpy().transpose(1, 2, 0),
+                                adv_image[0].detach().numpy().transpose(1, 2, 0),
                                 caption="Adversarial Image",
                             ),
-                            "model_generation_begins_with_target": model_generation_begins_with_target,
+                            "model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
+                            "model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
                         },
                         step=step_idx + 1,
                     )
@@ -122,7 +139,7 @@ class PGDAttacker(AdversarialAttacker):
                 self.models_to_attack_dict.items()
             ):
                 target_loss_for_model = model_wrapper.compute_loss(
-                    image=image,
+                    image=adv_image,
                     prompts=batch_prompts,
                     targets=batch_targets,
                 )
@@ -133,11 +150,11 @@ class PGDAttacker(AdversarialAttacker):
             target_loss_per_model["avg"] = total_target_loss.item()
             total_target_loss.backward()
 
-            image.data = (
-                image.data
-                - self.attack_kwargs["step_size"] * image.grad.detach().sign()
+            adv_image.data = (
+                adv_image.data
+                - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
             ).clamp(0.0, 1.0)
-            image.grad.zero_()
+            adv_image.grad.zero_()
 
             wandb.log(
                 target_loss_per_model,
@@ -146,7 +163,7 @@ class PGDAttacker(AdversarialAttacker):
 
         attack_results = {
             "original_image": original_image,
-            "adversarial_image": image,
+            "adversarial_image": adv_image,
             "losses_history": self.losses_history.copy(),
         }
 

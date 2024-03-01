@@ -7,13 +7,13 @@ parameters:
       attack_name:
         values: ["pgd"]
       batch_size:
-        values: [2, 4, 6]
+        values: [4, 2, 6]
       generate_every_n_steps:
-        values: [100]
+        values: [1000]
       step_size:
         values: [0.001, 0.00316, 0.01]
       total_steps:
-        values: [2500]
+        values: [25000]
   image_initialization:
     values:
       ["random"]

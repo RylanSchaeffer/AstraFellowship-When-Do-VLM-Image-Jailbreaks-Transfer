@@ -1,6 +1,7 @@
 import os
 from abc import abstractmethod
 from math import ceil
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from torch import Tensor
@@ -79,6 +80,16 @@ class AdversarialAttacker:
             )
 
             print(f"Adversarial image {image_idx+1} optimized.")
+
+    @staticmethod
+    def compute_whether_generation_begins_with_target(
+        model_generations: List[str],
+        targets: List[str],
+    ) -> float:
+        avg = np.mean(
+            [gen.startswith(target) for gen, target in zip(model_generations, targets)]
+        )
+        return avg
 
     def disable_model_gradients(self):
         # set the model parameters requires_grad is False
