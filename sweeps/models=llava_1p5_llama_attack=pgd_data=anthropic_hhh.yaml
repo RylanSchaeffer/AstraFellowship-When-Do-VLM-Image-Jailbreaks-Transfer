@@ -25,7 +25,7 @@ parameters:
       ["{'llava-v1.5-7b'}"]
   n_unique_prompts_and_targets:
     values:
-      [-1]
+      [100, 316, 1000]
   prompts_and_targets:
     values:
       ["anthropic_hhh"]
