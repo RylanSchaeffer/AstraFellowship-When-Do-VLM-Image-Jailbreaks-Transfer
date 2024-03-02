@@ -14,10 +14,12 @@ default_config = {
     },
     "image_initialization": "random",
     # "models_to_attack": "{'llava-v1.5-vicuna7b'}",
-    "models_to_attack": "{'llava-v1.6-mistral7b'}",
-    # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_eval": "{'llava-v1.5-vicuna7b'}",
-    "models_to_eval": "{'llava-v1.6-mistral7b'}",
+    # "models_to_attack": "{'llava-v1.6-mistral7b'}",
+    # "models_to_eval": "{'llava-v1.6-mistral7b'}",
+    "models_to_attack": "{'llava-v1.6-vicuna13b'}",
+    "models_to_eval": "{'llava-v1.6-vicuna13b'}",
+    # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_eval": "{'prism-dinosiglip+7b'}",
     "model_generation_kwargs": {
         "llava-v1.6-mistral7b": {
@@ -32,11 +34,19 @@ default_config = {
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
+        "llava-v1.6-vicuna7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
         "llava-v1.6-vicuna13b": {
             "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 100,
             "min_new_tokens": 5,
+            "use_cache": False,
+            "cache_position": None,
         },
         "prism-dinosiglip+7b": {
             "temperature": 0.1,

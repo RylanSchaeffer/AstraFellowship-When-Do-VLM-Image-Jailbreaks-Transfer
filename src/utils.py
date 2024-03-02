@@ -121,7 +121,9 @@ def instantiate_models(
             elif model_str.endswith("v1.6-hermes-yi-34b"):
                 huggingface_name = "liuhaotian/llava-v1.6-34b"
             elif model_str.endswith("v1.6-mistral7b"):
-                huggingface_name = "liuhaotian/llava-v1.6-mistral-7b"
+                # Lots of bugs. They needed to be patched here.
+                # https://huggingface.co/Trelis/llava-v1.6-mistral-7b-PATCHED.
+                huggingface_name = "Trelis/llava-v1.6-mistral-7b-PATCHED"
             elif model_str.endswith("v1.6-vicuna7b"):
                 huggingface_name = "liuhaotian/llava-v1.6-vicuna-7b"
             elif model_str.endswith("v1.6-vicuna13b"):

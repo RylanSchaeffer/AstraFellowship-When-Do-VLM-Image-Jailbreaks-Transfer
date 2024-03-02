@@ -1,10 +1,8 @@
 import torch
-from torchvision import transforms
 from typing import Any, Dict, List, Optional, Tuple
 
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path
-from llava.eval.run_llava import eval_model
 
 from src.models.base import VisionLanguageModel
 from src.models.conversation import conversation_templates
@@ -21,7 +19,6 @@ from src.models.llava_llama_2.mm_utils import (
 )
 from src.models.llava_llama_2.prompt_wrapper import (
     prepare_text_prompt,
-    LlavaLlama2Prompt,
 )
 from src.models.llava_llama_2.visual_attacker import normalize
 
@@ -38,6 +35,13 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self.generation_kwargs = generation_kwargs
 
         if self.huggingface_name == "llava-hf/llava-1.5-7b-hf":
+            self.conv_template_name = "vicuna_v1"
+        elif self.huggingface_name == "liuhaotian/llava-v1.6-34b":
+            # https://github.com/haotian-liu/LLaVA/issues/1078
+            self.conv_template_name = "chatml_direct"
+        elif self.huggingface_name == "liuhaotian/llava-v1.6-vicuna-7b":
+            self.conv_template_name = "vicuna_v1"
+        elif self.huggingface_name == "liuhaotian/llava-v1.6-vicuna-13b":
             self.conv_template_name = "vicuna_v1"
         else:
             self.conv_template_name = "default"

@@ -7,28 +7,28 @@ parameters:
       attack_name:
         values: ["pgd"]
       batch_size:
-        values: [2, 4, 6]
+        values: [2, 4]
       generate_every_n_steps:
-        values: [100]
+        values: [1000]
       step_size:
         values: [0.001, 0.00316, 0.01]
       total_steps:
-        values: [2500]
+        values: [50000]
   image_initialization:
     values:
       ["random"]
   models_to_attack:
     values:
-      ["{'llava-v1.5-7b'}"]
-  models_to_test:
+      ["{'llava-v1.6-mistral7b'}"]
+  models_to_eval:
     values:
-      ["{'llava-v1.5-7b'}"]
+      ["{'llava-v1.6-mistral7b'}"]
   n_unique_prompts_and_targets:
     values:
-      [-1]
+      [32, 100]
   prompts_and_targets:
     values:
-      ["advbench"]
+      ["anthropic_hhh"]
   seed:
     values:
       [0]
