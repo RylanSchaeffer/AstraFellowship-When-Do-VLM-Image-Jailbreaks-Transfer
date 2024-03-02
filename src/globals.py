@@ -21,8 +21,14 @@ default_config = {
         "llava-v1.5-7b": {
             "temperature": 0.1,
             "top_p": 0.9,
-            "max_new_tokens": 1024,
-            "min_new_tokens": 32,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-dinosiglip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
         },
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",

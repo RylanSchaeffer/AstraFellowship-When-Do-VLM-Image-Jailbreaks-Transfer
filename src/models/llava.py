@@ -187,5 +187,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
             **self.generation_kwargs,
         )
-        text = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        return text
+        model_generations = self.tokenizer.batch_decode(
+            generated_ids, skip_special_tokens=True
+        )
+        return model_generations
