@@ -120,7 +120,7 @@ class PGDAttacker(AdversarialAttacker):
                                     )
                                 ],
                             ),
-                            # Pytorch expected c, h, w, but wandb expects h, w, c.
+                            # Pytorch uses (C, H, W), but wandb uses (H, W, C).
                             # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
                             "adversarial_image": wandb.Image(
                                 adv_image[0].detach().numpy().transpose(1, 2, 0),

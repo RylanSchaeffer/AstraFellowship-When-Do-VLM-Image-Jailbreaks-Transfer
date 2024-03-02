@@ -47,6 +47,11 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
+        images = image.repeat(len(prompts), 1, 1, 1)
+        image_pixel_values = normalize(images).half()
+
+        self.model(images=images, prompts=prompts, targets=targets)
+
         raise NotImplementedError
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -56,7 +61,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     ) -> Dict[str, torch.Tensor]:
         raise NotImplementedError
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # We should only have a single image.
         assert image.shape[0] == 1

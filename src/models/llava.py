@@ -1,9 +1,5 @@
 import torch
 from torchvision import transforms
-from transformers import (
-    LlavaProcessor,
-    LlavaForConditionalGeneration,
-)
 from typing import Any, Dict, List, Optional, Tuple
 
 from llava.model.builder import load_pretrained_model
@@ -165,7 +161,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
 
         return results
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
