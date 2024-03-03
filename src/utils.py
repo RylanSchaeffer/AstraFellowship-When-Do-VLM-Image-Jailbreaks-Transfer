@@ -9,7 +9,7 @@ import torch
 import torch.distributed
 from typing import Any, Dict, List, Tuple
 
-from old.how_robust_is_bard.src.attacks.base import AdversarialImageAttacker
+from src.attacks.base import AdversarialAttacker
 
 
 class GPT4AttackCriterion:
@@ -33,7 +33,7 @@ def create_attacker(
     wandb_config: Dict[str, Any],
     models_to_attack_dict: Dict[str, torch.nn.Module],
     models_to_eval_dict: Dict[str, torch.nn.Module],
-) -> AdversarialImageAttacker:
+) -> AdversarialAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
         from src.attacks.pgd import PGDAttacker
 
@@ -68,6 +68,10 @@ def instantiate_models(
     split: str = "train",
 ) -> Dict[str, torch.nn.Module]:
     models_dict = {}
+    if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+        gpu_id = 0
+    else:
+        gpu_id = None
     for model_str in model_strs:
         # Load BLIP2 models.
         if model_str.startswith("blip2"):
@@ -135,6 +139,7 @@ def instantiate_models(
                 huggingface_name=huggingface_name,
                 split=split,
                 generation_kwargs=model_generation_kwargs[model_str],
+                gpu_id=gpu_id,
             )
 
         elif model_str.startswith("prism"):
@@ -150,6 +155,8 @@ def instantiate_models(
             raise ValueError("Invalid model_str: {}".format(model_str))
 
         models_dict[model_str] = model
+        if gpu_id is not None:
+            gpu_id += 1
 
     return models_dict
 

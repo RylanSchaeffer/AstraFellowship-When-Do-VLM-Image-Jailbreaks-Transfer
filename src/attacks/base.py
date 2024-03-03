@@ -27,7 +27,7 @@ class AdversarialAttacker:
         self.attack_kwargs = attack_kwargs
         self.disable_model_gradients()
         self.distribute_models()
-        self.device = torch.device("cuda")
+        # self.device = torch.device("cuda")
         self.n = len(self.models_to_attack_dict)
 
     @abstractmethod
@@ -99,21 +99,22 @@ class AdversarialAttacker:
 
     def distribute_models(self):
         """
-        make each model on one gpu
+        Place each model on one gpu
         :return:
         """
-        num_gpus = torch.cuda.device_count()
-        models_each_gpu = ceil(len(self.models_to_eval_dict) / num_gpus)
-        for i, wrapper_model in enumerate(self.models_to_eval_dict.values()):
-            wrapper_model.model.to(
-                torch.device(f"cuda:{num_gpus - 1 - i // models_each_gpu}")
-            )
-            wrapper_model.device = torch.device(
-                f"cuda:{num_gpus - 1 - i // models_each_gpu}"
-            )
+        # num_gpus = torch.cuda.device_count()
+        # models_each_gpu = ceil(len(self.models_to_eval_dict) / num_gpus)
+        # for i, wrapper_model in enumerate(self.models_to_eval_dict.values()):
+        #     torch_device = torch.device(f"cuda:{num_gpus - 1 - i // models_each_gpu}")
+        #     wrapper_model.model.to(torch_device)
+        #     wrapper_model.device = torch_device
+        # for wrapper_model in self.models_to_eval_dict.values():
+        #     wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
+        #     for key, value in wrapper_model.model.hf_device_map.items():
+        #         wrapper_model.model.hf_device_map[key] = wrapper_model.device.index
+        pass
 
     def to(self, device: torch.device):
         for wrapper_model in self.models_to_attack_dict.values():
-            wrapper_model.model.to(device)
-            wrapper_model.model.device = device
-        self.device = device
+            wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
+            # wrapper_model.model.device = device

@@ -17,10 +17,12 @@ default_config = {
     # "models_to_eval": "{'llava-v1.5-vicuna7b'}",
     # "models_to_attack": "{'llava-v1.6-mistral7b'}",
     # "models_to_eval": "{'llava-v1.6-mistral7b'}",
-    "models_to_attack": "{'llava-v1.6-vicuna13b'}",
-    "models_to_eval": "{'llava-v1.6-vicuna13b'}",
+    # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
+    # "models_to_eval": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_eval": "{'prism-dinosiglip+7b'}",
+    "models_to_attack": "{'llava-v1.5-vicuna7b', 'llava-v1.6-mistral7b'}",
+    "models_to_eval": "{'llava-v1.5-vicuna7b', 'llava-v1.6-mistral7b'}",
     "model_generation_kwargs": {
         "llava-v1.6-mistral7b": {
             "temperature": 0.1,

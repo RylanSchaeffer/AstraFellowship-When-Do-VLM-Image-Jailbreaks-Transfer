@@ -29,6 +29,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         huggingface_name: str = "llava-hf/llava-1.5-7b-hf",
         split: str = "train",
         generation_kwargs: Dict[str, Any] = None,
+        gpu_id: Optional[int] = 0,
     ):
         super(LlavaVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
@@ -47,6 +48,12 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             self.conv_template_name = "default"
         self.conv_template = conversation_templates[self.conv_template_name]
 
+        self.gpu_id = gpu_id
+        # self.device = torch.device(
+        #     f"cuda:{self.gpu_id}" if torch.cuda.is_available() else "cpu"
+        # )
+        self.device = torch.device("cuda")
+
         (
             self.tokenizer,
             self.model,
@@ -56,10 +63,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             model_path=self.huggingface_name,
             model_base=None,
             model_name=get_model_name_from_path(self.huggingface_name),
+            # device_map={"device_map": self.gpu_id},
         )
 
         self.split = split
-        self.device = None
 
         self.text_prompt_template = prepare_text_prompt("")
         print(self.text_prompt_template)
@@ -69,7 +76,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     ) -> torch.Tensor:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
-        images = image.repeat(len(prompts), 1, 1, 1)
+        images = image.repeat(len(prompts), 1, 1, 1).to(self.device)
         # image_pixel_values = self.image_processor(
         #     images, do_rescale=False, return_tensors="pt"
         # )["pixel_values"].half()
@@ -169,10 +176,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # Based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/run_llava.py#L50
         # and also based on https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py.
-        images = image.repeat(len(prompts), 1, 1, 1).half()
+        images = image.repeat(len(prompts), 1, 1, 1).half().to(self.device)
         image_pixel_values = self.image_processor(
             images, do_rescale=False, return_tensors="pt"
-        )["pixel_values"]
+        )["pixel_values"].to(self.device)
 
         input_ids = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -180,6 +187,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
                 targets=None,
             )["input_ids"].to(self.device)
         )
+        self.model = self.model.to(self.device)
 
         generated_ids = self.model.generate(
             input_ids,
