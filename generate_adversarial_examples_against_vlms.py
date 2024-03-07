@@ -3,33 +3,20 @@ import json
 import os
 import pprint
 import torch
-from torchvision import transforms
 import wandb
 from typing import Any, List
 
 from src.globals import default_config
-from src.image_handling import get_list_image
 import src.utils
 
 
 def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    if wandb_config["image_initialization"] == "NIPS17":
-        images_list = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
-        resizer = transforms.Resize((224, 224))
-        images_list = [resizer(i).unsqueeze(0).to(torch.float16) for i in images_list]
-        # Only use one image for one attack.
-        images_list: List[torch.Tensor] = [images_list[wandb_config["datum_index"]]]
-    elif wandb_config["image_initialization"] == "random":
-        image_size = wandb_config["data_kwargs"]["image_size"]
-        images_list: List[torch.Tensor] = [torch.rand((1, 3, image_size, image_size))]
-    else:
-        raise ValueError(
-            "Invalid image_initialization: {}".format(
-                wandb_config["image_initialization"]
-            )
-        )
+    images_list = src.utils.create_or_load_images(
+        image_initialization_str=wandb_config["image_initialization"],
+        data_kwargs=wandb_config["data_kwargs"],
+    )
 
     prompts, targets = src.utils.load_prompts_and_targets(
         prompts_and_targets_str=wandb_config["prompts_and_targets"]

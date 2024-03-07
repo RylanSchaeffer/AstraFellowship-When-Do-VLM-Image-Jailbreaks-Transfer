@@ -92,7 +92,7 @@ class AdversarialAttacker:
         return avg
 
     def disable_model_gradients(self):
-        # set the model parameters requires_grad is False
+        # set all models' requires_grad to False
         for wrapper_model in self.models_to_eval_dict.values():
             wrapper_model.model.requires_grad_(False)
             wrapper_model.model.eval()
@@ -108,11 +108,11 @@ class AdversarialAttacker:
         #     torch_device = torch.device(f"cuda:{num_gpus - 1 - i // models_each_gpu}")
         #     wrapper_model.model.to(torch_device)
         #     wrapper_model.device = torch_device
-        # for wrapper_model in self.models_to_eval_dict.values():
-        #     wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
+        for wrapper_model in self.models_to_eval_dict.values():
+            wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
         #     for key, value in wrapper_model.model.hf_device_map.items():
         #         wrapper_model.model.hf_device_map[key] = wrapper_model.device.index
-        pass
+        # pass
 
     def to(self, device: torch.device):
         for wrapper_model in self.models_to_attack_dict.values():

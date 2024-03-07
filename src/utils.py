@@ -6,21 +6,12 @@ import os
 import pandas as pd
 import random
 import torch
+from torchvision import transforms
 import torch.distributed
 from typing import Any, Dict, List, Tuple
 
 from src.attacks.base import AdversarialAttacker
-
-
-class GPT4AttackCriterion:
-    def __init__(self):
-        self.count = 0
-
-    def __call__(self, loss, *args):
-        self.count += 1
-        if self.count % 120 == 0:
-            print(loss)
-        return -loss
+from src.image_handling import get_list_image
 
 
 def calc_rank():
@@ -60,6 +51,25 @@ def create_attacker(
             )
         )
     return attacker
+
+
+def create_or_load_images(
+    image_initialization_str: str, data_kwargs: Dict[str, Any]
+) -> List[torch.Tensor]:
+    if image_initialization_str == "NIPS17":
+        images_list = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
+        resizer = transforms.Resize((224, 224))
+        images_list = [resizer(i).unsqueeze(0).to(torch.float16) for i in images_list]
+        # Only use one image for one attack.
+        images_list: List[torch.Tensor] = [images_list[data_kwargs["datum_index"]]]
+    elif image_initialization_str == "random":
+        image_size = data_kwargs["image_size"]
+        images_list: List[torch.Tensor] = [torch.rand((1, 3, image_size, image_size))]
+    else:
+        raise ValueError(
+            "Invalid image_initialization: {}".format(image_initialization_str)
+        )
+    return images_list
 
 
 def instantiate_models(
