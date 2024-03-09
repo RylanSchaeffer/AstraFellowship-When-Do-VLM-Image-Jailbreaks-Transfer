@@ -105,7 +105,7 @@ def load_prompts_and_targets(
 ) -> Dict[str, Tuple[List[str], List[str]]]:
     prompts_and_targets_by_split = {}
     for split in {"train", "test"}:
-        prompts_and_targets_str = prompts_and_targets_kwargs["prompts_and_targets"]
+        prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
         n_unique_prompts_and_targets = prompts_and_targets_kwargs[
             "n_unique_prompts_and_targets"
         ]

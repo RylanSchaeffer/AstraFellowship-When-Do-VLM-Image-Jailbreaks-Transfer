@@ -19,10 +19,10 @@ parameters:
       ["random"]
   models_to_attack:
     values:
-      ["{'llava-v1.6-mistral7b'}"]
+      ["{'llava-v1p6-mistral7b'}"]
   models_to_eval:
     values:
-      ["{'llava-v1.6-mistral7b'}"]
+      ["{'llava-v1p6-mistral7b'}"]
   n_unique_prompts_and_targets:
     values:
       [32, 100]

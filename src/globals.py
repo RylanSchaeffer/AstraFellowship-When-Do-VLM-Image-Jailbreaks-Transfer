@@ -13,24 +13,24 @@ default_config = {
         "image_size": 336,
         "image_initialization": "random",
     },
-    # "models_to_attack": "{'llava-v1.5-vicuna7b'}",
-    # "models_to_eval": "{'llava-v1.5-vicuna7b'}",
-    # "models_to_attack": "{'llava-v1.6-mistral7b'}",
-    # "models_to_eval": "{'llava-v1.6-mistral7b'}",
+    # "models_to_attack": "{'llava-v1p5-vicuna7b'}",
+    # "models_to_eval": "{'llava-v1p5-vicuna7b'}",
+    # "models_to_attack": "{'llava-v1p6-mistral7b'}",
+    # "models_to_eval": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_eval": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_eval": "{'prism-dinosiglip+7b'}",
-    "models_to_attack": "{'llava-v1.5-vicuna7b', 'llava-v1.6-mistral7b'}",
-    "models_to_eval": "{'llava-v1.5-vicuna7b', 'llava-v1.6-mistral7b'}",
+    "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
+    "models_to_eval": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {
-        "llava-v1.6-mistral7b": {
+        "llava-v1p6-mistral7b": {
             "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
-        "llava-v1.5-vicuna7b": {
+        "llava-v1p5-vicuna7b": {
             "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 100,
@@ -59,8 +59,8 @@ default_config = {
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "prompt_and_targets_kwargs": {
-        "train_dataset": "rylan_anthropic_hhh",
-        "test_dataset": "advbench",
+        "dataset_train": "rylan_anthropic_hhh",
+        "dataset_test": "advbench",
         "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
     },
     # "prompts_and_targets": "advbench",

@@ -3,10 +3,9 @@ import torch.nn
 from typing import List, Optional
 
 
-class VisionLanguageModel(abc.ABC):
-    @abc.abstractmethod
+class VisionLanguageModel(abc.ABC, torch.nn.Module):
     def __init__(self):
-        pass
+        super().__init__()
 
     @abc.abstractmethod
     def compute_loss(self, images, prompts, targets):
