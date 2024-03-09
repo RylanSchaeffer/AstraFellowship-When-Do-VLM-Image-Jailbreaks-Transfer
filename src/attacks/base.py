@@ -48,19 +48,17 @@ class AdversarialAttacker:
                 **kwargs,
             )
             adv_x = attack_results["adversarial_image"]
-            losses_history = attack_results["losses_history"]
+            losses_history: Dict[str, np.ndarray] = attack_results["losses_history"]
             # prob_masses_history = torch.exp(-losses_history)
 
             save_multi_images(adv_x, results_dir, begin_id=image_idx)
 
             plt.close()
             # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5), squeeze=False)
-            for model_idx, model_str in enumerate(
-                self.vlm_ensemble.models_to_eval_dict
-            ):
+            for model_str in self.vlm_ensemble.vlms_to_eval_dict:
                 plt.plot(
-                    list(range(len(losses_history))),
-                    losses_history[:, model_idx],
+                    np.arange(len(losses_history[model_str])),
+                    losses_history[model_str],
                     label=model_str,
                 )
             plt.xlabel("Step")
