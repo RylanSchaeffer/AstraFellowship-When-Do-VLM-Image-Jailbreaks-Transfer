@@ -21,7 +21,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
         model_str: str = "prism-dinosiglip+7b",
-        split: str = "train",
         generation_kwargs: Dict[str, Any] = None,
     ):
         super(PrismaticVisionLanguageModel, self).__init__()
@@ -41,7 +40,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
 
-        self.split = split
         self.device = None
 
     def compute_loss(

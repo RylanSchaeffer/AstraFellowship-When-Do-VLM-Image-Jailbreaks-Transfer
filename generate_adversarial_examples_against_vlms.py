@@ -1,10 +1,12 @@
+from accelerate import Accelerator
 import ast
 import json
+import numpy as np
 import os
 import pprint
-import torch
 import wandb
 from typing import Any, List
+
 
 from src.globals import default_config
 import src.utils
@@ -13,30 +15,22 @@ import src.utils
 def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
     src.utils.set_seed(seed=wandb_config["seed"])
 
+    accelerator = Accelerator()
+
     images_list = src.utils.create_or_load_images(
-        image_initialization_str=wandb_config["image_initialization"],
-        data_kwargs=wandb_config["data_kwargs"],
+        image_kwargs=wandb_config["image_kwargs"],
     )
 
     prompts, targets = src.utils.load_prompts_and_targets(
-        prompts_and_targets_str=wandb_config["prompts_and_targets"]
+        prompts_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
     )
-    if wandb_config["n_unique_prompts_and_targets"] != -1:
-        prompts = prompts[: wandb_config["n_unique_prompts_and_targets"]]
-        targets = targets[: wandb_config["n_unique_prompts_and_targets"]]
 
-    models_to_eval_dict = src.utils.instantiate_models(
-        model_strs=wandb_config["models_to_eval"],
+    vlm_ensemble = src.utils.instantiate_vlm_ensemble(
+        models_to_attack=wandb_config["models_to_attack"],
+        models_to_eval=wandb_config["models_to_eval"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
-        split="eval",
+        accelerator=accelerator,
     )
-
-    # Subset the models that we will attack.
-    models_to_attack_dict = {
-        model_str: model
-        for model_str, model in models_to_eval_dict.items()
-        if model_str in wandb_config["models_to_attack"]
-    }
 
     attacker = src.utils.create_attacker(
         wandb_config=wandb_config,

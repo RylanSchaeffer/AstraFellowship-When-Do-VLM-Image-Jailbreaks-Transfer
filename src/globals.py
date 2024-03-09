@@ -9,10 +9,10 @@ default_config = {
         "step_size": 0.01,
         "total_steps": 10,
     },
-    "data_kwargs": {
+    "image_kwargs": {
         "image_size": 336,
+        "image_initialization": "random",
     },
-    "image_initialization": "random",
     # "models_to_attack": "{'llava-v1.5-vicuna7b'}",
     # "models_to_eval": "{'llava-v1.5-vicuna7b'}",
     # "models_to_attack": "{'llava-v1.6-mistral7b'}",
@@ -58,8 +58,10 @@ default_config = {
         },
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
-    "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
+    "prompt_and_targets_kwargs": {
+        "dataset": "rylan_anthropic_hhh",
+        "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
+    },
     # "prompts_and_targets": "advbench",
-    "prompts_and_targets": "anthropic_hhh",
     "seed": 0,
 }

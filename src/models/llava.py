@@ -27,7 +27,6 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
         huggingface_name: str = "llava-hf/llava-1.5-7b-hf",
-        split: str = "train",
         generation_kwargs: Dict[str, Any] = None,
         gpu_id: Optional[int] = 0,
     ):
@@ -65,8 +64,6 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             model_name=get_model_name_from_path(self.huggingface_name),
             # device_map={"device_map": self.gpu_id},
         )
-
-        self.split = split
 
         self.text_prompt_template = prepare_text_prompt("")
         print(self.text_prompt_template)
