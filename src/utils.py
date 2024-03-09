@@ -56,13 +56,13 @@ def create_attacker(
 
 
 def create_or_load_images(image_kwargs: Dict[str, Any]) -> List[torch.Tensor]:
-    if image_kwargs["image_initialization_str"] == "NIPS17":
+    if image_kwargs["image_initialization"] == "NIPS17":
         images_list = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         resizer = transforms.Resize((224, 224))
         images_list = [resizer(i).unsqueeze(0).to(torch.float16) for i in images_list]
         # Only use one image for one attack.
         images_list: List[torch.Tensor] = [images_list[image_kwargs["datum_index"]]]
-    elif image_kwargs["image_initialization_str"] == "random":
+    elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
         images_list: List[torch.Tensor] = [torch.rand((1, 3, image_size, image_size))]
     else:
@@ -87,6 +87,7 @@ def instantiate_vlm_ensemble(
         accelerator=accelerator,
     )
 
+    vlm_ensemble = accelerator.prepare(vlm_ensemble)
     return vlm_ensemble
 
 
@@ -101,41 +102,42 @@ def is_dist_avail_and_initialized():
 def load_prompts_and_targets(
     prompts_and_targets_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
-) -> Tuple[List[str], List[str]]:
-    prompts_and_targets_str = prompts_and_targets_kwargs["prompts_and_targets"]
-    n_unique_prompts_and_targets = prompts_and_targets_kwargs[
-        "n_unique_prompts_and_targets"
-    ]
+) -> Dict[str, Tuple[List[str], List[str]]]:
+    prompts_and_targets_by_split = {}
+    for split in {"train", "test"}:
+        prompts_and_targets_str = prompts_and_targets_kwargs["prompts_and_targets"]
+        n_unique_prompts_and_targets = prompts_and_targets_kwargs[
+            "n_unique_prompts_and_targets"
+        ]
 
-    if prompts_and_targets_str == "advbench":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
-        )
-    elif prompts_and_targets_str == "rylan_anthropic_hhh":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
-        )
-    elif prompts_and_targets_str == "robust_bard":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "coco", "default.csv"
-        )
-        raise NotImplementedError
-    else:
-        raise ValueError(
-            "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
-        )
+        if prompts_and_targets_str == "advbench":
+            prompts_and_targets_path = os.path.join(
+                prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+            )
+        elif prompts_and_targets_str == "rylan_anthropic_hhh":
+            prompts_and_targets_path = os.path.join(
+                prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+            )
+        elif prompts_and_targets_str == "robust_bard":
+            raise NotImplementedError
+        else:
+            raise ValueError(
+                "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
+            )
 
-    df = pd.read_csv(prompts_and_targets_path)
-    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+        df = pd.read_csv(prompts_and_targets_path)
+        prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
-    if n_unique_prompts_and_targets != -1:
-        unique_indices = np.random.choice(
-            len(prompts), n_unique_prompts_and_targets, replace=False
-        )
-        prompts = [prompts[i] for i in unique_indices]
-        targets = [targets[i] for i in unique_indices]
+        if split == "train" and n_unique_prompts_and_targets != -1:
+            unique_indices = np.random.choice(
+                len(prompts), n_unique_prompts_and_targets, replace=False
+            )
+            prompts = [prompts[i] for i in unique_indices]
+            targets = [targets[i] for i in unique_indices]
 
-    return prompts, targets
+        prompts_and_targets_by_split[split] = (prompts, targets)
+
+    return prompts_and_targets_by_split
 
 
 def retrieve_wandb_username() -> str:

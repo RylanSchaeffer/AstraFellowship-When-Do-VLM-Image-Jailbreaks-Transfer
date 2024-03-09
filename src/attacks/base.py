@@ -38,15 +38,14 @@ class AdversarialAttacker:
 
     def compute_adversarial_examples(
         self,
-        images: List[torch.Tensor],
-        prompts: List[str],
-        targets: List[str],
+        tensor_images_list: List[torch.Tensor],
+        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
         results_dir: str,
         **kwargs,
     ):
         os.makedirs(results_dir, exist_ok=True)
 
-        for image_idx, image in enumerate(images):
+        for image_idx, image in enumerate(tensor_images_list):
             attack_results = self.attack(
                 image=image, prompts=prompts, targets=targets, **kwargs
             )

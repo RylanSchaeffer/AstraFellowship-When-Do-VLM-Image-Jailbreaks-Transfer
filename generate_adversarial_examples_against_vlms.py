@@ -12,41 +12,7 @@ from src.globals import default_config
 import src.utils
 
 
-def generate_vlm_adversarial_examples(wandb_config: dict[str, Any]):
-    src.utils.set_seed(seed=wandb_config["seed"])
-
-    accelerator = Accelerator()
-
-    images_list = src.utils.create_or_load_images(
-        image_kwargs=wandb_config["image_kwargs"],
-    )
-
-    prompts, targets = src.utils.load_prompts_and_targets(
-        prompts_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-    )
-
-    vlm_ensemble = src.utils.instantiate_vlm_ensemble(
-        models_to_attack=wandb_config["models_to_attack"],
-        models_to_eval=wandb_config["models_to_eval"],
-        model_generation_kwargs=wandb_config["model_generation_kwargs"],
-        accelerator=accelerator,
-    )
-
-    attacker = src.utils.create_attacker(
-        wandb_config=wandb_config,
-        models_to_attack_dict=models_to_attack_dict,
-        models_to_eval_dict=models_to_eval_dict,
-    )
-
-    attacker.compute_adversarial_examples(
-        images=images_list,
-        prompts=prompts,
-        targets=targets,
-        results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
-    )
-
-
-if __name__ == "__main__":
+def generate_vlm_adversarial_examples():
     wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak",
@@ -80,4 +46,37 @@ if __name__ == "__main__":
         for model_str in wandb_config["models_to_eval"]
     )
 
-    generate_vlm_adversarial_examples(wandb_config=wandb_config)
+    src.utils.set_seed(seed=wandb_config["seed"])
+
+    # Load data.
+    tensor_images_list = src.utils.create_or_load_images(
+        image_kwargs=wandb_config["image_kwargs"],
+    )
+    prompts_and_targets_by_split = src.utils.load_prompts_and_targets(
+        prompts_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
+    )
+
+    accelerator = Accelerator()
+
+    vlm_ensemble = src.utils.instantiate_vlm_ensemble(
+        models_to_attack=wandb_config["models_to_attack"],
+        models_to_eval=wandb_config["models_to_eval"],
+        model_generation_kwargs=wandb_config["model_generation_kwargs"],
+        accelerator=accelerator,
+    )
+
+    attacker = src.utils.create_attacker(
+        wandb_config=wandb_config,
+        models_to_attack_dict=wandb_config["models_to_attack_dict"],
+        models_to_eval_dict=wandb_config["models_to_eval_dict"],
+    )
+
+    attacker.compute_adversarial_examples(
+        tensor_images_list=tensor_images_list,
+        prompts_and_targets_by_split=prompts_and_targets_by_split,
+        results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+    )
+
+
+if __name__ == "__main__":
+    generate_vlm_adversarial_examples()

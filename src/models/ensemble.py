@@ -1,8 +1,9 @@
+import torch.nn
 from accelerate import Accelerator
 from typing import Any, Dict, List, Tuple
 
 
-class VLMEnsemble:
+class VLMEnsemble(torch.nn.Module):
     def __init__(
         self,
         models_to_attack: List[str],
@@ -10,12 +11,13 @@ class VLMEnsemble:
         model_generation_kwargs: Dict[str, Dict[str, Any]],
         accelerator: Accelerator,
     ):
+        super().__init__()
         # Confirm that all models to attack will also be evaluated.
         assert all([model_str in models_to_eval for model_str in models_to_attack])
         self.accelerator = accelerator
         self.device = self.accelerator.device
 
-        self.vlms_to_eval_dict = {}
+        self.vlms_to_eval_dict = torch.nn.ModuleDict()
         for model_str in models_to_eval:
             # Load BLIP2 models.
             if model_str.startswith("blip2"):
@@ -89,13 +91,15 @@ class VLMEnsemble:
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
-            vlm = self.accelerator.prepare(vlm)
+            vlm = self.accelerator.prepare([vlm])
             self.vlms_to_eval_dict[model_str] = vlm
 
-        self.vlms_to_attack_dict = {
-            model_str: self.vlms_to_eval_dict[model_str]
-            for model_str in models_to_attack
-        }
+        self.vlms_to_attack_dict = torch.nn.ModuleDict(
+            {
+                model_str: self.vlms_to_eval_dict[model_str]
+                for model_str in models_to_attack
+            }
+        )
 
     def forward(self, inputs):
         aggregated_outputs = []

@@ -59,7 +59,8 @@ default_config = {
     },
     # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "prompt_and_targets_kwargs": {
-        "dataset": "rylan_anthropic_hhh",
+        "train_dataset": "rylan_anthropic_hhh",
+        "test_dataset": "advbench",
         "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
     },
     # "prompts_and_targets": "advbench",
