@@ -16,14 +16,12 @@ from src.image_handling import normalize_images
 class PGDAttacker(AdversarialAttacker):
     def __init__(
         self,
-        models_to_attack_dict: Dict[str, torch.nn.Module],
-        models_to_eval_dict: Dict[str, torch.nn.Module],
+        vlm_ensemble: torch.nn.Module,
         attack_kwargs: Dict[str, any],
     ):
         assert "step_size" in attack_kwargs
         super(PGDAttacker, self).__init__(
-            models_to_attack_dict=models_to_attack_dict,
-            models_to_eval_dict=models_to_eval_dict,
+            vlm_ensemble=vlm_ensemble,
             attack_kwargs=attack_kwargs,
         )
 

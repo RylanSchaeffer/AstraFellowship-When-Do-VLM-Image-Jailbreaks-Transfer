@@ -23,15 +23,13 @@ def calc_rank():
 
 def create_attacker(
     wandb_config: Dict[str, Any],
-    models_to_attack_dict: Dict[str, torch.nn.Module],
-    models_to_eval_dict: Dict[str, torch.nn.Module],
+    vlm_ensemble: VLMEnsemble,
 ) -> AdversarialAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
         from src.attacks.pgd import PGDAttacker
 
         attacker = PGDAttacker(
-            models_to_attack_dict=models_to_attack_dict,
-            models_to_eval_dict=models_to_eval_dict,
+            vlm_ensemble=vlm_ensemble,
             attack_kwargs=wandb_config["attack_kwargs"],
         )
     elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":

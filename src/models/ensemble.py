@@ -16,6 +16,8 @@ class VLMEnsemble(torch.nn.Module):
         assert all([model_str in models_to_eval for model_str in models_to_attack])
         self.accelerator = accelerator
         self.device = self.accelerator.device
+        self.models_to_attack = models_to_attack
+        self.models_to_eval = models_to_eval
 
         self.vlms_to_eval_dict = torch.nn.ModuleDict()
         for model_str in models_to_eval:
