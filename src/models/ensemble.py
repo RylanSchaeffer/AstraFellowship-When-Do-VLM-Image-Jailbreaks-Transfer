@@ -120,9 +120,9 @@ class VLMEnsemble(torch.nn.Module):
     ) -> Dict[str, torch.Tensor]:
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
-        av_target_loss = torch.zeros(1, requires_grad=True)
+        avg_loss = torch.zeros(1, requires_grad=True)
         for model_idx, (model_name, model_wrapper) in enumerate(
-            self.vlm_ensemble.models_to_attack_dict.items()
+            self.vlms_to_eval_dict.items()
         ):
             target_loss_for_model = model_wrapper.compute_loss(
                 image=image,
@@ -130,9 +130,10 @@ class VLMEnsemble(torch.nn.Module):
                 targets=targets,
             )
             losses_per_model[model_name] = target_loss_for_model.item()
-            av_target_loss = av_target_loss + target_loss_for_model.cpu()
-        avg_target_loss = av_target_loss / len(self.vlm_ensemble.models_to_attack_dict)
-        losses_per_model["avg"] = avg_target_loss
+            if model_name in self.vlms_to_attack_dict:
+                avg_loss = avg_loss + target_loss_for_model.cpu()
+        avg_loss = avg_loss / len(self.vlms_to_attack_dict)
+        losses_per_model["avg"] = avg_loss
         return losses_per_model
 
     def disable_model_gradients(self):

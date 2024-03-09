@@ -190,6 +190,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             input_ids,
             images=image_pixel_values.half(),
             do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
+            cache_position=None,
             **self.generation_kwargs,
         )
         model_generations = self.tokenizer.batch_decode(

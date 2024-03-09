@@ -48,70 +48,12 @@ class PGDAttacker(AdversarialAttacker):
         for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
             # Occasionally generate to see what the VLM is outputting.
             if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
-                batch_prompts, batch_targets = self.sample_prompts_and_targets(
-                    prompts=prompts_and_targets_by_split["test"]["prompts"],
-                    targets=prompts_and_targets_by_split["test"]["targets"],
+                self.generate_from_vlms_and_log(
+                    original_image=original_image,
+                    adv_image=adv_image,
+                    prompts_and_targets_by_split=prompts_and_targets_by_split,
+                    step_idx=step_idx,
                 )
-
-                for (
-                    model_name,
-                    model_wrapper,
-                ) in self.vlm_ensemble.vlms_to_eval_dict.items():
-                    batch_nonadv_model_generations = model_wrapper.generate(
-                        image=original_image,
-                        prompts=batch_prompts,
-                    )
-                    model_nonadv_generation_begins_with_target = (
-                        self.compute_whether_generation_begins_with_target(
-                            model_generations=batch_nonadv_model_generations,
-                            targets=batch_targets,
-                        )
-                    )
-                    batch_adv_model_generations = model_wrapper.generate(
-                        image=adv_image,
-                        prompts=batch_prompts,
-                    )
-                    model_adv_generation_begins_with_target = (
-                        self.compute_whether_generation_begins_with_target(
-                            model_generations=batch_adv_model_generations,
-                            targets=batch_targets,
-                        )
-                    )
-                    wandb.log(
-                        {
-                            f"generations_{model_name}_step={step_idx}": wandb.Table(
-                                columns=[
-                                    "prompt",
-                                    "generated",
-                                    "target",
-                                    "adv_generated",
-                                ],
-                                data=[
-                                    [
-                                        prompt,
-                                        nonadv_model_generation,
-                                        target,
-                                        adv_model_generation,
-                                    ]
-                                    for prompt, nonadv_model_generation, adv_model_generation, target in zip(
-                                        batch_prompts,
-                                        batch_nonadv_model_generations,
-                                        batch_adv_model_generations,
-                                        batch_targets,
-                                    )
-                                ],
-                            ),
-                            # Pytorch uses (C, H, W), but wandb uses (H, W, C).
-                            # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
-                            "adversarial_image": wandb.Image(
-                                adv_image[0].detach().numpy().transpose(1, 2, 0),
-                                caption="Adversarial Image",
-                            ),
-                            "model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
-                            "model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
-                        },
-                        step=step_idx + 1,
-                    )
 
             batch_prompts, batch_targets = self.sample_prompts_and_targets(
                 prompts=prompts_and_targets_by_split["train"]["prompts"],
@@ -146,6 +88,78 @@ class PGDAttacker(AdversarialAttacker):
         }
 
         return attack_results
+
+    def generate_from_vlms_and_log(
+        self,
+        original_image: torch.Tensor,
+        adv_image: torch.Tensor,
+        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+        step_idx: int,
+    ):
+        batch_prompts, batch_targets = self.sample_prompts_and_targets(
+            prompts=prompts_and_targets_by_split["test"]["prompts"],
+            targets=prompts_and_targets_by_split["test"]["targets"],
+        )
+
+        for (
+            model_name,
+            model_wrapper,
+        ) in self.vlm_ensemble.vlms_to_eval_dict.items():
+            batch_nonadv_model_generations = model_wrapper.generate(
+                image=original_image,
+                prompts=batch_prompts,
+            )
+            model_nonadv_generation_begins_with_target = (
+                self.compute_whether_generation_begins_with_target(
+                    model_generations=batch_nonadv_model_generations,
+                    targets=batch_targets,
+                )
+            )
+            batch_adv_model_generations = model_wrapper.generate(
+                image=adv_image,
+                prompts=batch_prompts,
+            )
+            model_adv_generation_begins_with_target = (
+                self.compute_whether_generation_begins_with_target(
+                    model_generations=batch_adv_model_generations,
+                    targets=batch_targets,
+                )
+            )
+            wandb.log(
+                {
+                    f"generations_{model_name}_step={step_idx}": wandb.Table(
+                        columns=[
+                            "prompt",
+                            "generated",
+                            "target",
+                            "adv_generated",
+                        ],
+                        data=[
+                            [
+                                prompt,
+                                nonadv_model_generation,
+                                target,
+                                adv_model_generation,
+                            ]
+                            for prompt, nonadv_model_generation, adv_model_generation, target in zip(
+                                batch_prompts,
+                                batch_nonadv_model_generations,
+                                batch_adv_model_generations,
+                                batch_targets,
+                            )
+                        ],
+                    ),
+                    # Pytorch uses (C, H, W), but wandb uses (H, W, C).
+                    # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
+                    "adversarial_image": wandb.Image(
+                        adv_image[0].detach().numpy().transpose(1, 2, 0),
+                        caption="Adversarial Image",
+                    ),
+                    "model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
+                    "model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
+                },
+                step=step_idx + 1,
+            )
 
     def reinitialize_losses_history(self):
         self.losses_history = {

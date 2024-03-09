@@ -36,13 +36,13 @@ default_config = {
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
-        "llava-v1.6-vicuna7b": {
+        "llava-v1p6-vicuna7b": {
             "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
-        "llava-v1.6-vicuna13b": {
+        "llava-v1p6-vicuna13b": {
             "temperature": 0.1,
             "top_p": 0.9,
             "max_new_tokens": 100,
