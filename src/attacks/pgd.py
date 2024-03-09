@@ -1,12 +1,12 @@
 # Adapted from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/llava_llama_2_utils/visual_attacker.py#L20
+from accelerate import Accelerator
 import matplotlib.pyplot as plt
-import random
-
 import numpy as np
+import random
 import seaborn as sns
 import torch
 import tqdm
-from typing import Dict, List
+from typing import Dict, List, Optional
 import wandb
 
 from src.attacks.base import AdversarialAttacker
@@ -17,33 +17,32 @@ class PGDAttacker(AdversarialAttacker):
     def __init__(
         self,
         vlm_ensemble: torch.nn.Module,
+        accelerator: Accelerator,
         attack_kwargs: Dict[str, any],
     ):
         assert "step_size" in attack_kwargs
         super(PGDAttacker, self).__init__(
             vlm_ensemble=vlm_ensemble,
+            accelerator=accelerator,
             attack_kwargs=attack_kwargs,
         )
 
-        self.losses_history: np.ndarray = np.zeros(1)
+        self.losses_history: Optional[np.ndarray] = None
 
     def attack(
         self,
         image: torch.Tensor,
-        prompts: List[str],
-        targets: List[str],
+        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
         # Ensure loss history is empty.
-        self.losses_history = np.zeros(
+        self.losses_history = np.full(
             shape=(
                 self.attack_kwargs["total_steps"] + 1,
-                len(self.models_to_attack_dict),
-            )
+                len(self.vlm_ensemble),
+            ),
+            fill_value=np.nan,
         )
-
-        assert len(prompts) == len(targets)
-        dataset_size = len(prompts)
 
         # TODO: Tokenize the prompts once.
         # prompts_per_model = {
@@ -61,19 +60,17 @@ class PGDAttacker(AdversarialAttacker):
         adv_image.retain_grad()
 
         for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
-            batch_idx = random.sample(
-                range(dataset_size), self.attack_kwargs["batch_size"]
-            )
-            batch_prompts = [
-                prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
-            ]
-            batch_targets = [
-                target for idx, target in enumerate(targets) if idx in batch_idx
-            ]
-
             # Occasionally generate to see what the VLM is outputting.
             if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
-                for model_name, model_wrapper in self.models_to_eval_dict.items():
+                batch_prompts, batch_targets = self.sample_prompts_and_targets(
+                    prompts=prompts_and_targets_by_split["test"]["prompts"],
+                    targets=prompts_and_targets_by_split["test"]["targets"],
+                )
+
+                for (
+                    model_name,
+                    model_wrapper,
+                ) in self.vlm_ensemble.models_to_eval_dict.items():
                     batch_nonadv_model_generations = model_wrapper.generate(
                         image=original_image,
                         prompts=batch_prompts,
@@ -130,11 +127,16 @@ class PGDAttacker(AdversarialAttacker):
                         step=step_idx + 1,
                     )
 
+            batch_prompts, batch_targets = self.sample_prompts_and_targets(
+                prompts=prompts_and_targets_by_split["train"]["prompts"],
+                targets=prompts_and_targets_by_split["train"]["targets"],
+            )
+
             # Always calculate loss per model and use for updating the adversarial example.
             target_loss_per_model: Dict[str, torch.Tensor] = {}
             total_target_loss = torch.zeros(1, requires_grad=True, device="cpu")
             for model_idx, (model_name, model_wrapper) in enumerate(
-                self.models_to_attack_dict.items()
+                self.vlm_ensemble.models_to_attack_dict.items()
             ):
                 target_loss_for_model = model_wrapper.compute_loss(
                     image=adv_image,
@@ -144,7 +146,9 @@ class PGDAttacker(AdversarialAttacker):
                 target_loss_per_model[model_name] = target_loss_for_model.item()
                 self.losses_history[step_idx, model_idx] = target_loss_for_model.item()
                 total_target_loss = total_target_loss + target_loss_for_model.cpu()
-            total_target_loss = total_target_loss / len(self.models_to_attack_dict)
+            total_target_loss = total_target_loss / len(
+                self.vlm_ensemble.models_to_attack_dict
+            )
             target_loss_per_model["avg"] = total_target_loss.item()
             total_target_loss.backward()
 
@@ -166,3 +170,14 @@ class PGDAttacker(AdversarialAttacker):
         }
 
         return attack_results
+
+    def sample_prompts_and_targets(self, prompts: List[str], targets: List[str]):
+        batch_idx = random.sample(range(dataset_size), self.attack_kwargs["batch_size"])
+        batch_prompts = [
+            prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
+        ]
+        batch_targets = [
+            target for idx, target in enumerate(targets) if idx in batch_idx
+        ]
+
+        return batch_prompts, batch_targets

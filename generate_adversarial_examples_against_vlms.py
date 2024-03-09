@@ -68,6 +68,7 @@ def generate_vlm_adversarial_examples():
     attacker = src.utils.create_attacker(
         wandb_config=wandb_config,
         vlm_ensemble=vlm_ensemble,
+        accelerator=accelerator,
     )
 
     attacker.compute_adversarial_examples(

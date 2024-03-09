@@ -24,12 +24,14 @@ def calc_rank():
 def create_attacker(
     wandb_config: Dict[str, Any],
     vlm_ensemble: VLMEnsemble,
+    accelerator: Accelerator,
 ) -> AdversarialAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
         from src.attacks.pgd import PGDAttacker
 
         attacker = PGDAttacker(
             vlm_ensemble=vlm_ensemble,
+            accelerator=accelerator,
             attack_kwargs=wandb_config["attack_kwargs"],
         )
     elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":

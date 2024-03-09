@@ -1,34 +1,30 @@
-import os
+from accelerate import Accelerator
 from abc import abstractmethod
-from math import ceil
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 import torch
 from torch import Tensor
 from typing import Dict, List
 import wandb
 
+from src.models.ensemble import VLMEnsemble
 from src.image_handling import save_multi_images
 
 
 class AdversarialAttacker:
     def __init__(
         self,
-        models_to_attack_dict: Dict[str, torch.nn.Module],
-        models_to_eval_dict: Dict[str, torch.nn.Module],
+        vlm_ensemble: VLMEnsemble,
+        accelerator: Accelerator,
         attack_kwargs: Dict[str, any],
         **kwargs,
     ):
-        self.models_to_attack_dict = models_to_attack_dict
-        self.models_to_eval_dict = models_to_eval_dict
+        self.vlm_ensemble = vlm_ensemble
+        self.accelerator = accelerator
         # Check that attack kwargs has the required keys.
         assert "batch_size" in attack_kwargs
-
         self.attack_kwargs = attack_kwargs
-        self.disable_model_gradients()
-        self.distribute_models()
-        # self.device = torch.device("cuda")
-        self.n = len(self.models_to_attack_dict)
 
     @abstractmethod
     def attack(
@@ -47,17 +43,21 @@ class AdversarialAttacker:
 
         for image_idx, image in enumerate(tensor_images_list):
             attack_results = self.attack(
-                image=image, prompts=prompts, targets=targets, **kwargs
+                image=image,
+                prompts_and_targets_by_split=prompts_and_targets_by_split,
+                **kwargs,
             )
             adv_x = attack_results["adversarial_image"]
             losses_history = attack_results["losses_history"]
-            # TODO: Compute probability masses for loss history.
             # prob_masses_history = torch.exp(-losses_history)
 
             save_multi_images(adv_x, results_dir, begin_id=image_idx)
 
             plt.close()
-            for model_idx, model_str in enumerate(self.models_to_attack_dict):
+            # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5), squeeze=False)
+            for model_idx, model_str in enumerate(
+                self.vlm_ensemble.models_to_eval_dict
+            ):
                 plt.plot(
                     list(range(len(losses_history))),
                     losses_history[:, model_idx],
@@ -89,31 +89,3 @@ class AdversarialAttacker:
             [gen.startswith(target) for gen, target in zip(model_generations, targets)]
         )
         return avg
-
-    def disable_model_gradients(self):
-        # set all models' requires_grad to False
-        for wrapper_model in self.models_to_eval_dict.values():
-            wrapper_model.model.requires_grad_(False)
-            wrapper_model.model.eval()
-
-    def distribute_models(self):
-        """
-        Place each model on one gpu
-        :return:
-        """
-        # num_gpus = torch.cuda.device_count()
-        # models_each_gpu = ceil(len(self.models_to_eval_dict) / num_gpus)
-        # for i, wrapper_model in enumerate(self.models_to_eval_dict.values()):
-        #     torch_device = torch.device(f"cuda:{num_gpus - 1 - i // models_each_gpu}")
-        #     wrapper_model.model.to(torch_device)
-        #     wrapper_model.device = torch_device
-        for wrapper_model in self.models_to_eval_dict.values():
-            wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
-        #     for key, value in wrapper_model.model.hf_device_map.items():
-        #         wrapper_model.model.hf_device_map[key] = wrapper_model.device.index
-        # pass
-
-    def to(self, device: torch.device):
-        for wrapper_model in self.models_to_attack_dict.values():
-            wrapper_model.model = wrapper_model.model.to(wrapper_model.device)
-            # wrapper_model.model.device = device

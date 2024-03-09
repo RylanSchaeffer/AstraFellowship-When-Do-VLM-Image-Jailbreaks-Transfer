@@ -1,6 +1,6 @@
 import torch.nn
 from accelerate import Accelerator
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class VLMEnsemble(torch.nn.Module):
@@ -96,17 +96,33 @@ class VLMEnsemble(torch.nn.Module):
             vlm = self.accelerator.prepare(vlm)
             self.vlms_to_eval_dict[model_str] = vlm
 
+        # TODO: Are all of these .prepare() calls necessary?
+        self.vlms_to_eval_dict = self.accelerator.prepare(self.vlms_to_eval_dict)
+
         self.vlms_to_attack_dict = torch.nn.ModuleDict(
             {
                 model_str: self.vlms_to_eval_dict[model_str]
                 for model_str in models_to_attack
             }
         )
+        self.vlms_to_attack_dict = self.accelerator.prepare(self.vlms_to_attack_dict)
 
-    def forward(self, inputs):
-        aggregated_outputs = []
-        for (model, tokenizer), input_data in zip(self.models_and_tokenizers, inputs):
-            # Assuming input_data is already prepared and on the correct device
-            outputs = model(**input_data)
-            aggregated_outputs.append(outputs)
-        return aggregated_outputs
+        self.disable_model_gradients()
+
+    def __len__(self):
+        return len(self.vlms_to_eval_dict)
+
+    def forward(self, args):
+        raise NotImplementedError
+
+    def disable_model_gradients(self):
+        # set all models' requires_grad to False
+        for vlm_str, vlm_wrapper in self.vlms_to_eval_dict.items():
+            vlm_wrapper.model.requires_grad_(False)
+            vlm_wrapper.model.eval()
+
+    def to(self, device: Optional[torch.device] = None):
+        if device is None:
+            device = self.accelerator.device
+        for vlm_str, vlm_wrapper in self.vlms_to_eval_dict.items():
+            vlm_wrapper.model = vlm_wrapper.model.to(device)
