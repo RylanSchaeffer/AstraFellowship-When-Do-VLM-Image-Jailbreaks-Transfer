@@ -5,7 +5,7 @@ import numpy as np
 import os
 import torch
 from torch import Tensor
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
@@ -35,7 +35,7 @@ class AdversarialAttacker:
     def compute_adversarial_examples(
         self,
         tensor_images_list: List[torch.Tensor],
-        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+        prompts_and_targets_by_split: Dict[str, Tuple[List[str], List[str]]],
         results_dir: str,
         **kwargs,
     ):

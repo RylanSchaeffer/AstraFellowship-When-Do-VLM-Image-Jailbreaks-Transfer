@@ -6,21 +6,21 @@ from typing import Any, Dict, List, Optional, Tuple
 class VLMEnsemble(torch.nn.Module):
     def __init__(
         self,
-        models_to_attack: List[str],
-        models_to_eval: List[str],
+        model_strs_to_attack: List[str],
+        model_strs_to_eval: List[str],
         model_generation_kwargs: Dict[str, Dict[str, Any]],
         accelerator: Accelerator,
     ):
         super().__init__()
         # Confirm that all models to attack will also be evaluated.
-        assert all([model_str in models_to_eval for model_str in models_to_attack])
+        assert all(
+            [model_str in model_strs_to_eval for model_str in model_strs_to_attack]
+        )
         self.accelerator = accelerator
         self.device = self.accelerator.device
-        self.models_to_attack = models_to_attack
-        self.models_to_eval = models_to_eval
 
         self.vlms_to_eval_dict = torch.nn.ModuleDict()
-        for model_str in models_to_eval:
+        for model_str in model_strs_to_eval:
             # Load BLIP2 models.
             if model_str.startswith("blip2"):
                 from old.how_robust_is_bard.src.models.blip2 import (
@@ -102,7 +102,7 @@ class VLMEnsemble(torch.nn.Module):
         self.vlms_to_attack_dict = torch.nn.ModuleDict(
             {
                 model_str: self.vlms_to_eval_dict[model_str]
-                for model_str in models_to_attack
+                for model_str in model_strs_to_attack
             }
         )
         self.vlms_to_attack_dict = self.accelerator.prepare(self.vlms_to_attack_dict)
@@ -114,6 +114,26 @@ class VLMEnsemble(torch.nn.Module):
 
     def forward(self, args):
         raise NotImplementedError
+
+    def compute_loss(
+        self, image: torch.Tensor, prompts: List[str], targets: List[str]
+    ) -> Dict[str, torch.Tensor]:
+        # Always calculate loss per model and use for updating the adversarial example.
+        losses_per_model: Dict[str, torch.Tensor] = {}
+        av_target_loss = torch.zeros(1, requires_grad=True)
+        for model_idx, (model_name, model_wrapper) in enumerate(
+            self.vlm_ensemble.models_to_attack_dict.items()
+        ):
+            target_loss_for_model = model_wrapper.compute_loss(
+                image=image,
+                prompts=prompts,
+                targets=targets,
+            )
+            losses_per_model[model_name] = target_loss_for_model.item()
+            av_target_loss = av_target_loss + target_loss_for_model.cpu()
+        avg_target_loss = av_target_loss / len(self.vlm_ensemble.models_to_attack_dict)
+        losses_per_model["avg"] = avg_target_loss
+        return losses_per_model
 
     def disable_model_gradients(self):
         # set all models' requires_grad to False

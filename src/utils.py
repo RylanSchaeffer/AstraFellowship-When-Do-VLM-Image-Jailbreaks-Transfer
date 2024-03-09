@@ -81,13 +81,13 @@ def instantiate_vlm_ensemble(
     accelerator: Accelerator,
 ) -> VLMEnsemble:
     vlm_ensemble = VLMEnsemble(
-        models_to_attack=models_to_attack,
-        models_to_eval=models_to_eval,
+        model_strs_to_attack=models_to_attack,
+        model_strs_to_eval=models_to_eval,
         model_generation_kwargs=model_generation_kwargs,
         accelerator=accelerator,
     )
 
-    vlm_ensemble = accelerator.prepare(vlm_ensemble)
+    vlm_ensemble = accelerator.prepare([vlm_ensemble])[0]
     return vlm_ensemble
 
 
@@ -102,7 +102,7 @@ def is_dist_avail_and_initialized():
 def load_prompts_and_targets(
     prompts_and_targets_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
-) -> Dict[str, Tuple[List[str], List[str]]]:
+) -> Dict[str, Dict[str, List[str]]]:
     prompts_and_targets_by_split = {}
     for split in {"train", "test"}:
         prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
@@ -135,7 +135,7 @@ def load_prompts_and_targets(
             prompts = [prompts[i] for i in unique_indices]
             targets = [targets[i] for i in unique_indices]
 
-        prompts_and_targets_by_split[split] = (prompts, targets)
+        prompts_and_targets_by_split[split] = {"prompts": prompts, "targets": targets}
 
     return prompts_and_targets_by_split
 

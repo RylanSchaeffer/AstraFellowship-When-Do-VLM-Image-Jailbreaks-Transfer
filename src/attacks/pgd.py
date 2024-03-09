@@ -10,21 +10,22 @@ from typing import Dict, List, Optional
 import wandb
 
 from src.attacks.base import AdversarialAttacker
+from src.models.ensemble import VLMEnsemble
 from src.image_handling import normalize_images
 
 
 class PGDAttacker(AdversarialAttacker):
     def __init__(
         self,
-        vlm_ensemble: torch.nn.Module,
+        vlm_ensemble: VLMEnsemble,
         accelerator: Accelerator,
         attack_kwargs: Dict[str, any],
     ):
         assert "step_size" in attack_kwargs
         super(PGDAttacker, self).__init__(
-            vlm_ensemble=vlm_ensemble,
             accelerator=accelerator,
             attack_kwargs=attack_kwargs,
+            vlm_ensemble=vlm_ensemble,
         )
 
         self.losses_history: Optional[np.ndarray] = None
@@ -36,22 +37,7 @@ class PGDAttacker(AdversarialAttacker):
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
         # Ensure loss history is empty.
-        self.losses_history = np.full(
-            shape=(
-                self.attack_kwargs["total_steps"] + 1,
-                len(self.vlm_ensemble),
-            ),
-            fill_value=np.nan,
-        )
-
-        # TODO: Tokenize the prompts once.
-        # prompts_per_model = {
-        #     model_str: prompts for model_str, model_wrapper in self.models_to_attack_dict.items()
-        # }
-        #
-        # prompt = prompt_wrapper.LlavaLlama2Prompt(
-        #     self.model, self.tokenizer, text_prompts=text_prompt, device=self.device
-        # )
+        self.reinitialize_losses_history()
 
         # Ensure gradients are computed for the image.
         original_image = image.clone()
@@ -70,7 +56,7 @@ class PGDAttacker(AdversarialAttacker):
                 for (
                     model_name,
                     model_wrapper,
-                ) in self.vlm_ensemble.models_to_eval_dict.items():
+                ) in self.vlm_ensemble.vlms_to_eval_dict.items():
                     batch_nonadv_model_generations = model_wrapper.generate(
                         image=original_image,
                         prompts=batch_prompts,
@@ -131,26 +117,16 @@ class PGDAttacker(AdversarialAttacker):
                 prompts=prompts_and_targets_by_split["train"]["prompts"],
                 targets=prompts_and_targets_by_split["train"]["targets"],
             )
-
-            # Always calculate loss per model and use for updating the adversarial example.
-            target_loss_per_model: Dict[str, torch.Tensor] = {}
-            total_target_loss = torch.zeros(1, requires_grad=True, device="cpu")
-            for model_idx, (model_name, model_wrapper) in enumerate(
-                self.vlm_ensemble.models_to_attack_dict.items()
-            ):
-                target_loss_for_model = model_wrapper.compute_loss(
-                    image=adv_image,
-                    prompts=batch_prompts,
-                    targets=batch_targets,
-                )
-                target_loss_per_model[model_name] = target_loss_for_model.item()
-                self.losses_history[step_idx, model_idx] = target_loss_for_model.item()
-                total_target_loss = total_target_loss + target_loss_for_model.cpu()
-            total_target_loss = total_target_loss / len(
-                self.vlm_ensemble.models_to_attack_dict
+            losses_per_model = self.vlm_ensemble.compute_loss(
+                image=adv_image,
+                prompts=batch_prompts,
+                targets=batch_targets,
             )
-            target_loss_per_model["avg"] = total_target_loss.item()
-            total_target_loss.backward()
+            # Record the losses per model.
+            for key, loss in losses_per_model.items():
+                self.losses_history[key][step_idx] = loss.item()
+
+            losses_per_model["avg"].backward()
 
             adv_image.data = (
                 adv_image.data
@@ -159,7 +135,7 @@ class PGDAttacker(AdversarialAttacker):
             adv_image.grad.zero_()
 
             wandb.log(
-                target_loss_per_model,
+                losses_per_model,
                 step=step_idx + 1,
             )
 
@@ -171,8 +147,17 @@ class PGDAttacker(AdversarialAttacker):
 
         return attack_results
 
+    def reinitialize_losses_history(self):
+        self.losses_history = {
+            model_str: np.full(self.attack_kwargs["total_steps"] + 1, fill_value=np.nan)
+            for model_str in self.vlm_ensemble.vlms_to_eval_dict
+        }
+        self.losses_history["avg"] = np.full(
+            self.attack_kwargs["total_steps"] + 1, fill_value=np.nan
+        )
+
     def sample_prompts_and_targets(self, prompts: List[str], targets: List[str]):
-        batch_idx = random.sample(range(dataset_size), self.attack_kwargs["batch_size"])
+        batch_idx = random.sample(range(len(prompts)), self.attack_kwargs["batch_size"])
         batch_prompts = [
             prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
         ]
