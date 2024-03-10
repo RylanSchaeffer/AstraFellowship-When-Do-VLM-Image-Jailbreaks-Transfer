@@ -106,7 +106,7 @@ class PGDAttacker(AdversarialAttacker):
             model_wrapper,
         ) in self.vlm_ensemble.vlms_to_eval_dict.items():
             batch_nonadv_model_generations = model_wrapper.generate(
-                image=original_image,
+                image=original_image.to(self.accelerator.device),
                 prompts=batch_prompts,
             )
             model_nonadv_generation_begins_with_target = (

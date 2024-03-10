@@ -1,3 +1,4 @@
+from accelerate import Accelerator
 import torch
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -28,7 +29,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self,
         huggingface_name: str = "llava-hf/llava-1.5-7b-hf",
         generation_kwargs: Dict[str, Any] = None,
-        gpu_id: Optional[int] = 0,
+        accelerator: Optional[Accelerator] = None,
     ):
         super(LlavaVisionLanguageModel, self).__init__()
         self.huggingface_name = huggingface_name
@@ -47,11 +48,18 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             self.conv_template_name = "default"
         self.conv_template = conversation_templates[self.conv_template_name]
 
-        self.gpu_id = gpu_id
         # self.device = torch.device(
         #     f"cuda:{self.gpu_id}" if torch.cuda.is_available() else "cpu"
         # )
-        self.device = torch.device("cuda")
+        self.accelerator = accelerator
+        if accelerator is not None:
+            self.device = accelerator.device
+        else:
+            self.device = (
+                torch.device("cuda")
+                if torch.cuda.is_available()
+                else torch.device("cpu")
+            )
 
         (
             self.tokenizer,
@@ -89,10 +97,10 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             results[k] = v.to(self.device)
 
         outputs = self.model(
-            input_ids=results["input_ids"],
-            attention_mask=results["attention_mask"],
-            labels=results["labels"],
-            images=image_pixel_values,
+            input_ids=results["input_ids"].to(self.device),
+            attention_mask=results["attention_mask"].to(self.device),
+            labels=results["labels"].to(self.device),
+            images=image_pixel_values.to(self.device),
         )
         return outputs.loss
 
@@ -187,8 +195,8 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         self.model = self.model.to(self.device)
 
         generated_ids = self.model.generate(
-            input_ids,
-            images=image_pixel_values.half(),
+            input_ids.to(self.device),
+            images=image_pixel_values.half().to(self.device),
             do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
             cache_position=None,
             **self.generation_kwargs,

@@ -38,6 +38,7 @@ class VLMEnsemble(torch.nn.Module):
 
                 vlm = Blip2VisionLanguageModel(
                     huggingface_name=huggingface_name,
+                    accelerator=accelerator,
                 )
 
             # Load Instruct BLIP models.
@@ -57,6 +58,7 @@ class VLMEnsemble(torch.nn.Module):
 
                 vlm = InstructBlipVisionLanguageModel(
                     huggingface_name=huggingface_name,
+                    accelerator=accelerator,
                 )
 
             elif model_str.startswith("llava"):
@@ -80,6 +82,7 @@ class VLMEnsemble(torch.nn.Module):
                 vlm = LlavaVisionLanguageModel(
                     huggingface_name=huggingface_name,
                     generation_kwargs=model_generation_kwargs[model_str],
+                    accelerator=accelerator,
                 )
 
             elif model_str.startswith("prism"):
@@ -88,6 +91,7 @@ class VLMEnsemble(torch.nn.Module):
                 vlm = PrismaticVisionLanguageModel(
                     model_str=model_str,
                     generation_kwargs=model_generation_kwargs[model_str],
+                    accelerator=accelerator,
                 )
 
             else:

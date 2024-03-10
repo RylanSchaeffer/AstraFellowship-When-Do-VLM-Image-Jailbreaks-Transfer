@@ -20,6 +20,7 @@ from src.models.base import VisionLanguageModel
 class PrismaticVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
+        accelerator: Accelerator,
         model_str: str = "prism-dinosiglip+7b",
         generation_kwargs: Dict[str, Any] = None,
     ):
@@ -40,7 +41,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
 
-        self.device = None
+        self.accelerator = accelerator
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
