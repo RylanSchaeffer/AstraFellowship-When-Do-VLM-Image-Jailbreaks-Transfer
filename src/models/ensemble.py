@@ -88,6 +88,11 @@ class VLMEnsemble(torch.nn.Module):
             elif model_str.startswith("prism"):
                 from src.models.prismatic import PrismaticVisionLanguageModel
 
+                if model_str == "prism-reproduction-llava-v15+7b":
+                    model_str = "reproduction-llava-v15+7b"
+                elif model_str == "prism-reproduction-llava-v15+13b":
+                    model_str = "reproduction-llava-v15+13b"
+
                 vlm = PrismaticVisionLanguageModel(
                     model_str=model_str,
                     generation_kwargs=model_generation_kwargs[model_str],

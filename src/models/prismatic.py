@@ -1,4 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
+from accelerate import Accelerator
 import os.path
 from pathlib import Path
 from pprint import pprint
@@ -8,12 +9,12 @@ import torchvision.transforms.functional
 from typing import Any, Dict, List, Optional, Tuple
 
 from prismatic import (
-    available_model_names,
     available_models,
     get_model_description,
     load,
 )
 
+from src.image_handling import normalize_images
 from src.models.base import VisionLanguageModel
 
 
@@ -35,22 +36,19 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         )
 
         # This incorrectly uses the data structure returned by available_model_names.
-        # if model_str not in available_model_names():
-        #     pprint(available_model_names())
-        #     raise ValueError(f"Invalid model_str: {model_str}")
+        if model_str not in available_models():
+            pprint(available_models())
+            raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
-
         self.accelerator = accelerator
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         images = image.repeat(len(prompts), 1, 1, 1)
-        image_pixel_values = normalize(images).half()
-
+        image_pixel_values = normalize_images(images).half()
         self.model(images=images, prompts=prompts, targets=targets)
-
         raise NotImplementedError
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
