@@ -18,8 +18,8 @@ IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
 
 
 def normalize_images(images: torch.Tensor) -> torch.Tensor:
-    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).cuda()
-    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).cuda()
+    mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).to(images.device)
+    std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).to(images.device)
     images = images - mean[None, :, None, None]
     images = images / std[None, :, None, None]
     return images

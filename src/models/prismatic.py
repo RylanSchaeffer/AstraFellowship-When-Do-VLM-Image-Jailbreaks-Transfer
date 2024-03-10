@@ -26,6 +26,12 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         generation_kwargs: Dict[str, Any] = None,
     ):
         super(PrismaticVisionLanguageModel, self).__init__()
+
+        if model_str == "prism-reproduction-llava-v15+7b":
+            model_str = "reproduction-llava-v15+7b"
+        elif model_str == "prism-reproduction-llava-v15+13b":
+            model_str = "reproduction-llava-v15+13b"
+
         self.model_str = model_str
         self.generation_kwargs = generation_kwargs
 
@@ -42,21 +48,54 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
         self.accelerator = accelerator
+        self.device = self.accelerator.device
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
-        images = image.repeat(len(prompts), 1, 1, 1)
-        image_pixel_values = normalize_images(images).half()
-        self.model(images=images, prompts=prompts, targets=targets)
-        raise NotImplementedError
+        images = image.repeat(len(prompts), 1, 1, 1).to(self.accelerator.device)
+        image_pixel_values = normalize_images(images).half().to(self.accelerator.device)
+
+        results = (
+            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=targets,
+            )
+        )
+        for k, v in results.items():
+            results[k] = v.to(self.accelerator.device)
+
+        outputs = self.model(
+            input_ids=results["input_ids"],
+            attention_mask=results["attention_mask"],
+            labels=results["labels"],
+            pixel_values=image_pixel_values,
+        )
+
+        return outputs.loss
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
         self,
         prompts: List[str],
         targets: Optional[List[str]] = None,
     ) -> Dict[str, torch.Tensor]:
-        raise NotImplementedError
+        if targets is None:
+            targets = [None for _ in range(len(prompts))]
+
+        input_ids_list: List[List[int]] = []
+        for prompt, target in zip(prompts, targets):
+            prompt_builder = self.model.get_prompt_builder()
+            prompt_builder.add_turn(role="human", message=prompt)
+            prompt_builder.add_turn(role="assistant", message="target")
+            prompt_text = prompt_builder.get_prompt()
+            inputs_ids = self.model.llm_backbone.tokenizer(prompt_text)
+            input_ids_list.append(inputs_ids)
+
+        results = {
+            "input_ids": torch.tensor(input_ids_list, dtype=torch.long),
+        }
+
+        return results
 
     @torch.inference_mode()
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:

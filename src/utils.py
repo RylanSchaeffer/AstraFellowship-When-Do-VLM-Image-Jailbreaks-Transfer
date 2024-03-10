@@ -55,23 +55,26 @@ def create_attacker(
     return attacker
 
 
-def create_or_load_images(image_kwargs: Dict[str, Any]) -> List[torch.Tensor]:
+def create_or_load_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
-        images_list = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
+        images = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         resizer = transforms.Resize((224, 224))
-        images_list = [resizer(i).unsqueeze(0).to(torch.float16) for i in images_list]
+        images = torch.stack(
+            [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
+        )
         # Only use one image for one attack.
-        images_list: List[torch.Tensor] = [images_list[image_kwargs["datum_index"]]]
+        images: torch.Tensor = images[image_kwargs["datum_index"]].unsqueeze(0)
     elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
-        images_list: List[torch.Tensor] = [torch.rand((1, 3, image_size, image_size))]
+        images: torch.Tensor = torch.rand((1, 1, 3, image_size, image_size))
     else:
         raise ValueError(
             "Invalid image_initialization: {}".format(
                 image_kwargs["image_initialization_str"]
             )
         )
-    return images_list
+    assert len(images.shape) == 5
+    return images
 
 
 def instantiate_vlm_ensemble(

@@ -49,7 +49,7 @@ def generate_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Load data.
-    tensor_images_list = src.utils.create_or_load_images(
+    tensor_images = src.utils.create_or_load_images(
         image_kwargs=wandb_config["image_kwargs"],
     )
     prompts_and_targets_by_split = src.utils.load_prompts_and_targets(
@@ -72,7 +72,7 @@ def generate_vlm_adversarial_examples():
     )
 
     attacker.compute_adversarial_examples(
-        tensor_images_list=tensor_images_list,
+        tensor_images=tensor_images,
         prompts_and_targets_by_split=prompts_and_targets_by_split,
         results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
     )

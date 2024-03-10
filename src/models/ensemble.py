@@ -64,34 +64,14 @@ class VLMEnsemble(torch.nn.Module):
             elif model_str.startswith("llava"):
                 from src.models.llava import LlavaVisionLanguageModel
 
-                if model_str.endswith("v1p5-vicuna7b"):
-                    huggingface_name = "liuhaotian/llava-v1.5-7b"
-                elif model_str.endswith("v1p6-hermes-yi-34b"):
-                    huggingface_name = "liuhaotian/llava-v1.6-34b"
-                elif model_str.endswith("v1p6-mistral7b"):
-                    # Lots of bugs. They needed to be patched here.
-                    # https://huggingface.co/Trelis/llava-v1.6-mistral-7b-PATCHED.
-                    huggingface_name = "Trelis/llava-v1.6-mistral-7b-PATCHED"
-                elif model_str.endswith("v1p6-vicuna7b"):
-                    huggingface_name = "liuhaotian/llava-v1.6-vicuna-7b"
-                elif model_str.endswith("v1p6-vicuna13b"):
-                    huggingface_name = "liuhaotian/llava-v1.6-vicuna-13b"
-                else:
-                    raise ValueError("Invalid model_str: {}".format(model_str))
-
                 vlm = LlavaVisionLanguageModel(
-                    huggingface_name=huggingface_name,
+                    model_str=model_str,
                     generation_kwargs=model_generation_kwargs[model_str],
                     accelerator=accelerator,
                 )
 
             elif model_str.startswith("prism"):
                 from src.models.prismatic import PrismaticVisionLanguageModel
-
-                if model_str == "prism-reproduction-llava-v15+7b":
-                    model_str = "reproduction-llava-v15+7b"
-                elif model_str == "prism-reproduction-llava-v15+13b":
-                    model_str = "reproduction-llava-v15+13b"
 
                 vlm = PrismaticVisionLanguageModel(
                     model_str=model_str,

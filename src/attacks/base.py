@@ -34,14 +34,16 @@ class AdversarialAttacker:
 
     def compute_adversarial_examples(
         self,
-        tensor_images_list: List[torch.Tensor],
+        tensor_images: torch.Tensor,
         prompts_and_targets_by_split: Dict[str, Tuple[List[str], List[str]]],
         results_dir: str,
         **kwargs,
     ):
         os.makedirs(results_dir, exist_ok=True)
 
-        for image_idx, image in enumerate(tensor_images_list):
+        tensor_images = self.accelerator.prepare(tensor_images)
+
+        for image_idx, image in enumerate(tensor_images):
             attack_results = self.attack(
                 image=image,
                 prompts_and_targets_by_split=prompts_and_targets_by_split,

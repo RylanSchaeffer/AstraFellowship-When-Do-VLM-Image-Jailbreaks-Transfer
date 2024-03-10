@@ -27,11 +27,27 @@ from src.models.llava_llama_2.visual_attacker import normalize
 class LlavaVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
-        huggingface_name: str = "llava-hf/llava-1.5-7b-hf",
+        model_str: str = "llava-v1p5-vicuna7b",
         generation_kwargs: Dict[str, Any] = None,
         accelerator: Optional[Accelerator] = None,
     ):
         super(LlavaVisionLanguageModel, self).__init__()
+        self.model_str = model_str
+        if model_str.endswith("v1p5-vicuna7b"):
+            huggingface_name = "liuhaotian/llava-v1.5-7b"
+        elif model_str.endswith("v1p6-hermes-yi-34b"):
+            huggingface_name = "liuhaotian/llava-v1.6-34b"
+        elif model_str.endswith("v1p6-mistral7b"):
+            # Lots of bugs. They needed to be patched here.
+            # https://huggingface.co/Trelis/llava-v1.6-mistral-7b-PATCHED.
+            huggingface_name = "Trelis/llava-v1.6-mistral-7b-PATCHED"
+        elif model_str.endswith("v1p6-vicuna7b"):
+            huggingface_name = "liuhaotian/llava-v1.6-vicuna-7b"
+        elif model_str.endswith("v1p6-vicuna13b"):
+            huggingface_name = "liuhaotian/llava-v1.6-vicuna-13b"
+        else:
+            raise ValueError("Invalid model_str: {}".format(model_str))
+
         self.huggingface_name = huggingface_name
         self.generation_kwargs = generation_kwargs
 
@@ -85,7 +101,7 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         # image_pixel_values = self.image_processor(
         #     images, do_rescale=False, return_tensors="pt"
         # )["pixel_values"].half()
-        image_pixel_values = normalize(images).half()
+        image_pixel_values = normalize(images).half().to(self.device)
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -94,13 +110,13 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             )
         )
         for k, v in results.items():
-            results[k] = v.to(self.device)
+            results[k] = v.to(self.accelerator.device)
 
         outputs = self.model(
-            input_ids=results["input_ids"].to(self.device),
-            attention_mask=results["attention_mask"].to(self.device),
-            labels=results["labels"].to(self.device),
-            images=image_pixel_values.to(self.device),
+            input_ids=results["input_ids"],
+            attention_mask=results["attention_mask"],
+            labels=results["labels"],
+            images=image_pixel_values,
         )
         return outputs.loss
 
