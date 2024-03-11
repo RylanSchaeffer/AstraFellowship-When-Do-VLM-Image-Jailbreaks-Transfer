@@ -7,7 +7,7 @@ parameters:
       attack_name:
         values: ["pgd"]
       batch_size:
-        values: [2, 4, 6, 8]
+        values: [4, 6, 8]
       test_every_n_steps:
         values: [5000]
       step_size:
@@ -33,7 +33,7 @@ parameters:
           ["rylan_advbench"]
       n_unique_prompts_and_targets:
         values:
-          [ 32, 100, -1 ]
+          [ 32, 100, 316 ]
   seed:
     values:
       [0]

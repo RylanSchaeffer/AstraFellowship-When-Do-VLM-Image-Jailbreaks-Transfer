@@ -48,7 +48,7 @@ class PGDAttacker(AdversarialAttacker):
         for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
             # Occasionally generate to see what the VLM is outputting.
             if (step_idx % self.attack_kwargs["test_every_n_steps"]) == 0:
-                self.generate_from_vlms_and_log(
+                self.test_attack_against_vlms_and_log(
                     original_image=original_image,
                     adv_image=adv_image,
                     prompts_and_targets_by_split=prompts_and_targets_by_split,
@@ -69,7 +69,7 @@ class PGDAttacker(AdversarialAttacker):
                 self.losses_history[key][step_idx] = loss.item()
 
             wandb.log(
-                {f"train/{key}": value for key, value in losses_per_model.items()},
+                {f"train/loss_{key}": value for key, value in losses_per_model.items()},
                 step=step_idx + 1,
             )
 
@@ -89,7 +89,7 @@ class PGDAttacker(AdversarialAttacker):
 
         return attack_results
 
-    def generate_from_vlms_and_log(
+    def test_attack_against_vlms_and_log(
         self,
         original_image: torch.Tensor,
         adv_image: torch.Tensor,
@@ -156,8 +156,8 @@ class PGDAttacker(AdversarialAttacker):
                         adv_image[0].detach().numpy().transpose(1, 2, 0),
                         caption="Adversarial Image",
                     ),
-                    "model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
-                    "model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
+                    "test/model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
+                    "test/model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
                 },
                 step=step_idx + 1,
             )
@@ -169,7 +169,7 @@ class PGDAttacker(AdversarialAttacker):
                     targets=batch_targets,
                 )
                 wandb.log(
-                    {f"test/{key}": value for key, value in losses_per_model.items()},
+                    {f"test/loss_{key}": value for key, value in losses_per_model.items()},
                     step=step_idx + 1,
                 )
 
