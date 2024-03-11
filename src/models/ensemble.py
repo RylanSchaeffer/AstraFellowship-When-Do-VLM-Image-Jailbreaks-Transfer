@@ -22,7 +22,7 @@ class VLMEnsemble(torch.nn.Module):
         # self.device = self.accelerator.device
 
         cuda_visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-        assert len(cuda_visible_devices) == len(model_strs_to_eval)
+        assert len(cuda_visible_devices) >= len(model_strs_to_eval)
         self.vlms_to_eval_dict = torch.nn.ModuleDict()
         for model_device_int_str, model_str in enumerate(model_strs_to_eval):
             # Load BLIP2 models.
