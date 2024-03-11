@@ -36,6 +36,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         elif model_str == "prism-reproduction-llava-v15+13b":
             model_str = "reproduction-llava-v15+13b"
 
+        # self.accelerator = accelerator
         self.model_str = model_str
         self.generation_kwargs = generation_kwargs
 
@@ -57,7 +58,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
         images = image.repeat(len(prompts), 1, 1, 1)
-        images_pixel_values = normalize_images(images).to(self.device_str)
+        images_pixel_values = normalize_images(images)
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -79,7 +80,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             input_ids=results["input_ids"].to(self.device_str),
             attention_mask=results["attention_mask"].to(self.device_str),
             labels=results["labels"].to(self.device_str),
-            pixel_values=images_pixel_values,
+            pixel_values=images_pixel_values.to(self.device_str),
         )
         return outputs.loss
 
@@ -143,7 +144,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         # We should only have a single image.
         assert image.shape[0] == 1
         pil_image = torchvision.transforms.functional.to_pil_image(image[0])
-        pil_image = self.accelerator.prepare(pil_image)
+        # pil_image = self.accelerator.prepare(pil_image)
         model_generations = []
         # Currently, Prismatic only supports one prompt at a time.
         # See https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L535
@@ -152,7 +153,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
             prompt_text = prompt_builder.get_prompt()
-            prompt_text = self.accelerator.prepare(prompt_text)
+            # prompt_text = self.accelerator.prepare(prompt_text)
             generated_text = self.model.generate(
                 prompt_text=prompt_text,
                 image=pil_image,  # This needs to be the PIL image.
@@ -177,3 +178,4 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self.model = self.model.to(device_str)
         self.device_str = device_str
         print(f"Moved Prismatic VLM {self.model_str} to device: {device_str}")
+        return self
