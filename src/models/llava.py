@@ -166,8 +166,8 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
             input_ids.extend(
                 [self.tokenizer.pad_token_id for _ in range(padding_length)]
             )
-        input_ids = torch.tensor(input_ids_list)
-        attention_mask = torch.tensor(attention_mask)
+        input_ids = torch.tensor(input_ids_list, dtype=torch.long)
+        attention_mask = torch.tensor(attention_mask, dtype=torch.long)
 
         results = {
             "input_ids": input_ids,
@@ -177,6 +177,9 @@ class LlavaVisionLanguageModel(VisionLanguageModel):
         if targets[0] is not None:
             labels = input_ids.clone()
             last_nonpadding_indices = torch.argmin((labels != 0).float(), axis=1)
+            # If there are no padding tokens, then we want to set the last non-padding index to the length.
+            last_nonpadding_indices[last_nonpadding_indices == 0] = labels.shape[1]
+            raise NotImplementedError("TODO: Debug this for correctness.")
 
             # Find the last non-zero token. Then set labels to ignore for anything
             # before and before the targets (plus two).

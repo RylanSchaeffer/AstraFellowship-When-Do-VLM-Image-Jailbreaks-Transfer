@@ -18,6 +18,10 @@ from src.image_handling import normalize_images
 from src.models.base import VisionLanguageModel
 
 
+# Labels with these indices will be ignored by cross entropy loss in PyTorch.
+IGNORE_INDEX = -100
+
+
 class PrismaticVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
@@ -82,18 +86,50 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         if targets is None:
             targets = [None for _ in range(len(prompts))]
 
-        input_ids_list: List[List[int]] = []
+        prompt_texts = []
         for prompt, target in zip(prompts, targets):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
-            prompt_builder.add_turn(role="assistant", message="target")
+            prompt_builder.add_turn(role="gpt", message=target)
             prompt_text = prompt_builder.get_prompt()
-            inputs_ids = self.model.llm_backbone.tokenizer(prompt_text)
-            input_ids_list.append(inputs_ids)
+            prompt_texts.append(prompt_text)
+
+        batch_encoding = self.model.llm_backbone.tokenizer(
+            prompt_texts, padding=True, return_tensors="pt"
+        )
+        input_ids = batch_encoding["input_ids"]
+        attention_mask = batch_encoding["attention_mask"]
 
         results = {
-            "input_ids": torch.tensor(input_ids_list, dtype=torch.long),
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
         }
+
+        pad_token = self.model.llm_backbone.tokenizer.special_tokens_map["pad_token"]
+        pad_token_input_id = self.model.llm_backbone.tokenizer.convert_tokens_to_ids(
+            pad_token
+        )
+
+        if targets[0] is not None:
+            labels = input_ids.clone()
+            last_nonpadding_indices = torch.argmin(
+                (labels != pad_token_input_id).float(), axis=1
+            )
+            # If there are no padding tokens, then we want to set the last non-padding index to the length.
+            last_nonpadding_indices[last_nonpadding_indices == 0] = labels.shape[1]
+
+            # Find the last non-zero token. Then set labels to ignore for anything
+            # before and before the targets (plus two).
+            tokenized_labels = self.model.llm_backbone.tokenizer(targets).input_ids
+            for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
+                zip(last_nonpadding_indices, tokenized_labels)
+            ):
+                target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
+                labels[batch_idx, :target_start_idx] = IGNORE_INDEX
+
+            # Also mask out the padding tokens.
+            labels[labels == pad_token_input_id] = IGNORE_INDEX
+            results["labels"] = labels
 
         return results
 
