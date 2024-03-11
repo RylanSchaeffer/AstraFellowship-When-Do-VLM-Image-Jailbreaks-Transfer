@@ -28,7 +28,7 @@ parameters:
       [32, 100]
   prompts_and_targets:
     values:
-      ["anthropic_hhh"]
+      ["rylan_anthropic_hhh"]
   seed:
     values:
       [0]

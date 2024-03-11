@@ -7,25 +7,25 @@ parameters:
       attack_name:
         values: ["pgd"]
       batch_size:
-        values: [2]
+        values: [2, 4, 6, 8]
       generate_every_n_steps:
-        values: [1000]
+        values: [5000]
       step_size:
         values: [0.001, 0.00316, 0.01]
       total_steps:
-        values: [25000]
+        values: [150000]
   image_initialization:
     values:
       ["random"]
   models_to_attack:
     values:
-      ["{'llava-v1.5-7b'}"]
+      ["{'prism-reproduction-llava-v15+7b'}"]
   models_to_eval:
     values:
-      ["{'llava-v1.5-7b'}"]
+      ["{'prism-reproduction-llava-v15+7b'}"]
   n_unique_prompts_and_targets:
     values:
-      [100, 316, 1000]
+      [32, 100]
   prompts_and_targets:
     values:
       ["rylan_anthropic_hhh"]
