@@ -86,6 +86,12 @@ default_config = {
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
+        "llava-lvis4v-lrv+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
     },
     "prompt_and_targets_kwargs": {
         "dataset_train": "rylan_anthropic_hhh",

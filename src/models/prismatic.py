@@ -35,6 +35,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             model_str = "reproduction-llava-v15+7b"
         elif model_str == "prism-reproduction-llava-v15+13b":
             model_str = "reproduction-llava-v15+13b"
+        elif model_str == "prism-llava-lvis4v-lrv+7b":
+            model_str = "llava-lvis4v-lrv+7b"
 
         # self.accelerator = accelerator
         self.model_str = model_str

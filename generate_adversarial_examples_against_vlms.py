@@ -39,9 +39,7 @@ def generate_vlm_adversarial_examples():
     wandb_config["models_to_attack"] = ast.literal_eval(
         wandb_config["models_to_attack"]
     )
-    wandb_config["models_to_eval"] = ast.literal_eval(
-        wandb_config["models_to_eval"]
-    )
+    wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
     # Ensure that the attacked models are also evaluated.
     wandb_config["models_to_eval"] = wandb_config["models_to_eval"].union(
         wandb_config["models_to_attack"]
