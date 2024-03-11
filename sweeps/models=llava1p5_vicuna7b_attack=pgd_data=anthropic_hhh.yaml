@@ -8,7 +8,7 @@ parameters:
         values: ["pgd"]
       batch_size:
         values: [2]
-      generate_every_n_steps:
+      test_every_n_steps:
         values: [1000]
       step_size:
         values: [0.001, 0.00316, 0.01]
@@ -23,12 +23,17 @@ parameters:
   models_to_eval:
     values:
       ["{'llava-v1.5-7b'}"]
-  n_unique_prompts_and_targets:
-    values:
-      [100, 316, 1000]
-  prompts_and_targets:
-    values:
-      ["rylan_anthropic_hhh"]
+  prompt_and_targets_kwargs:
+    parameters:
+      dataset_train:
+        values:
+          ["rylan_anthropic_hhh"]
+      dataset_test:
+        values:
+          ["rylan_advbench"]
+      n_unique_prompts_and_targets:
+        values:
+          [ 32, 100, 316]
   seed:
     values:
       [0]

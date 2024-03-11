@@ -72,7 +72,7 @@ class FGSMAttacker(AdversarialAttacker):
             ]
 
             # Occasionally generate to see what the VLM is outputting.
-            if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
+            if (step_idx % self.attack_kwargs["test_every_n_steps"]) == 0:
                 for model_name, model_wrapper in self.vlms_to_eval_dict.items():
                     batch_model_generations = model_wrapper.generate(
                         image=image,

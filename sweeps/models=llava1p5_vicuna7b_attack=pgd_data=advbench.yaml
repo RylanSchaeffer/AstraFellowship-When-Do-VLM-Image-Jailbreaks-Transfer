@@ -8,7 +8,7 @@ parameters:
         values: ["pgd"]
       batch_size:
         values: [2, 4, 6]
-      generate_every_n_steps:
+      test_every_n_steps:
         values: [100]
       step_size:
         values: [0.001, 0.00316, 0.01]
@@ -23,12 +23,17 @@ parameters:
   models_to_eval:
     values:
       ["{'llava-v1.5-7b'}"]
-  n_unique_prompts_and_targets:
-    values:
-      [-1]
-  prompts_and_targets:
-    values:
-      ["advbench"]
+  prompt_and_targets_kwargs:
+    parameters:
+      dataset_train:
+        values:
+          ["advbench"]
+      dataset_test:
+        values:
+          ["advbench"]
+      n_unique_prompts_and_targets:
+        values:
+          [ 32, 100, -1 ]
   seed:
     values:
       [0]

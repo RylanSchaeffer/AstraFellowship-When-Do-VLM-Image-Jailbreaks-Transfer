@@ -47,7 +47,7 @@ class PGDAttacker(AdversarialAttacker):
 
         for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
             # Occasionally generate to see what the VLM is outputting.
-            if (step_idx % self.attack_kwargs["generate_every_n_steps"]) == 0:
+            if (step_idx % self.attack_kwargs["test_every_n_steps"]) == 0:
                 self.generate_from_vlms_and_log(
                     original_image=original_image,
                     adv_image=adv_image,
@@ -68,6 +68,11 @@ class PGDAttacker(AdversarialAttacker):
             for key, loss in losses_per_model.items():
                 self.losses_history[key][step_idx] = loss.item()
 
+            wandb.log(
+                {f"train/{key}": value for key, value in losses_per_model.items()},
+                step=step_idx + 1,
+            )
+
             losses_per_model["avg"].backward()
 
             adv_image.data = (
@@ -75,11 +80,6 @@ class PGDAttacker(AdversarialAttacker):
                 - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
             ).clamp(0.0, 1.0)
             adv_image.grad.zero_()
-
-            wandb.log(
-                losses_per_model,
-                step=step_idx + 1,
-            )
 
         attack_results = {
             "original_image": original_image,
@@ -125,6 +125,7 @@ class PGDAttacker(AdversarialAttacker):
                     targets=batch_targets,
                 )
             )
+
             wandb.log(
                 {
                     f"generations_{model_name}_step={step_idx}": wandb.Table(
@@ -160,6 +161,17 @@ class PGDAttacker(AdversarialAttacker):
                 },
                 step=step_idx + 1,
             )
+
+            with torch.no_grad():
+                losses_per_model = self.vlm_ensemble.compute_loss(
+                    image=adv_image,
+                    prompts=batch_prompts,
+                    targets=batch_targets,
+                )
+                wandb.log(
+                    {f"test/{key}": value for key, value in losses_per_model.items()},
+                    step=step_idx + 1,
+                )
 
     def reinitialize_losses_history(self):
         self.losses_history = {
