@@ -35,7 +35,7 @@ parameters:
           ["rylan_anthropic_hhh"]
       dataset_test:
         values:
-          ["rylan_advbench"]
+          ["advbench"]
       n_unique_prompts_and_targets:
         values:
           [ 32, 100, 204]
