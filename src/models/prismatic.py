@@ -51,14 +51,13 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
-        self.accelerator = accelerator
-        self.device = self.accelerator.device
+        self.device_str = None
 
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
-        images = image.repeat(len(prompts), 1, 1, 1).to(self.accelerator.device)
-        images_pixel_values = normalize_images(images).to(self.accelerator.device)
+        images = image.repeat(len(prompts), 1, 1, 1)
+        images_pixel_values = normalize_images(images).to(self.device_str)
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -66,14 +65,20 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
                 targets=targets,
             )
         )
-        for k, v in results.items():
-            results[k] = v.to(self.accelerator.device)
-
+        # (
+        #     images_pixel_values,
+        #     input_ids,
+        #     attention_mask,
+        # ) = self.accelerator.prepare(
+        #     images_pixel_values,
+        #     results["input_ids"],
+        #     results["attention_mask"],
+        # )
         # {RuntimeError}RuntimeError('element 0 of tensors does not require grad and does not have a grad_fn')
         outputs = self.model(
-            input_ids=results["input_ids"],
-            attention_mask=results["attention_mask"],
-            labels=results["labels"],
+            input_ids=results["input_ids"].to(self.device_str),
+            attention_mask=results["attention_mask"].to(self.device_str),
+            labels=results["labels"].to(self.device_str),
             pixel_values=images_pixel_values,
         )
         return outputs.loss
@@ -138,6 +143,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         # We should only have a single image.
         assert image.shape[0] == 1
         pil_image = torchvision.transforms.functional.to_pil_image(image[0])
+        pil_image = self.accelerator.prepare(pil_image)
         model_generations = []
         # Currently, Prismatic only supports one prompt at a time.
         # See https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L535
@@ -146,8 +152,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
             prompt_text = prompt_builder.get_prompt()
-            # prompt_texts.append(prompt_text)
-            # Generate!
+            prompt_text = self.accelerator.prepare(prompt_text)
             generated_text = self.model.generate(
                 prompt_text=prompt_text,
                 image=pil_image,  # This needs to be the PIL image.
@@ -156,3 +161,19 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             )
             model_generations.append(generated_text)
         return model_generations
+
+    def disable_model_gradients(self):
+        self.model.llm_backbone.requires_grad_(False)
+        self.model.llm_backbone.eval()
+        self.model.projector.requires_grad_(False)
+        self.model.projector.eval()
+        self.model.vision_backbone.requires_grad_(False)
+        self.model.vision_backbone.eval()
+
+    def to(self, device_str: str):
+        self.model.llm_backbone = self.model.llm_backbone.to(device_str)
+        self.model.projector = self.model.projector.to(device_str)
+        self.model.vision_backbone = self.model.vision_backbone.to(device_str)
+        self.model = self.model.to(device_str)
+        self.device_str = device_str
+        print(f"Moved Prismatic VLM {self.model_str} to device: {device_str}")

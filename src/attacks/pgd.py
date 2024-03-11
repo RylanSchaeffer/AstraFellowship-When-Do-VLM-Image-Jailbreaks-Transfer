@@ -73,7 +73,7 @@ class PGDAttacker(AdversarialAttacker):
                 step=step_idx + 1,
             )
 
-            losses_per_model["avg"].backward()
+            self.accelerator.backward(losses_per_model["avg"])
 
             adv_image.data = (
                 adv_image.data

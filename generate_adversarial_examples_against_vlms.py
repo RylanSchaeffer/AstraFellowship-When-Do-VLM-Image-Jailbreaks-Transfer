@@ -21,6 +21,8 @@ def generate_vlm_adversarial_examples():
     )
     wandb_config = dict(wandb.config)
 
+    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
     os.makedirs(wandb_run_dir)
