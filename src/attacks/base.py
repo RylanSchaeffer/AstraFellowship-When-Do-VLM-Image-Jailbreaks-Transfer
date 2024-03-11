@@ -35,7 +35,7 @@ class AdversarialAttacker:
     def compute_adversarial_examples(
         self,
         tensor_images: torch.Tensor,
-        prompts_and_targets_by_split: Dict[str, Tuple[List[str], List[str]]],
+        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
         results_dir: str,
         **kwargs,
     ):

@@ -20,11 +20,13 @@ default_config = {
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_eval": "{'llava-v1.6-vicuna13b'}",
     "models_to_attack": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    "models_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_eval": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     # "models_to_eval": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
+    # "models_to_eval": "{'instructblip2-vicuna-7b'}",
+    # TODO: Move these model generation kwargs into the model classes to be overwritten.
     "model_generation_kwargs": {
         "llava-v1p6-mistral7b": {
             "temperature": 0.1,
@@ -52,12 +54,6 @@ default_config = {
             "use_cache": False,
             "cache_position": None,
         },
-        "prism-dinosiglip+7b": {
-            "temperature": 0.1,
-            "top_p": 0.9,
-            "max_new_tokens": 100,
-            "min_new_tokens": 5,
-        },
         "prism-reproduction-llava-v15+7b": {
             "temperature": 0.1,
             "top_p": 0.9,
@@ -70,8 +66,25 @@ default_config = {
             "max_new_tokens": 100,
             "min_new_tokens": 5,
         },
+        "prism-clip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-siglip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-dinosiglip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
     },
-    # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     "prompt_and_targets_kwargs": {
         "dataset_train": "rylan_anthropic_hhh",
         "dataset_test": "advbench",
