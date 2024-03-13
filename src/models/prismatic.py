@@ -59,8 +59,12 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     def compute_loss(
         self, image: torch.Tensor, prompts: List[str], targets: List[str]
     ) -> torch.Tensor:
-        images = image.repeat(len(prompts), 1, 1, 1)
-        images_pixel_values = normalize_images(images)
+        images = image.to(self.device_str, non_blocking=True).repeat(
+            len(prompts), 1, 1, 1
+        )
+        images_pixel_values = normalize_images(images).to(
+            self.device_str, non_blocking=True
+        )
 
         results = (
             self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -68,21 +72,13 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
                 targets=targets,
             )
         )
-        # (
-        #     images_pixel_values,
-        #     input_ids,
-        #     attention_mask,
-        # ) = self.accelerator.prepare(
-        #     images_pixel_values,
-        #     results["input_ids"],
-        #     results["attention_mask"],
-        # )
-        # {RuntimeError}RuntimeError('element 0 of tensors does not require grad and does not have a grad_fn')
         outputs = self.model(
-            input_ids=results["input_ids"].to(self.device_str),
-            attention_mask=results["attention_mask"].to(self.device_str),
-            labels=results["labels"].to(self.device_str),
-            pixel_values=images_pixel_values.to(self.device_str),
+            input_ids=results["input_ids"].to(self.device_str, non_blocking=True),
+            attention_mask=results["attention_mask"].to(
+                self.device_str, non_blocking=True
+            ),
+            labels=results["labels"].to(self.device_str, non_blocking=True),
+            pixel_values=images_pixel_values.to(self.device_str, non_blocking=True),
         )
         return outputs.loss
 

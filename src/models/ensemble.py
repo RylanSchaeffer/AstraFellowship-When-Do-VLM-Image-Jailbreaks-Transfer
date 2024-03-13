@@ -118,17 +118,38 @@ class VLMEnsemble(torch.nn.Module):
         for model_idx, (model_name, model_wrapper) in enumerate(
             self.vlms_to_eval_dict.items()
         ):
+            image_on_device = image.to(model_wrapper.device_str, non_blocking=True)
             loss_for_model = model_wrapper.compute_loss(
-                image=image,
+                image=image_on_device,
                 prompts=prompts,
                 targets=targets,
             )
-            losses_per_model[model_name] = loss_for_model
+            losses_per_model[model_name] = loss_for_model.to("cpu", non_blocking=True)
             if model_name in self.vlms_to_attack_dict:
-                total_loss = total_loss + loss_for_model.cpu()
+                total_loss = total_loss + losses_per_model[model_name]
         avg_loss = total_loss / len(self.vlms_to_attack_dict)
-        losses_per_model["avg"] = avg_loss
+        losses_per_model["avg"] = avg_loss.to("cpu", non_blocking=True)
         return losses_per_model
+
+    # def compute_loss_parallel(
+    #     self, image: torch.Tensor, prompts: List[str], targets: List[str]
+    # ) -> Dict[str, torch.Tensor]:
+    #     # Always calculate loss per model and use for updating the adversarial example.
+    #     losses_per_model: Dict[str, torch.Tensor] = {}
+    #     images_replicated = [
+    #         image.to(model_wrapper.device_str, non_blocking=True)
+    #         for model_wrapper in self.vlms_to_eval_dict.values()
+    #     ]
+    #     prompts_replicated = [prompts for _ in self.vlms_to_eval_dict]
+    #     targets_replicated = [targets for _ in self.vlms_to_eval_dict]
+    #     losses_per_model = torch.nn.parallel.parallel_apply(
+    #         modules=self.vlms_to_eval_dict.values(),
+    #         inputs=(images_replicated, prompts_replicated, targets_replicated),
+    #         devices=list(range(len(self.vlms_to_eval_dict))),
+    #     )
+    #     # avg_loss = total_loss / len(self.vlms_to_attack_dict)
+    #     # losses_per_model["avg"] = avg_loss.to("cpu", non_blocking=True)
+    #     return losses_per_model
 
     def disable_model_gradients(self):
         # set all models' requires_grad to False

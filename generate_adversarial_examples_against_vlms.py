@@ -1,14 +1,15 @@
 from accelerate import Accelerator
 import ast
 import json
-import numpy as np
 import os
 import pprint
+import torch
 import wandb
-from typing import Any, List
+from typing import Any, Dict, List
 
 
 from src.globals import default_config
+from src.models.ensemble import VLMEnsemble
 import src.utils
 
 
@@ -53,21 +54,30 @@ def generate_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Load data.
-    tensor_images = src.utils.create_or_load_images(
+    tensor_images: torch.Tensor = src.utils.create_or_load_images(
         image_kwargs=wandb_config["image_kwargs"],
     )
-    prompts_and_targets_by_split = src.utils.load_prompts_and_targets(
+    prompts_and_targets_by_split: Dict[
+        str, Dict[str, List[str]]
+    ] = src.utils.load_prompts_and_targets(
         prompts_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
     )
 
     accelerator = Accelerator()
 
-    vlm_ensemble = src.utils.instantiate_vlm_ensemble(
+    vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
         models_to_attack=wandb_config["models_to_attack"],
         models_to_eval=wandb_config["models_to_eval"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
         accelerator=accelerator,
     )
+
+    if wandb_config["compile"]:
+        vlm_ensemble: VLMEnsemble = torch.compile(
+            vlm_ensemble,
+            mode="default",  # good balance between performance and overhead
+            # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
+        )
 
     attacker = src.utils.create_attacker(
         wandb_config=wandb_config,

@@ -22,7 +22,7 @@ parameters:
       [
         "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
         "{'prism-reproduction-llava-v15+7b', 'prism-llava-lvis4v-lrv+7b'}",
-        "{'prism-clip+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'prism-clip+7b', 'prism-llava-lvis4v-lrv+7b'}",
         "{'prism-reproduction-llava-v15+7b'}",
         "{'prism-clip+7b'}",
         "{'llava-lvis4v-lrv+7b'}",
@@ -40,7 +40,7 @@ parameters:
           ["advbench"]
       n_unique_prompts_and_targets:
         values:
-          [ 50, 100, 200]
+          [ 50, 100, 189]
   seed:
     values:
       [0]
