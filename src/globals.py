@@ -10,6 +10,11 @@ default_config = {
         "total_steps": 10,
     },
     "compile": True,
+    "data": {
+        "num_workers": 4,
+        "shuffle_train": True,
+        "shuffle_test": False,
+    },
     "image_kwargs": {
         "image_size": 336,
         "image_initialization": "random",

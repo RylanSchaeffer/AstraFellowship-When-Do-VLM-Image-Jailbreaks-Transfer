@@ -6,11 +6,13 @@ import os
 import pandas as pd
 import random
 import torch
-from torchvision import transforms
 import torch.distributed
+import torch.utils.data
+from torchvision import transforms
 from typing import Any, Dict, List, Tuple
 
 from src.attacks.base import AdversarialAttacker
+from src.data import VLMEnsembleDataset
 from src.models.ensemble import VLMEnsemble
 from src.image_handling import get_list_image
 
@@ -55,7 +57,44 @@ def create_attacker(
     return attacker
 
 
-def create_or_load_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
+def create_dataloader(
+    vlm_ensemble: VLMEnsemble,
+    prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+    wandb_config: Dict[str, Any],
+) -> Dict[str, torch.utils.data.DataLoader]:
+    train_dataset = VLMEnsembleDataset(
+        vlm_ensemble=vlm_ensemble,
+        prompts_and_targets=prompts_and_targets_by_split["train"],
+    )
+
+    test_dataset = VLMEnsembleDataset(
+        vlm_ensemble=vlm_ensemble,
+        prompts_and_targets=prompts_and_targets_by_split["test"],
+    )
+
+    train_dataloader = torch.utils.data.DataLoader(
+        dataset=train_dataset,
+        batch_size=wandb_config["attack_kwargs"]["batch_size"],
+        shuffle=wandb_config["data"]["shuffle_train"],
+        num_workers=wandb_config["data"]["num_workers"],
+    )
+
+    test_dataloader = torch.utils.data.DataLoader(
+        dataset=test_dataset,
+        batch_size=wandb_config["attack_kwargs"]["batch_size"],
+        shuffle=wandb_config["data"]["shuffle_test"],
+        num_workers=wandb_config["data"]["num_workers"],
+    )
+
+    dataloaders_dict = {
+        "train": train_dataloader,
+        "test": test_dataloader,
+    }
+
+    return dataloaders_dict
+
+
+def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
         images = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         resizer = transforms.Resize((224, 224))

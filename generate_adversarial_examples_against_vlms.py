@@ -54,7 +54,7 @@ def generate_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Load data.
-    tensor_images: torch.Tensor = src.utils.create_or_load_images(
+    tensor_images: torch.Tensor = src.utils.create_initial_images(
         image_kwargs=wandb_config["image_kwargs"],
     )
     prompts_and_targets_by_split: Dict[
@@ -70,6 +70,12 @@ def generate_vlm_adversarial_examples():
         models_to_eval=wandb_config["models_to_eval"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
         accelerator=accelerator,
+    )
+
+    dataloader = src.utils.create_dataloader(
+        vlm_ensemble=vlm_ensemble,
+        prompts_and_targets_by_split=prompts_and_targets_by_split,
+        wandb_config=wandb_config,
     )
 
     if wandb_config["compile"]:
