@@ -8,7 +8,13 @@ class VisionLanguageModel(abc.ABC, torch.nn.Module):
         super().__init__()
 
     @abc.abstractmethod
-    def compute_loss(self, images, prompts, targets):
+    def compute_loss(
+        self,
+        image: torch.Tensor,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
+    ):
         pass
 
     @abc.abstractmethod

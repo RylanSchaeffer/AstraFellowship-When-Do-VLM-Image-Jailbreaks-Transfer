@@ -1,10 +1,12 @@
 # Adapted from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/llava_llama_2_utils/visual_attacker.py#L20
 from accelerate import Accelerator
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 import seaborn as sns
 import torch
+import torch.utils.data
 import tqdm
 from typing import Dict, List, Optional
 import wandb
@@ -33,53 +35,60 @@ class PGDAttacker(AdversarialAttacker):
     def attack(
         self,
         image: torch.Tensor,
+        text_dataloaders_dict: Dict[str, torch.utils.data.DataLoader],
         prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
-        # Ensure loss history is empty.
-        self.reinitialize_losses_history()
-
         # Ensure gradients are computed for the image.
         original_image = image.clone()
         adv_image = image
         adv_image.requires_grad_(True)
         adv_image.retain_grad()
 
-        for step_idx in tqdm.tqdm(range(self.attack_kwargs["total_steps"] + 1)):
-            # Occasionally generate to see what the VLM is outputting.
-            if (step_idx % self.attack_kwargs["test_every_n_steps"]) == 0:
-                self.test_attack_against_vlms_and_log(
-                    original_image=original_image,
-                    adv_image=adv_image,
-                    prompts_and_targets_by_split=prompts_and_targets_by_split,
-                    step_idx=step_idx,
+        n_train_epochs = math.ceil(
+            self.attack_kwargs["total_steps"] / len(text_dataloaders_dict["train"])
+        )
+        n_train_steps = n_train_epochs * len(text_dataloaders_dict["train"])
+        # Ensure loss history is empty.
+        self.reinitialize_losses_history(n_steps=n_train_steps)
+        text_test_dataloader = text_dataloaders_dict["test"]
+
+        wandb_logging_step_idx = 0
+        for epoch_idx in range(n_train_epochs):
+            # self.test_attack_against_vlms_and_log(
+            #     original_image=original_image,
+            #     adv_image=adv_image,
+            #     prompts_and_targets_by_split=prompts_and_targets_by_split,
+            # )
+
+            for batch_idx, batch_text_data_by_model in enumerate(
+                tqdm.tqdm(text_dataloaders_dict["train"])
+            ):
+                losses_per_model = self.vlm_ensemble.compute_loss(
+                    image=adv_image,
+                    text_data_by_model=batch_text_data_by_model,
                 )
 
-            batch_prompts, batch_targets = self.sample_prompts_and_targets(
-                prompts=prompts_and_targets_by_split["train"]["prompts"],
-                targets=prompts_and_targets_by_split["train"]["targets"],
-            )
-            losses_per_model = self.vlm_ensemble.compute_loss(
-                image=adv_image,
-                prompts=batch_prompts,
-                targets=batch_targets,
-            )
-            # Record the losses per model.
-            for key, loss in losses_per_model.items():
-                self.losses_history[key][step_idx] = loss.item()
+                # Record the losses per model to the losses history.
+                for key, loss in losses_per_model.items():
+                    self.losses_history[key][wandb_logging_step_idx] = loss.item()
 
-            wandb.log(
-                {f"train/loss_{key}": value for key, value in losses_per_model.items()},
-                step=step_idx + 1,
-            )
+                # Log the losses to W&B.
+                wandb.log(
+                    {
+                        f"train/loss_{key}": value
+                        for key, value in losses_per_model.items()
+                    },
+                    step=wandb_logging_step_idx + 1,
+                )
 
-            self.accelerator.backward(losses_per_model["avg"])
-
-            adv_image.data = (
-                adv_image.data
-                - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
-            ).clamp(0.0, 1.0)
-            adv_image.grad.zero_()
+                losses_per_model["avg"].backward()
+                adv_image.data = (
+                    adv_image.data
+                    - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
+                ).clamp(0.0, 1.0)
+                adv_image.grad.zero_()
+                wandb_logging_step_idx += 1
 
         attack_results = {
             "original_image": original_image,
@@ -176,14 +185,12 @@ class PGDAttacker(AdversarialAttacker):
                     step=step_idx + 1,
                 )
 
-    def reinitialize_losses_history(self):
+    def reinitialize_losses_history(self, n_steps: int):
         self.losses_history = {
-            model_str: np.full(self.attack_kwargs["total_steps"] + 1, fill_value=np.nan)
+            model_str: np.full(n_steps + 1, fill_value=np.nan)
             for model_str in self.vlm_ensemble.vlms_to_eval_dict
         }
-        self.losses_history["avg"] = np.full(
-            self.attack_kwargs["total_steps"] + 1, fill_value=np.nan
-        )
+        self.losses_history["avg"] = np.full(n_steps + 1, fill_value=np.nan)
 
     def sample_prompts_and_targets(self, prompts: List[str], targets: List[str]):
         batch_idx = random.sample(range(len(prompts)), self.attack_kwargs["batch_size"])

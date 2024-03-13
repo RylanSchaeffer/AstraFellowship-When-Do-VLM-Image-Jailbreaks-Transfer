@@ -72,7 +72,8 @@ def generate_vlm_adversarial_examples():
         accelerator=accelerator,
     )
 
-    dataloader = src.utils.create_dataloader(
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    text_dataloaders_dict = src.utils.create_dataloader(
         vlm_ensemble=vlm_ensemble,
         prompts_and_targets_by_split=prompts_and_targets_by_split,
         wandb_config=wandb_config,
@@ -93,6 +94,7 @@ def generate_vlm_adversarial_examples():
 
     attacker.compute_adversarial_examples(
         tensor_images=tensor_images,
+        text_dataloaders_dict=text_dataloaders_dict,
         prompts_and_targets_by_split=prompts_and_targets_by_split,
         results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
     )

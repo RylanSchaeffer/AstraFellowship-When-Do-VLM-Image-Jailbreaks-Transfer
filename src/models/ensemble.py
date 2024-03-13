@@ -110,7 +110,9 @@ class VLMEnsemble(torch.nn.Module):
         raise NotImplementedError
 
     def compute_loss(
-        self, image: torch.Tensor, prompts: List[str], targets: List[str]
+        self,
+        image: torch.Tensor,
+        text_data_by_model: Dict[str, Dict[str, torch.Tensor]],
     ) -> Dict[str, torch.Tensor]:
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
@@ -118,11 +120,23 @@ class VLMEnsemble(torch.nn.Module):
         for model_idx, (model_name, model_wrapper) in enumerate(
             self.vlms_to_eval_dict.items()
         ):
+            # Move all tensors to the correct device so we aren't blocked waiting for one model.
             image_on_device = image.to(model_wrapper.device_str, non_blocking=True)
+            input_ids_on_device = text_data_by_model[model_name]["input_ids"].to(
+                model_wrapper.device_str, non_blocking=True
+            )
+            attention_mask_on_device = text_data_by_model[model_name][
+                "attention_mask"
+            ].to(model_wrapper.device_str, non_blocking=True)
+            labels_on_device = text_data_by_model[model_name]["labels"].to(
+                model_wrapper.device_str, non_blocking=True
+            )
+
             loss_for_model = model_wrapper.compute_loss(
                 image=image_on_device,
-                prompts=prompts,
-                targets=targets,
+                input_ids=input_ids_on_device,
+                attention_mask=attention_mask_on_device,
+                labels=labels_on_device,
             )
             losses_per_model[model_name] = loss_for_model.to("cpu", non_blocking=True)
             if model_name in self.vlms_to_attack_dict:

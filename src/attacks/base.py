@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import torch
-from torch import Tensor
+import torch.utils.data
 from typing import Dict, List, Tuple
 import wandb
 
@@ -35,17 +35,18 @@ class AdversarialAttacker:
     def compute_adversarial_examples(
         self,
         tensor_images: torch.Tensor,
+        text_dataloaders_dict: Dict[str, torch.utils.data.DataLoader],
         prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
         results_dir: str,
         **kwargs,
     ):
         os.makedirs(results_dir, exist_ok=True)
-
-        tensor_images = self.accelerator.prepare(tensor_images)
+        # tensor_images = self.accelerator.prepare(tensor_images)
 
         for image_idx, image in enumerate(tensor_images):
             attack_results = self.attack(
                 image=image,
+                text_dataloaders_dict=text_dataloaders_dict,
                 prompts_and_targets_by_split=prompts_and_targets_by_split,
                 **kwargs,
             )

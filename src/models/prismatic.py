@@ -57,27 +57,23 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self.device_str = None
 
     def compute_loss(
-        self, image: torch.Tensor, prompts: List[str], targets: List[str]
+        self,
+        image: torch.Tensor,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        labels: torch.Tensor,
     ) -> torch.Tensor:
         images = image.to(self.device_str, non_blocking=True).repeat(
-            len(prompts), 1, 1, 1
+            len(input_ids), 1, 1, 1
         )
         images_pixel_values = normalize_images(images).to(
             self.device_str, non_blocking=True
         )
 
-        results = (
-            self.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-                prompts=prompts,
-                targets=targets,
-            )
-        )
         outputs = self.model(
-            input_ids=results["input_ids"].to(self.device_str, non_blocking=True),
-            attention_mask=results["attention_mask"].to(
-                self.device_str, non_blocking=True
-            ),
-            labels=results["labels"].to(self.device_str, non_blocking=True),
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=labels,
             pixel_values=images_pixel_values.to(self.device_str, non_blocking=True),
         )
         return outputs.loss

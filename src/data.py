@@ -19,8 +19,8 @@ class VLMEnsembleDataset(torch.utils.data.Dataset):
         )
         self.n_prompt_and_target_pairs = len(prompts_and_targets["prompts"])
 
+        # TODO: Write this to disk rather than storing it all in memory to handle larger dataset.
         self.data = {}
-
         for vlm_name, vlm_wrapper in vlm_ensemble.vlms_to_eval_dict.items():
             self.data[
                 vlm_name
