@@ -124,8 +124,6 @@ class PGDAttacker(AdversarialAttacker):
                     text_data_by_model=batch_text_data_by_model,
                 )
 
-                losses_all_per_model
-
         wandb.log(
             {f"test/loss_{key}": value for key, value in losses_per_model.items()},
             step=wandb_logging_step_idx + 1,
