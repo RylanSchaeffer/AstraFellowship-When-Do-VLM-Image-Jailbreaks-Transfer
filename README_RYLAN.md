@@ -1,4 +1,4 @@
-# Rylan's READMe
+# Rylan's README
 
 ```bash
 conda activate universal_vlm_jailbreak_env

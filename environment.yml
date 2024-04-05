@@ -8,7 +8,9 @@ channels:
 dependencies:
   - python=3.10
   - transformers
+  - accelerate
   - datasets
+  - opencv-python-headless
   - pytorch
   - torchvision
   - pytorch-cuda=12.1
@@ -22,7 +24,10 @@ dependencies:
   - timm
   - matplotlib
   - seaborn
+  - wandb
   - plotly
+  - pip=23.3.1
   - pip:
     - decord
     - nvidia-htop
+    - joblib

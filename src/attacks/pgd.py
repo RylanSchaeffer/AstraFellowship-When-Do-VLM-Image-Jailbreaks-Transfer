@@ -53,14 +53,17 @@ class PGDAttacker(AdversarialAttacker):
         self.reinitialize_losses_history(n_steps=n_train_steps)
         text_test_dataloader = text_dataloaders_dict["test"]
 
-        wandb_logging_step_idx = 0
-        for epoch_idx in range(n_train_epochs):
-            # self.test_attack_against_vlms_and_log(
-            #     original_image=original_image,
-            #     adv_image=adv_image,
-            #     prompts_and_targets_by_split=prompts_and_targets_by_split,
-            # )
+        wandb_logging_step_idx = 1
 
+        self.test_attack_against_vlms_and_log(
+            original_image=original_image,
+            adv_image=adv_image,
+            prompts_and_targets_by_split=prompts_and_targets_by_split,
+            text_dataloader=text_test_dataloader["test"],
+            wandb_logging_step_idx=wandb_logging_step_idx,
+        )
+
+        for epoch_idx in range(n_train_epochs):
             for batch_idx, batch_text_data_by_model in enumerate(
                 tqdm.tqdm(text_dataloaders_dict["train"])
             ):
@@ -71,7 +74,7 @@ class PGDAttacker(AdversarialAttacker):
 
                 # Record the losses per model to the losses history.
                 for key, loss in losses_per_model.items():
-                    self.losses_history[key][wandb_logging_step_idx] = loss.item()
+                    self.losses_history[key][wandb_logging_step_idx - 1] = loss.item()
 
                 # Log the losses to W&B.
                 wandb.log(
@@ -79,7 +82,7 @@ class PGDAttacker(AdversarialAttacker):
                         f"train/loss_{key}": value
                         for key, value in losses_per_model.items()
                     },
-                    step=wandb_logging_step_idx + 1,
+                    step=wandb_logging_step_idx,
                 )
 
                 losses_per_model["avg"].backward()
@@ -89,6 +92,13 @@ class PGDAttacker(AdversarialAttacker):
                 ).clamp(0.0, 1.0)
                 adv_image.grad.zero_()
                 wandb_logging_step_idx += 1
+
+            self.test_attack_against_vlms_and_log(
+                original_image=original_image,
+                adv_image=adv_image,
+                prompts_and_targets_by_split=prompts_and_targets_by_split,
+                wandb_logging_step_idx=wandb_logging_step_idx,
+            )
 
         attack_results = {
             "original_image": original_image,
@@ -103,8 +113,26 @@ class PGDAttacker(AdversarialAttacker):
         original_image: torch.Tensor,
         adv_image: torch.Tensor,
         prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
-        step_idx: int,
+        text_dataloader: torch.utils.data.DataLoader,
+        wandb_logging_step_idx: int,
     ):
+        # losses_all_per_model = DefaultDict[str, List[float]]()
+        for batch_idx, batch_text_data_by_model in enumerate(
+            tqdm.tqdm(text_dataloader)
+        ):
+            with torch.no_grad():
+                losses_per_model = self.vlm_ensemble.compute_loss(
+                    image=adv_image,
+                    text_data_by_model=batch_text_data_by_model,
+                )
+
+                losses_all_per_model
+
+        wandb.log(
+            {f"test/loss_{key}": value for key, value in losses_per_model.items()},
+            step=wandb_logging_step_idx + 1,
+        )
+
         batch_prompts, batch_targets = self.sample_prompts_and_targets(
             prompts=prompts_and_targets_by_split["test"]["prompts"],
             targets=prompts_and_targets_by_split["test"]["targets"],
@@ -137,7 +165,7 @@ class PGDAttacker(AdversarialAttacker):
 
             wandb.log(
                 {
-                    f"generations_{model_name}_step={step_idx}": wandb.Table(
+                    f"generations_{model_name}_step={wandb_logging_step_idx}": wandb.Table(
                         columns=[
                             "prompt",
                             "generated",
@@ -168,22 +196,8 @@ class PGDAttacker(AdversarialAttacker):
                     "test/model_nonadv_generation_begins_with_target": model_nonadv_generation_begins_with_target,
                     "test/model_adv_generation_begins_with_target": model_adv_generation_begins_with_target,
                 },
-                step=step_idx + 1,
+                step=wandb_logging_step_idx + 1,
             )
-
-            with torch.no_grad():
-                losses_per_model = self.vlm_ensemble.compute_loss(
-                    image=adv_image,
-                    prompts=batch_prompts,
-                    targets=batch_targets,
-                )
-                wandb.log(
-                    {
-                        f"test/loss_{key}": value
-                        for key, value in losses_per_model.items()
-                    },
-                    step=step_idx + 1,
-                )
 
     def reinitialize_losses_history(self, n_steps: int):
         self.losses_history = {
