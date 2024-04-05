@@ -183,11 +183,15 @@ def load_prompts_and_targets(
 
 
 def retrieve_wandb_username() -> str:
-    system_username = getpass.getuser()
-    if system_username == "rschaef":
-        wandb_username = "rylan"
-    else:
-        raise ValueError(f"Unknown W&B username: {system_username}")
+    # system_username = getpass.getuser()
+    # if system_username == "rschaef":
+    #     wandb_username = "rylan"
+    # else:
+    #     raise ValueError(f"Unknown W&B username: {system_username}")
+    import wandb
+
+    api = wandb.Api()
+    wandb_username = api.viewer.username
     return wandb_username
 
 
