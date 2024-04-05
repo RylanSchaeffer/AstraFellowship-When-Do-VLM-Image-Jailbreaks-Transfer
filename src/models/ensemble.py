@@ -8,23 +8,15 @@ from typing import Any, Dict, List, Optional, Tuple
 class VLMEnsemble(torch.nn.Module):
     def __init__(
         self,
-        model_strs_to_attack: List[str],
-        model_strs_to_eval: List[str],
+        model_strs: List[str],
         model_generation_kwargs: Dict[str, Dict[str, Any]],
         accelerator: Accelerator,
     ):
         super().__init__()
-        # Confirm that all models to attack will also be evaluated.
-        assert all(
-            [model_str in model_strs_to_eval for model_str in model_strs_to_attack]
-        )
-        # self.accelerator = accelerator
-        # self.device = self.accelerator.device
-
         cuda_visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-        assert len(cuda_visible_devices) >= len(model_strs_to_eval)
-        self.vlms_to_eval_dict = torch.nn.ModuleDict()
-        for model_device_int_str, model_str in enumerate(model_strs_to_eval):
+        assert len(cuda_visible_devices) >= len(model_strs)
+        self.vlms_dict = torch.nn.ModuleDict()
+        for model_device_int_str, model_str in enumerate(model_strs):
             # Load BLIP2 models.
             if model_str.startswith("blip2"):
                 from old.how_robust_is_bard.src.models.blip2 import (
@@ -88,23 +80,17 @@ class VLMEnsemble(torch.nn.Module):
 
             # vlm = self.accelerator.prepare(vlm)
             device_str = f"cuda:{model_device_int_str}"
-            self.vlms_to_eval_dict[model_str] = vlm.to(device_str=device_str)
+            self.vlms_dict[model_str] = vlm.to(device_str=device_str)
 
-        # TODO: Are all of these .prepare() calls necessary?
-        # self.vlms_to_eval_dict = self.accelerator.prepare(self.vlms_to_eval_dict)
-
-        self.vlms_to_attack_dict = torch.nn.ModuleDict(
-            {
-                model_str: self.vlms_to_eval_dict[model_str]
-                for model_str in model_strs_to_attack
-            }
+        self.vlms_dict = torch.nn.ModuleDict(
+            {model_str: self.vlms_dict[model_str] for model_str in model_strs}
         )
         # self.vlms_to_attack_dict = self.accelerator.prepare(self.vlms_to_attack_dict)
 
         self.disable_model_gradients()
 
     def __len__(self):
-        return len(self.vlms_to_eval_dict)
+        return len(self.vlms_dict)
 
     def forward(self, args):
         raise NotImplementedError
@@ -117,9 +103,7 @@ class VLMEnsemble(torch.nn.Module):
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
         total_loss = torch.zeros(1, requires_grad=True, device="cpu")
-        for model_idx, (model_name, model_wrapper) in enumerate(
-            self.vlms_to_eval_dict.items()
-        ):
+        for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
             # Move all tensors to the correct device so we aren't blocked waiting for one model.
             image_on_device = image.to(model_wrapper.device_str, non_blocking=True)
             input_ids_on_device = text_data_by_model[model_name]["input_ids"].to(
@@ -139,9 +123,9 @@ class VLMEnsemble(torch.nn.Module):
                 labels=labels_on_device,
             )
             losses_per_model[model_name] = loss_for_model.to("cpu", non_blocking=True)
-            if model_name in self.vlms_to_attack_dict:
+            if model_name in self.vlms_dict:
                 total_loss = total_loss + losses_per_model[model_name]
-        avg_loss = total_loss / len(self.vlms_to_attack_dict)
+        avg_loss = total_loss / len(self.vlms_dict)
         losses_per_model["avg"] = avg_loss.to("cpu", non_blocking=True)
         return losses_per_model
 
@@ -167,5 +151,5 @@ class VLMEnsemble(torch.nn.Module):
 
     def disable_model_gradients(self):
         # set all models' requires_grad to False
-        for vlm_str, vlm_wrapper in self.vlms_to_eval_dict.items():
+        for vlm_str, vlm_wrapper in self.vlms_dict.items():
             vlm_wrapper.disable_model_gradients()

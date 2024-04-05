@@ -57,41 +57,30 @@ def create_attacker(
     return attacker
 
 
-def create_dataloader(
+def create_text_dataloader(
     vlm_ensemble: VLMEnsemble,
-    prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+    prompt_and_targets_kwargs: Dict[str, Any],
     wandb_config: Dict[str, Any],
-) -> Dict[str, torch.utils.data.DataLoader]:
-    train_dataset = VLMEnsembleDataset(
-        vlm_ensemble=vlm_ensemble,
-        prompts_and_targets=prompts_and_targets_by_split["train"],
+    split: str = "train",
+) -> Tuple[Dict[str, List[str]], torch.utils.data.DataLoader]:
+    prompts_and_targets_dict: Dict[str, List[str]] = load_prompts_and_targets(
+        prompts_and_targets_kwargs=prompt_and_targets_kwargs,
+        split=split,
     )
 
-    test_dataset = VLMEnsembleDataset(
+    dataset = VLMEnsembleDataset(
         vlm_ensemble=vlm_ensemble,
-        prompts_and_targets=prompts_and_targets_by_split["test"],
+        prompts_and_targets_dict=prompts_and_targets_dict,
     )
 
-    train_dataloader = torch.utils.data.DataLoader(
-        dataset=train_dataset,
+    dataloader = torch.utils.data.DataLoader(
+        dataset=dataset,
         batch_size=wandb_config["attack_kwargs"]["batch_size"],
         shuffle=wandb_config["data"]["shuffle_train"],
         num_workers=wandb_config["data"]["num_workers"],
     )
 
-    test_dataloader = torch.utils.data.DataLoader(
-        dataset=test_dataset,
-        batch_size=wandb_config["attack_kwargs"]["batch_size"],
-        shuffle=wandb_config["data"]["shuffle_test"],
-        num_workers=wandb_config["data"]["num_workers"],
-    )
-
-    dataloaders_dict = {
-        "train": train_dataloader,
-        "test": test_dataloader,
-    }
-
-    return dataloaders_dict
+    return prompts_and_targets_dict, dataloader
 
 
 def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
@@ -118,17 +107,15 @@ def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
 
 def instantiate_vlm_ensemble(
     models_to_attack: List[str],
-    models_to_eval: List[str],
     model_generation_kwargs: Dict[str, Dict[str, Any]],
     accelerator: Accelerator,
 ) -> VLMEnsemble:
+    # TODO: This function is probably overengineered.
     vlm_ensemble = VLMEnsemble(
-        model_strs_to_attack=models_to_attack,
-        model_strs_to_eval=models_to_eval,
+        model_strs=models_to_attack,
         model_generation_kwargs=model_generation_kwargs,
         accelerator=accelerator,
     )
-
     vlm_ensemble = accelerator.prepare([vlm_ensemble])[0]
     return vlm_ensemble
 
@@ -144,42 +131,40 @@ def is_dist_avail_and_initialized():
 def load_prompts_and_targets(
     prompts_and_targets_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
-) -> Dict[str, Dict[str, List[str]]]:
-    prompts_and_targets_by_split = {}
-    for split in {"train", "test"}:
-        prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
-        n_unique_prompts_and_targets = prompts_and_targets_kwargs[
-            "n_unique_prompts_and_targets"
-        ]
+    split: str = "train",
+) -> Dict[str, List[str]]:
+    prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
+    n_unique_prompts_and_targets = prompts_and_targets_kwargs[
+        "n_unique_prompts_and_targets"
+    ]
 
-        if prompts_and_targets_str == "advbench":
-            prompts_and_targets_path = os.path.join(
-                prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
-            )
-        elif prompts_and_targets_str == "rylan_anthropic_hhh":
-            prompts_and_targets_path = os.path.join(
-                prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
-            )
-        elif prompts_and_targets_str == "robust_bard":
-            raise NotImplementedError
-        else:
-            raise ValueError(
-                "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
-            )
+    if prompts_and_targets_str == "advbench":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+        )
+    elif prompts_and_targets_str == "rylan_anthropic_hhh":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+        )
+    elif prompts_and_targets_str == "robust_bard":
+        raise NotImplementedError
+    else:
+        raise ValueError(
+            "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
+        )
 
-        df = pd.read_csv(prompts_and_targets_path)
-        prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+    df = pd.read_csv(prompts_and_targets_path)
+    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
-        if split == "train" and n_unique_prompts_and_targets != -1:
-            unique_indices = np.random.choice(
-                len(prompts), n_unique_prompts_and_targets, replace=False
-            )
-            prompts = [prompts[i] for i in unique_indices]
-            targets = [targets[i] for i in unique_indices]
+    if split == "train" and n_unique_prompts_and_targets != -1:
+        unique_indices = np.random.choice(
+            len(prompts), n_unique_prompts_and_targets, replace=False
+        )
+        prompts = [prompts[i] for i in unique_indices]
+        targets = [targets[i] for i in unique_indices]
 
-        prompts_and_targets_by_split[split] = {"prompts": prompts, "targets": targets}
-
-    return prompts_and_targets_by_split
+    prompts_and_targets_dict = {"prompts": prompts, "targets": targets}
+    return prompts_and_targets_dict
 
 
 def retrieve_wandb_username() -> str:

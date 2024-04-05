@@ -9,24 +9,21 @@ class VLMEnsembleDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         vlm_ensemble: VLMEnsemble,
-        prompts_and_targets: Dict[str, List[str]],
-        split: str = "train",
+        prompts_and_targets_dict: Dict[str, List[str]],
     ):
-        assert split in ["train", "test"]
-        self.split = split
-        assert len(prompts_and_targets["prompts"]) == len(
-            prompts_and_targets["targets"]
+        assert len(prompts_and_targets_dict["prompts"]) == len(
+            prompts_and_targets_dict["targets"]
         )
-        self.n_prompt_and_target_pairs = len(prompts_and_targets["prompts"])
+        self.n_prompt_and_target_pairs = len(prompts_and_targets_dict["prompts"])
 
         # TODO: Write this to disk rather than storing it all in memory to handle larger dataset.
         self.data = {}
-        for vlm_name, vlm_wrapper in vlm_ensemble.vlms_to_eval_dict.items():
+        for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
             self.data[
                 vlm_name
             ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-                prompts=prompts_and_targets["prompts"],
-                targets=prompts_and_targets["targets"],
+                prompts=prompts_and_targets_dict["prompts"],
+                targets=prompts_and_targets_dict["targets"],
             )
 
     def __len__(self):

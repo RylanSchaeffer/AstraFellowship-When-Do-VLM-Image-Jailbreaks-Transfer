@@ -28,15 +28,19 @@ class AdversarialAttacker:
 
     @abstractmethod
     def attack(
-        self, image: torch.Tensor, prompts: List[str], targets: List[str], **kwargs
+        self,
+        image: torch.Tensor,
+        text_dataloader: torch.utils.data.DataLoader,
+        prompts_and_targets_dict: Dict[str, List[str]],
+        **kwargs,
     ):
         pass
 
     def compute_adversarial_examples(
         self,
         tensor_images: torch.Tensor,
-        text_dataloaders_dict: Dict[str, torch.utils.data.DataLoader],
-        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+        text_dataloader: torch.utils.data.DataLoader,
+        prompts_and_targets_dict: Dict[str, List[str]],
         results_dir: str,
         **kwargs,
     ):
@@ -46,8 +50,8 @@ class AdversarialAttacker:
         for image_idx, image in enumerate(tensor_images):
             attack_results = self.attack(
                 image=image,
-                text_dataloaders_dict=text_dataloaders_dict,
-                prompts_and_targets_by_split=prompts_and_targets_by_split,
+                text_dataloader=text_dataloader,
+                prompts_and_targets_dict=prompts_and_targets_dict,
                 **kwargs,
             )
             adv_x = attack_results["adversarial_image"]
@@ -58,7 +62,7 @@ class AdversarialAttacker:
 
             plt.close()
             # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5), squeeze=False)
-            for model_str in self.vlm_ensemble.vlms_to_eval_dict:
+            for model_str in self.vlm_ensemble.vlms_dict:
                 plt.plot(
                     np.arange(len(losses_history[model_str])),
                     losses_history[model_str],

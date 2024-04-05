@@ -8,7 +8,7 @@ import wandb
 from typing import Any, Dict, List
 
 
-from src.globals import default_config
+from src.globals import default_attack_config
 from src.models.ensemble import VLMEnsemble
 import src.utils
 
@@ -17,12 +17,10 @@ def generate_vlm_adversarial_examples():
     wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak",
-        config=default_config,
+        config=default_attack_config,
         entity=wandb_username,
     )
     wandb_config = dict(wandb.config)
-
-    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
 
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
@@ -40,43 +38,33 @@ def generate_vlm_adversarial_examples():
     wandb_config["models_to_attack"] = ast.literal_eval(
         wandb_config["models_to_attack"]
     )
-    wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
-    # Ensure that the attacked models are also evaluated.
-    wandb_config["models_to_eval"] = wandb_config["models_to_eval"].union(
-        wandb_config["models_to_attack"]
-    )
 
     assert all(
         model_str in wandb_config["model_generation_kwargs"]
-        for model_str in wandb_config["models_to_eval"]
+        for model_str in wandb_config["models_to_attack"]
     )
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    # Load data.
+    # Load initial image plus prompt and target data.
     tensor_images: torch.Tensor = src.utils.create_initial_images(
         image_kwargs=wandb_config["image_kwargs"],
-    )
-    prompts_and_targets_by_split: Dict[
-        str, Dict[str, List[str]]
-    ] = src.utils.load_prompts_and_targets(
-        prompts_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
     )
 
     accelerator = Accelerator()
 
     vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
         models_to_attack=wandb_config["models_to_attack"],
-        models_to_eval=wandb_config["models_to_eval"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
         accelerator=accelerator,
     )
 
     # We need to load the VLMs ensemble in order to tokenize the dataset.
-    text_dataloaders_dict = src.utils.create_dataloader(
+    prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
         vlm_ensemble=vlm_ensemble,
-        prompts_and_targets_by_split=prompts_and_targets_by_split,
+        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
         wandb_config=wandb_config,
+        split="train",
     )
 
     if wandb_config["compile"]:
@@ -94,8 +82,8 @@ def generate_vlm_adversarial_examples():
 
     attacker.compute_adversarial_examples(
         tensor_images=tensor_images,
-        text_dataloaders_dict=text_dataloaders_dict,
-        prompts_and_targets_by_split=prompts_and_targets_by_split,
+        text_dataloader=text_dataloader,
+        prompts_and_targets_dict=prompts_and_targets_dict,
         results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
     )
 
@@ -105,5 +93,5 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
             [str(i) for i in range(torch.cuda.device_count())]
         )
-
+    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
     generate_vlm_adversarial_examples()

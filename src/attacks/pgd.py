@@ -35,8 +35,8 @@ class PGDAttacker(AdversarialAttacker):
     def attack(
         self,
         image: torch.Tensor,
-        text_dataloaders_dict: Dict[str, torch.utils.data.DataLoader],
-        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+        text_dataloader: torch.utils.data.DataLoader,
+        prompts_and_targets_dict: Dict[str, List[str]],
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
         # Ensure gradients are computed for the image.
@@ -46,20 +46,18 @@ class PGDAttacker(AdversarialAttacker):
         adv_image.retain_grad()
 
         n_train_epochs = math.ceil(
-            self.attack_kwargs["total_steps"] / len(text_dataloaders_dict["train"])
+            self.attack_kwargs["total_steps"] / len(text_dataloader)
         )
-        n_train_steps = n_train_epochs * len(text_dataloaders_dict["train"])
+        n_train_steps = n_train_epochs * len(text_dataloader)
         # Ensure loss history is empty.
         self.reinitialize_losses_history(n_steps=n_train_steps)
-        text_test_dataloader = text_dataloaders_dict["test"]
 
         wandb_logging_step_idx = 1
-
         self.test_attack_against_vlms_and_log(
             original_image=original_image,
             adv_image=adv_image,
-            prompts_and_targets_by_split=prompts_and_targets_by_split,
-            text_dataloader=text_test_dataloader["test"],
+            prompts_and_targets_dict=prompts_and_targets_dict,
+            text_dataloader=text_dataloader,
             wandb_logging_step_idx=wandb_logging_step_idx,
         )
 
@@ -96,7 +94,7 @@ class PGDAttacker(AdversarialAttacker):
             self.test_attack_against_vlms_and_log(
                 original_image=original_image,
                 adv_image=adv_image,
-                prompts_and_targets_by_split=prompts_and_targets_by_split,
+                prompts_and_targets_dict=prompts_and_targets_dict,
                 wandb_logging_step_idx=wandb_logging_step_idx,
             )
 
@@ -112,7 +110,7 @@ class PGDAttacker(AdversarialAttacker):
         self,
         original_image: torch.Tensor,
         adv_image: torch.Tensor,
-        prompts_and_targets_by_split: Dict[str, Dict[str, List[str]]],
+        prompts_and_targets_dict: Dict[str, List[str]],
         text_dataloader: torch.utils.data.DataLoader,
         wandb_logging_step_idx: int,
     ):
@@ -134,14 +132,14 @@ class PGDAttacker(AdversarialAttacker):
         )
 
         batch_prompts, batch_targets = self.sample_prompts_and_targets(
-            prompts=prompts_and_targets_by_split["test"]["prompts"],
-            targets=prompts_and_targets_by_split["test"]["targets"],
+            prompts=prompts_and_targets_dict["test"]["prompts"],
+            targets=prompts_and_targets_dict["test"]["targets"],
         )
 
         for (
             model_name,
             model_wrapper,
-        ) in self.vlm_ensemble.vlms_to_eval_dict.items():
+        ) in self.vlm_ensemble.vlms_dict.items():
             batch_nonadv_model_generations = model_wrapper.generate(
                 image=original_image.to(self.accelerator.device),
                 prompts=batch_prompts,
@@ -202,7 +200,7 @@ class PGDAttacker(AdversarialAttacker):
     def reinitialize_losses_history(self, n_steps: int):
         self.losses_history = {
             model_str: np.full(n_steps + 1, fill_value=np.nan)
-            for model_str in self.vlm_ensemble.vlms_to_eval_dict
+            for model_str in self.vlm_ensemble.vlms_dict
         }
         self.losses_history["avg"] = np.full(n_steps + 1, fill_value=np.nan)
 

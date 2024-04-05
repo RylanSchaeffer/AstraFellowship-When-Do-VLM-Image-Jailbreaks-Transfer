@@ -1,4 +1,4 @@
-default_config = {
+default_attack_config = {
     "attack_kwargs": {
         "attack_name": "pgd",
         # "attack_name": "ssa_common_weakness",
@@ -20,22 +20,13 @@ default_config = {
         "image_initialization": "random",
     },
     # "models_to_attack": "{'llava-v1p5-vicuna7b'}",
-    # "models_to_eval": "{'llava-v1p5-vicuna7b'}",
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
-    # "models_to_eval": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
-    # "models_to_eval": "{'llava-v1.6-vicuna13b'}",
     "models_to_attack": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
-    # "models_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
-    # "models_to_eval": "{'prism-clip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
-    # "models_to_eval": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
-    # "models_to_eval": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
-    # "models_to_eval": "{'instructblip2-vicuna-7b'}",
     # TODO: Move these model generation kwargs into the model classes to be overwritten.
     "model_generation_kwargs": {
         "llava-v1p6-mistral7b": {
@@ -103,9 +94,9 @@ default_config = {
     },
     "prompt_and_targets_kwargs": {
         "dataset_train": "rylan_anthropic_hhh",
+        # "dataset_train": "advbench",
         "dataset_test": "advbench",
         "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
     },
-    # "prompts_and_targets": "advbench",
     "seed": 0,
 }
