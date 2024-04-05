@@ -101,4 +101,9 @@ def generate_vlm_adversarial_examples():
 
 
 if __name__ == "__main__":
+    if "CUDA_VISIBLE_DEVICES" not in os.environ:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
+            [str(i) for i in range(torch.cuda.device_count())]
+        )
+
     generate_vlm_adversarial_examples()
