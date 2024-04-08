@@ -69,10 +69,12 @@ def create_text_dataloader(
     prompt_and_targets_kwargs: Dict[str, Any],
     wandb_config: Dict[str, Any],
     split: str = "train",
+    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
 ) -> Tuple[Dict[str, List[str]], torch.utils.data.DataLoader]:
     prompts_and_targets_dict: Dict[str, List[str]] = load_prompts_and_targets(
         prompts_and_targets_kwargs=prompt_and_targets_kwargs,
         split=split,
+        **load_prompts_and_targets_kwargs,
     )
 
     dataset = VLMEnsembleDataset(

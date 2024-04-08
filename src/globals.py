@@ -82,5 +82,5 @@ default_eval_config = {
         # },
     },
     "seed": 0,
-    "wandb_sweep_id": "3332ohsb",
+    "wandb_sweep_id": "7v3u4uq5",
 }
