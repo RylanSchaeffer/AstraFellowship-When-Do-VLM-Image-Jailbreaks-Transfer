@@ -100,3 +100,74 @@ default_attack_config = {
     },
     "seed": 0,
 }
+
+
+default_eval_config = {
+    "wandb_sweep_id": "ea6dmn1o",
+    "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    "model_generation_kwargs": {
+        "llava-v1p6-mistral7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "llava-v1p5-vicuna7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "llava-v1p6-vicuna7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "llava-v1p6-vicuna13b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+            "use_cache": False,
+            "cache_position": None,
+        },
+        "prism-reproduction-llava-v15+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-reproduction-llava-v15+13b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-clip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-siglip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "prism-dinosiglip+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+        "llava-lvis4v-lrv+7b": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 5,
+        },
+    },
+    "seed": 0,
+}

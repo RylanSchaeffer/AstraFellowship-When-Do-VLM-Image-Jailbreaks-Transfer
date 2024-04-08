@@ -8,16 +8,16 @@ import wandb
 from typing import Any, Dict, List
 
 
-from src.globals import default_attack_config
+from src.globals import default_eval_config
 from src.models.ensemble import VLMEnsemble
 import src.utils
 
 
-def generate_vlm_adversarial_examples():
+def evaluate_vlm_adversarial_examples():
     wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
-        project="universal-vlm-jailbreak",
-        config=default_attack_config,
+        project="universal-vlm-jailbreak-eval",
+        config=default_eval_config,
         entity=wandb_username,
     )
     wandb_config = dict(wandb.config)
@@ -33,6 +33,8 @@ def generate_vlm_adversarial_examples():
     print("W&B Config:")
     pp.pprint(wandb_config)
 
+    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
     wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
@@ -44,42 +46,55 @@ def generate_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    # Load initial image plus prompt and target data.
-    tensor_images: torch.Tensor = src.utils.create_initial_images(
-        image_kwargs=wandb_config["image_kwargs"],
-    )
+    api = wandb.Api()
+    sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
+    runs = list(sweep.runs)
+    file_paths = []
+    for run in runs:
+        for file in run.files():
+            file_name = str(file.name)
+            if not file_name.endswith(".png"):
+                continue
+            file_dir_path = os.path.join(
+                "eval_data", f"sweep={wandb_config['wandb_sweep_id']}", run.id
+            )
+            os.makedirs(file_dir_path, exist_ok=True)
+            file.download(root=file_dir_path, replace=True)
+            file_path = os.path.join(file_dir_path, file_name)
+            file_paths.append(file_path)
 
-    accelerator = Accelerator()
+    for model_str in wandb_config["models_to_eval"]:
+        accelerator = Accelerator()
 
-    vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-        models_to_attack=wandb_config["models_to_eval"],
-        model_generation_kwargs=wandb_config["model_generation_kwargs"],
-        accelerator=accelerator,
-    )
-
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
-        vlm_ensemble=vlm_ensemble,
-        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-        wandb_config=wandb_config,
-        split="train",
-    )
-
-    if wandb_config["compile"]:
-        vlm_ensemble: VLMEnsemble = torch.compile(
-            vlm_ensemble,
-            mode="default",  # good balance between performance and overhead
-            # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
+        vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
+            models_to_attack=model_str,
+            model_generation_kwargs=wandb_config["model_generation_kwargs"],
+            accelerator=accelerator,
         )
 
-    # attacker.compute_adversarial_examples(
-    #     tensor_images=tensor_images,
-    #     text_dataloader=text_dataloader,
-    #     prompts_and_targets_dict=prompts_and_targets_dict,
-    #     results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
-    # )
+        # We need to load the VLMs ensemble in order to tokenize the dataset.
+        prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
+            vlm_ensemble=vlm_ensemble,
+            prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
+            wandb_config=wandb_config,
+            split="train",
+        )
 
-    raise NotImplementedError
+        if wandb_config["compile"]:
+            vlm_ensemble: VLMEnsemble = torch.compile(
+                vlm_ensemble,
+                mode="default",  # good balance between performance and overhead
+                # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
+            )
+
+        # attacker.compute_adversarial_examples(
+        #     tensor_images=tensor_images,
+        #     text_dataloader=text_dataloader,
+        #     prompts_and_targets_dict=prompts_and_targets_dict,
+        #     results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+        # )
+
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
@@ -87,5 +102,4 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
             [str(i) for i in range(torch.cuda.device_count())]
         )
-    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
-    generate_vlm_adversarial_examples()
+    evaluate_vlm_adversarial_examples()

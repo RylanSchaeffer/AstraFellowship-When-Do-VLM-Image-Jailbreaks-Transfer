@@ -13,7 +13,7 @@ from src.models.ensemble import VLMEnsemble
 import src.utils
 
 
-def generate_vlm_adversarial_examples():
+def optimize_vlm_adversarial_examples():
     wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak",
@@ -95,4 +95,4 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
             [str(i) for i in range(torch.cuda.device_count())]
         )
-    generate_vlm_adversarial_examples()
+    optimize_vlm_adversarial_examples()
