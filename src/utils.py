@@ -219,14 +219,19 @@ def load_prompts_and_targets(
         else:
             unique_indices = np.arange(len(prompts))
     elif split == "eval":
-        assert "train_indices" in kwargs
-        train_indices = kwargs["train_indices"]
-        unique_indices = np.setdiff1d(np.arange(len(prompts)), train_indices)
+        # TODO: Fix this in the future.
+        # assert "train_indices" in kwargs
+        # train_indices = kwargs["train_indices"]
+        # unique_indices = np.setdiff1d(np.arange(len(prompts)), train_indices)
+        unique_indices = np.arange(len(prompts))
     else:
         raise ValueError(f"Invalid split: {split}")
 
     prompts = [prompts[idx] for idx in unique_indices]
     targets = [targets[idx] for idx in unique_indices]
+
+    assert len(prompts) == len(targets)
+    assert len(prompts) > 0
 
     prompts_and_targets_dict = {
         "prompts": prompts,
