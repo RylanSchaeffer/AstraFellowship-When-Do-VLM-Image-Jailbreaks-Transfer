@@ -48,4 +48,4 @@ parameters:
           [ 50, 100]
   seed:
     values:
-      [0, 1]
+      [0]

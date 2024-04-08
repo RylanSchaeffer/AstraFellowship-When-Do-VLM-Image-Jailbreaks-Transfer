@@ -2,9 +2,10 @@
 
 ```bash
 conda activate universal_vlm_jailbreak_env
-cd PerezAstraFellowship-Image-DAN-VLM-Attack/
-export CUDA_VISIBLE_DEVICES=4
-wandb agent rylan/universal-vlm-jailbreak/idfc9ms6
+cd PerezAstraFellowship-Image-DAN-VLM-Attack
+export CUDA_DEVICE_ORDER=PCI_BUS_ID
+export CUDA_VISIBLE_DEVICES=1
+wandb agent rylan/universal-vlm-jailbreak/0thfox44
 ```
 
 ## Notes

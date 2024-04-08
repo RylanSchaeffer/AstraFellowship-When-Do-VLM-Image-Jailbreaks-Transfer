@@ -33,6 +33,8 @@ def generate_vlm_adversarial_examples():
     print("W&B Config:")
     pp.pprint(wandb_config)
 
+    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
     wandb_config["models_to_attack"] = ast.literal_eval(
@@ -93,5 +95,4 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
             [str(i) for i in range(torch.cuda.device_count())]
         )
-    print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
     generate_vlm_adversarial_examples()
