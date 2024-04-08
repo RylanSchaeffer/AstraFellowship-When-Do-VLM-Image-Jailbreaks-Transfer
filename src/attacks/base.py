@@ -54,35 +54,21 @@ class AdversarialAttacker:
                 prompts_and_targets_dict=prompts_and_targets_dict,
                 **kwargs,
             )
-            adv_x = attack_results["adversarial_image"]
-            losses_history: Dict[str, np.ndarray] = attack_results["losses_history"]
-            # prob_masses_history = torch.exp(-losses_history)
-
-            save_multi_images(adv_x, results_dir, begin_id=image_idx)
-
-            plt.close()
-            # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5), squeeze=False)
-            for model_str in self.vlm_ensemble.vlms_dict:
-                plt.plot(
-                    np.arange(len(losses_history[model_str])),
-                    losses_history[model_str],
-                    label=model_str,
-                )
-            plt.xlabel("Step")
-            plt.ylabel("Loss")
-            plt.ylim(bottom=0.0)
-            plt.legend()
 
             wandb.log(
                 {
-                    "original_image": wandb.Image(image, caption="Original Image"),
-                    "adversarial_image": wandb.Image(
-                        adv_x, caption="Adversarial Image"
+                    "original_image": wandb.Image(
+                        data_or_path=attack_results["image"],
+                        caption="Original Image",
                     ),
-                    "loss_curve": wandb.Image(plt),
+                    "adversarial_image": wandb.Image(
+                        data_or_path=attack_results["adversarial_image"],
+                        caption="Adversarial Image",
+                    ),
                 }
             )
 
+            # save_multi_images(adv_x, results_dir, begin_id=image_idx)
             print(f"Adversarial image {image_idx+1} optimized.")
 
     @staticmethod
