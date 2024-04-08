@@ -49,6 +49,8 @@ class PGDAttacker(JailbreakAttacker):
                 dtype = torch.float16
             elif self.attack_kwargs["precision"] == "float32":
                 dtype = torch.float32
+            elif self.attack_kwargs["precision"] == "float64":
+                dtype = torch.float64
             else:
                 raise NotImplementedError
             adv_image = adv_image.to(dtype=dtype)
