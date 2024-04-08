@@ -11,7 +11,7 @@ parameters:
       test_every_n_steps:
         values: [2500]
       step_size:
-        values: [0.00316]
+        values: [0.001]
       total_steps:
         values: [100000]
   image_initialization:
@@ -20,16 +20,21 @@ parameters:
   models_to_attack:
     values:
       [
-        "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
-        "{'prism-reproduction-llava-v15+7b', 'prism-llava-lvis4v-lrv+7b'}",
-        "{'prism-clip+7b', 'prism-llava-lvis4v-lrv+7b'}",
         "{'prism-reproduction-llava-v15+7b'}",
+        "{'prism-reproduction-llava-v15+13b'}",
+        "{'prism-clip-controlled+7b'}",
+        "{'prism-clip-controlled+13b'}",
         "{'prism-clip+7b'}",
-        "{'llava-lvis4v-lrv+7b'}",
+        "{'prism-clip+13b'}",
+        "{'prism-siglip-controlled+7b'}",
+        "{'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+7b'}",
+        "{'prism-siglip+13b'}",
+        "{'prism-dinosiglip-controlled+7b'}",
+        "{'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+7b'}",
+        "{'prism-dinosiglip+13b'}",
       ]
-  models_to_eval:
-    values:
-      ["set()"]
   prompt_and_targets_kwargs:
     parameters:
       dataset_train:
@@ -40,7 +45,7 @@ parameters:
           ["advbench"]
       n_unique_prompts_and_targets:
         values:
-          [ 50, 100, 189]
+          [ 50, 100]
   seed:
     values:
-      [0]
+      [0, 1]

@@ -58,7 +58,7 @@ class AdversarialAttacker:
             wandb.log(
                 {
                     "original_image": wandb.Image(
-                        data_or_path=attack_results["image"],
+                        data_or_path=attack_results["original_image"],
                         caption="Original Image",
                     ),
                     "adversarial_image": wandb.Image(

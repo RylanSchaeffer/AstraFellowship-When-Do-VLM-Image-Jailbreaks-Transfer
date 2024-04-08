@@ -40,7 +40,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             input_image_size = (336, 336)
         elif model_str == "prism-clip-controlled+7b":
             input_image_size = (336, 336)
-        elif model_str == "prism-clip-controlled+7b":
+        elif model_str == "prism-clip-controlled+13b":
             input_image_size = (336, 336)
         elif model_str == "prism-clip+7b":
             input_image_size = (336, 336)
