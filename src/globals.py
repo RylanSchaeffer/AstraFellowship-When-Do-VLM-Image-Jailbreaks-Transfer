@@ -7,9 +7,9 @@ default_attack_config = {
         # "normalize_gradients": True,
         "log_image_every_n_steps": 5,
         "log_loss_every_n_steps": 1,
+        "precision": "bfloat16",
         "step_size": 0.01,
         "total_steps": 10,
-        "precision": "bfloat16",
     },
     "compile": True,
     "data": {

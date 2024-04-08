@@ -12,6 +12,8 @@ parameters:
         values: [500]
       log_loss_every_n_steps:
         values: [25]
+      precision:
+        values: ["bfloat16"]
       step_size:
         values: [0.001]
       total_steps:
