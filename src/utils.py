@@ -140,6 +140,7 @@ def load_prompts_and_targets(
     prompts_and_targets_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
+    **kwargs,
 ) -> Dict[str, List[str]]:
     prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
     n_unique_prompts_and_targets = prompts_and_targets_kwargs[
@@ -164,14 +165,29 @@ def load_prompts_and_targets(
     df = pd.read_csv(prompts_and_targets_path)
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
-    if split == "train" and n_unique_prompts_and_targets != -1:
-        unique_indices = np.random.choice(
-            len(prompts), n_unique_prompts_and_targets, replace=False
-        )
-        prompts = [prompts[i] for i in unique_indices]
-        targets = [targets[i] for i in unique_indices]
+    if split == "train":
+        if n_unique_prompts_and_targets != -1:
+            unique_indices = np.random.choice(
+                len(prompts), n_unique_prompts_and_targets, replace=False
+            )
+        else:
+            unique_indices = np.arange(len(prompts))
+    elif split == "test":
+        assert "train_indices" in kwargs
+        train_indices = kwargs["train_indices"]
+        unique_indices = np.setdiff1d(np.arange(len(prompts)), train_indices)
+    else:
+        raise ValueError(f"Invalid split: {split}")
 
-    prompts_and_targets_dict = {"prompts": prompts, "targets": targets}
+    prompts = [prompts[idx] for idx in unique_indices]
+    targets = [targets[idx] for idx in unique_indices]
+
+    prompts_and_targets_dict = {
+        "prompts": prompts,
+        "targets": targets,
+        "split": split,
+        "indices": unique_indices,
+    }
     return prompts_and_targets_dict
 
 

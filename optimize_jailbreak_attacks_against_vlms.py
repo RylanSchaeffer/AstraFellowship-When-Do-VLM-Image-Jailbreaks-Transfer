@@ -55,6 +55,7 @@ def optimize_vlm_adversarial_examples():
 
     accelerator = Accelerator()
 
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
     vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
         model_strs=wandb_config["models_to_attack"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
@@ -67,6 +68,10 @@ def optimize_vlm_adversarial_examples():
         prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
         wandb_config=wandb_config,
         split="train",
+    )
+    wandb.config.update(
+        {"train_indices": str(prompts_and_targets_dict["indices"].tolist())},
+        allow_val_change=True,
     )
 
     if wandb_config["compile"]:
