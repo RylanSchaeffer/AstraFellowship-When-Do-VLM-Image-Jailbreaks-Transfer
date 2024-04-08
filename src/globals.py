@@ -103,7 +103,9 @@ default_attack_config = {
 
 
 default_eval_config = {
-    "wandb_sweep_id": "ea6dmn1o",
+    "attack_kwargs": {
+        "attack_name": "eval",
+    },
     "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     "model_generation_kwargs": {
         "llava-v1p6-mistral7b": {
@@ -170,4 +172,5 @@ default_eval_config = {
         },
     },
     "seed": 0,
+    "wandb_sweep_id": "3332ohsb",
 }

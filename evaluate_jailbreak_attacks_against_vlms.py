@@ -21,7 +21,7 @@ def evaluate_vlm_adversarial_examples():
         config=default_eval_config,
         entity=wandb_username,
     )
-    wandb_config = dict(wandb.config)
+    wandb_config: Dict[str, Any] = dict(wandb.config)
 
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
@@ -38,14 +38,6 @@ def evaluate_vlm_adversarial_examples():
     cuda_visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
     assert len(cuda_visible_devices) == 3
 
-    harmbench_evaluator = HarmBenchEvaluator(
-        device=int(cuda_visible_devices[-1]),
-    )
-
-    llamaguard_evalutor = LlamaGuardEvaluator(
-        device=int(cuda_visible_devices[-2]),
-    )
-
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
     wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
@@ -60,7 +52,7 @@ def evaluate_vlm_adversarial_examples():
     api = wandb.Api()
     sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
     runs = list(sweep.runs)
-    file_paths = []
+    jailbreak_image_file_paths = []
     for run in runs:
         for file in run.files():
             file_name = str(file.name)
@@ -72,11 +64,17 @@ def evaluate_vlm_adversarial_examples():
             os.makedirs(file_dir_path, exist_ok=True)
             file.download(root=file_dir_path, replace=True)
             file_path = os.path.join(file_dir_path, file_name)
-            file_paths.append(file_path)
+            jailbreak_image_file_paths.append(file_path)
+    harmbench_evaluator = HarmBenchEvaluator(
+        device=int(cuda_visible_devices[-1]),
+    )
+    llamaguard_evalutor = LlamaGuardEvaluator(
+        device=int(cuda_visible_devices[-2]),
+    )
+
+    accelerator = Accelerator()
 
     for model_str in wandb_config["models_to_eval"]:
-        accelerator = Accelerator()
-
         vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
             model_strs=[model_str],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
@@ -98,14 +96,27 @@ def evaluate_vlm_adversarial_examples():
                 # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
             )
 
-        # attacker.compute_adversarial_examples(
-        #     tensor_images=tensor_images,
-        #     text_dataloader=text_dataloader,
-        #     prompts_and_targets_dict=prompts_and_targets_dict,
-        #     results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
-        # )
+        assert wandb_config["attack_kwargs"]["attack_name"] == "eval"
+        attacker = src.utils.create_attacker(
+            wandb_config=wandb_config,
+            vlm_ensemble=vlm_ensemble,
+            accelerator=accelerator,
+        )
 
-        raise NotImplementedError
+        for jailbreak_image_file_path in jailbreak_image_file_paths:
+            # Read image from disk.
+            # TODO: This is probably incorrect.
+            adv_image = torch.load(jailbreak_image_file_path)
+
+            # Measure and log metrics of model on attacks.
+            attacker.evaluate_jailbreak_against_vlms_and_log(
+                vlm_ensemble=vlm_ensemble,
+                adv_image=adv_image,
+                prompts_and_targets_dict=prompts_and_targets_dict,
+                text_dataloader=text_dataloader,
+                harmbench_evaluator=harmbench_evaluator,
+                llamaguard_evalutor=llamaguard_evalutor,
+            )
 
 
 if __name__ == "__main__":

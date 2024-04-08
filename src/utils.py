@@ -11,7 +11,7 @@ import torch.utils.data
 from torchvision import transforms
 from typing import Any, Dict, List, Tuple
 
-from src.attacks.base import AdversarialAttacker
+from src.attacks.base import JailbreakAttacker
 from src.data import VLMEnsembleDataset
 from src.models.ensemble import VLMEnsemble
 from src.image_handling import get_list_image
@@ -27,7 +27,7 @@ def create_attacker(
     wandb_config: Dict[str, Any],
     vlm_ensemble: VLMEnsemble,
     accelerator: Accelerator,
-) -> AdversarialAttacker:
+) -> JailbreakAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
         from src.attacks.pgd import PGDAttacker
 
@@ -48,12 +48,19 @@ def create_attacker(
         #     **wandb_config["attack_kwargs"],
         # )
         raise NotImplementedError
-    else:
-        raise ValueError(
-            "Invalid attack_name: {}".format(
-                wandb_config["attack_kwargs"]["attack_name"]
-            )
+    elif wandb_config["attack_kwargs"]["attack_name"] == "eval":
+        from src.attacks.base import JailbreakAttacker
+
+        attacker = JailbreakAttacker(
+            vlm_ensemble=vlm_ensemble,
+            accelerator=accelerator,
+            attack_kwargs=wandb_config["attack_kwargs"],
         )
+    else:
+        raise NotImplementedError(
+            f"Invalid attack_name: {wandb_config['attack_kwargs']['attack_name']}"
+        )
+
     return attacker
 
 
