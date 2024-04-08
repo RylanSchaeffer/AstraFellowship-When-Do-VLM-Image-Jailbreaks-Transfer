@@ -50,7 +50,7 @@ class PGDAttacker(AdversarialAttacker):
         )
         n_train_steps = n_train_epochs * len(text_dataloader)
 
-        wandb_logging_step_idx = 1
+        gradient_step = 0
         # self.test_attack_against_vlms_and_log(
         #     original_image=original_image,
         #     adv_image=adv_image,
@@ -63,8 +63,8 @@ class PGDAttacker(AdversarialAttacker):
             for batch_idx, batch_text_data_by_model in enumerate(
                 tqdm.tqdm(text_dataloader)
             ):
-                gradient_step = wandb_logging_step_idx - 1
                 if (gradient_step % self.attack_kwargs["log_image_every_n_steps"]) == 0:
+                    wandb_logging_step_idx = gradient_step + 1
                     wandb.log(
                         {
                             f"jailbreak_image_step={gradient_step}": wandb.Image(
@@ -88,6 +88,7 @@ class PGDAttacker(AdversarialAttacker):
                 adv_image.grad.zero_()
 
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
+                    wandb_logging_step_idx = gradient_step + 1
                     # Log the losses to W&B.
                     wandb.log(
                         {
@@ -97,7 +98,7 @@ class PGDAttacker(AdversarialAttacker):
                         step=wandb_logging_step_idx,
                     )
 
-                wandb_logging_step_idx += 1
+                gradient_step += 1
 
             # self.test_attack_against_vlms_and_log(
             #     original_image=original_image,
