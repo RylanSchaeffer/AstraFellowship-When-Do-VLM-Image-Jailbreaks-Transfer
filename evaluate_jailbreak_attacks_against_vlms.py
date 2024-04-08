@@ -46,35 +46,10 @@ def evaluate_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    api = wandb.Api()
-    sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
-    runs = list(sweep.runs)
-    jailbreak_dicts_list = []
-    for run in runs:
-        for file in run.files():
-            file_name = str(file.name)
-            if not file_name.endswith(".png"):
-                continue
-            file_dir_path = os.path.join(
-                "eval_data", f"sweep={wandb_config['wandb_sweep_id']}", run.id
-            )
-            os.makedirs(file_dir_path, exist_ok=True)
-            file.download(root=file_dir_path, replace=True)
-            # Example:
-            #   'eval_data/sweep=7v3u4uq5/dz2maypg/media/images/jailbreak_image_step=500_0_6bff027c89aa794cfb3b.png'
-            # becomes
-            #   500
-            wandb_logging_step_idx = int(file_name.split("_")[2][5:])
-            file_path = os.path.join(file_dir_path, file_name)
-            jailbreak_dicts_list.append(
-                {
-                    "file_path": file_path,
-                    "wandb_run_id": run.id,
-                    "step": wandb_logging_step_idx,
-                }
-            )
+    # Load jailbreak images, their paths.
+    runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(wandb_config)
 
-    # accelerator = Accelerator()
+    accelerator = Accelerator()
     # harmbench_evaluator = HarmBenchEvaluator(
     #     device=len(cuda_visible_devices) - 1,  # Place on the last GPU (arbitrary).
     # )
@@ -82,42 +57,44 @@ def evaluate_vlm_adversarial_examples():
     #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
     # )
 
-    for model_str in wandb_config["models_to_eval"]:
-        # vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-        #     model_strs=[model_str],
-        #     model_generation_kwargs=wandb_config["model_generation_kwargs"],
-        #     accelerator=accelerator,
-        # )
-        #
-        # # We need to load the VLMs ensemble in order to tokenize the dataset.
-        # prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
-        #     vlm_ensemble=vlm_ensemble,
-        #     prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-        #     wandb_config=wandb_config,
-        #     split="test",
-        #     load_prompts_and_targets_kwargs={
-        #         "train_indices": wandb_config["train_indices"],
-        #     },
-        # )
-        #
+    for model_name_str in wandb_config["models_to_eval"]:
+        vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
+            model_strs=[model_name_str],
+            model_generation_kwargs=wandb_config["model_generation_kwargs"],
+            accelerator=accelerator,
+        )
+
+        assert wandb_config["attack_kwargs"]["attack_name"] == "eval"
+        attacker = src.utils.create_attacker(
+            wandb_config=wandb_config,
+            vlm_ensemble=vlm_ensemble,
+            accelerator=accelerator,
+        )
+
         # if wandb_config["compile"]:
         #     vlm_ensemble: VLMEnsemble = torch.compile(
         #         vlm_ensemble,
         #         mode="default",  # good balance between performance and overhead
         #         # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
         #     )
-        #
-        # assert wandb_config["attack_kwargs"]["attack_name"] == "eval"
-        # attacker = src.utils.create_attacker(
-        #     wandb_config=wandb_config,
-        #     vlm_ensemble=vlm_ensemble,
-        #     accelerator=accelerator,
-        # )
 
-        adv_images = []
-        for jailbreak_dict in jailbreak_dicts_list:
+        for run_jailbreak_dict in runs_jailbreak_dict_list:
+            # We need to load the VLMs ensemble in order to tokenize the dataset.
+            (
+                prompts_and_targets_dict,
+                text_dataloader,
+            ) = src.utils.create_text_dataloader(
+                vlm_ensemble=vlm_ensemble,
+                prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
+                wandb_config=wandb_config,
+                split="eval",
+                load_prompts_and_targets_kwargs={
+                    "train_indices": run_jailbreak_dict["wandb_run_train_indices"],
+                },
+            )
+
             # Read image from disk.
-            adv_image_frame = Image.open(jailbreak_dict["file_path"])
+            adv_image_frame = Image.open(run_jailbreak_dict["file_path"])
             adv_image = (
                 torch.from_numpy(np.array(adv_image_frame))
                 .unsqueeze(0)
@@ -125,14 +102,29 @@ def evaluate_vlm_adversarial_examples():
             )
 
             # Measure and log metrics of model on attacks.
-            attacker.evaluate_jailbreak_against_vlms_and_log(
+            model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(
                 vlm_ensemble=vlm_ensemble,
-                adv_image=adv_image,
+                image=adv_image,
                 prompts_and_targets_dict=prompts_and_targets_dict,
                 text_dataloader=text_dataloader,
-                harmbench_evaluator=harmbench_evaluator,
-                llamaguard_evalutor=llamaguard_evalutor,
-            )
+                harmbench_evaluator=None,  # harmbench_evaluator,
+                llamaguard_evalutor=None,  # llamaguard_evalutor,
+                wandb_logging_step_idx=1,
+            )[model_name_str]
+
+            model_evaluation_results["model_str"] = model_name_str
+            model_evaluation_results["wandb_run_id"] = run_jailbreak_dict[
+                "wandb_run_id"
+            ]
+            model_evaluation_results["wandb_logging_step"] = run_jailbreak_dict[
+                "wandb_logging_step"
+            ]
+            model_evaluation_results["n_gradient_steps"] = run_jailbreak_dict[
+                "n_gradient_steps"
+            ]
+
+            # Log the evaluation results.
+            wandb.log(model_evaluation_results, step=1)
 
 
 if __name__ == "__main__":

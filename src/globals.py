@@ -30,8 +30,6 @@ default_attack_config = {
     "model_generation_kwargs": {},
     "prompt_and_targets_kwargs": {
         "dataset_train": "rylan_anthropic_hhh",
-        # "dataset_train": "advbench",
-        "dataset_test": "advbench",
         "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
     },
     "seed": 0,
@@ -41,6 +39,7 @@ default_attack_config = {
 default_eval_config = {
     "attack_kwargs": {
         "attack_name": "eval",
+        "batch_size": 1,
     },
     "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     "model_generation_kwargs": {
@@ -80,6 +79,9 @@ default_eval_config = {
         #     "max_new_tokens": 100,
         #     "min_new_tokens": 5,
         # },
+    },
+    "prompt_and_targets_kwargs": {
+        "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,
     "wandb_sweep_id": "7v3u4uq5",

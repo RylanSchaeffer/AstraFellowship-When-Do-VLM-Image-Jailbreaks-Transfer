@@ -1,5 +1,6 @@
 # Note: Some of this code came from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/minigpt4/common/dist_utils.py.
 from accelerate import Accelerator
+import ast
 import getpass
 import numpy as np
 import os
@@ -10,6 +11,7 @@ import torch.distributed
 import torch.utils.data
 from torchvision import transforms
 from typing import Any, Dict, List, Tuple
+import wandb
 
 from src.attacks.base import JailbreakAttacker
 from src.data import VLMEnsembleDataset
@@ -138,6 +140,47 @@ def is_dist_avail_and_initialized():
     return True
 
 
+def load_jailbreak_dicts_list(
+    wandb_config: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    api = wandb.Api()
+    sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
+    runs = list(sweep.runs)
+    runs_jailbreak_dict_list = []
+    for run in runs:
+        for file in run.files():
+            file_name = str(file.name)
+            if not file_name.endswith(".png"):
+                continue
+            file_dir_path = os.path.join(
+                "eval_data", f"sweep={wandb_config['wandb_sweep_id']}", run.id
+            )
+            os.makedirs(file_dir_path, exist_ok=True)
+            file.download(root=file_dir_path, replace=True)
+            # Example:
+            #   'eval_data/sweep=7v3u4uq5/dz2maypg/media/images/jailbreak_image_step=500_0_6bff027c89aa794cfb3b.png'
+            # becomes
+            #   500
+            wandb_logging_step = int(file_name.split("_")[2][5:])
+            n_gradient_steps = (
+                run.config["attack_kwargs"]["log_image_every_n_steps"]
+                * wandb_logging_step
+            )
+            file_path = os.path.join(file_dir_path, file_name)
+            runs_jailbreak_dict_list.append(
+                {
+                    "file_path": file_path,
+                    "wandb_run_id": run.id,
+                    "wandb_logging_step": wandb_logging_step,
+                    "n_gradient_steps": n_gradient_steps,
+                    "wandb_run_train_indices": np.array(
+                        ast.literal_eval(run.config["train_indices"])
+                    ),
+                }
+            )
+    return runs_jailbreak_dict_list
+
+
 def load_prompts_and_targets(
     prompts_and_targets_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
@@ -145,9 +188,6 @@ def load_prompts_and_targets(
     **kwargs,
 ) -> Dict[str, List[str]]:
     prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
-    n_unique_prompts_and_targets = prompts_and_targets_kwargs[
-        "n_unique_prompts_and_targets"
-    ]
 
     if prompts_and_targets_str == "advbench":
         prompts_and_targets_path = os.path.join(
@@ -168,13 +208,17 @@ def load_prompts_and_targets(
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
     if split == "train":
+        n_unique_prompts_and_targets = prompts_and_targets_kwargs[
+            "n_unique_prompts_and_targets"
+        ]
+
         if n_unique_prompts_and_targets != -1:
             unique_indices = np.random.choice(
                 len(prompts), n_unique_prompts_and_targets, replace=False
             )
         else:
             unique_indices = np.arange(len(prompts))
-    elif split == "test":
+    elif split == "eval":
         assert "train_indices" in kwargs
         train_indices = kwargs["train_indices"]
         unique_indices = np.setdiff1d(np.arange(len(prompts)), train_indices)
