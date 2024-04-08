@@ -9,13 +9,13 @@ parameters:
       batch_size:
         values: [4]
       log_image_every_n_steps:
-        values: [2500]
+        values: [500]
       log_loss_every_n_steps:
-        values: [100]
+        values: [25]
       step_size:
         values: [0.001]
       total_steps:
-        values: [100000]
+        values: [25000]
   image_initialization:
     values:
       ["random"]
@@ -47,7 +47,7 @@ parameters:
           ["advbench"]
       n_unique_prompts_and_targets:
         values:
-          [ 50, 100]
+          [ 50, 189]
   seed:
     values:
       [0]

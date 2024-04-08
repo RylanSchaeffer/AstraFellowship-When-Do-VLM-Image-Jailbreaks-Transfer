@@ -80,13 +80,6 @@ class PGDAttacker(AdversarialAttacker):
                     text_data_by_model=batch_text_data_by_model,
                 )
 
-                losses_per_model["avg"].backward()
-                adv_image.data = (
-                    adv_image.data
-                    - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
-                ).clamp(0.0, 1.0)
-                adv_image.grad.zero_()
-
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
                     # Log the losses to W&B.
@@ -97,6 +90,13 @@ class PGDAttacker(AdversarialAttacker):
                         },
                         step=wandb_logging_step_idx,
                     )
+
+                losses_per_model["avg"].backward()
+                adv_image.data = (
+                    adv_image.data
+                    - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
+                ).clamp(0.0, 1.0)
+                adv_image.grad.zero_()
 
                 gradient_step += 1
 
