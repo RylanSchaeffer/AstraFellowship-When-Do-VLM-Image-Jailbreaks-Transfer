@@ -32,6 +32,13 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     ):
         super(PrismaticVisionLanguageModel, self).__init__()
 
+        if generation_kwargs is None:
+            generation_kwargs = {
+                "temperature": 0.1,
+                "top_p": 0.9,
+                "max_new_tokens": 100,
+                "min_new_tokens": 5,
+            }
         if model_str == "prism-reproduction-llava-v15+7b":
             model_str = "reproduction-llava-v15+7b"
             input_image_size = (336, 336)

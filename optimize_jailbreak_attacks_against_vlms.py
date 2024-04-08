@@ -41,11 +41,6 @@ def optimize_vlm_adversarial_examples():
         wandb_config["models_to_attack"]
     )
 
-    assert all(
-        model_str in wandb_config["model_generation_kwargs"]
-        for model_str in wandb_config["models_to_attack"]
-    )
-
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Load initial image plus prompt and target data.
@@ -71,7 +66,7 @@ def optimize_vlm_adversarial_examples():
     )
     wandb.config.update(
         {"train_indices": str(prompts_and_targets_dict["indices"].tolist())},
-        allow_val_change=True,
+        # allow_val_change=True,
     )
 
     if wandb_config["compile"]:

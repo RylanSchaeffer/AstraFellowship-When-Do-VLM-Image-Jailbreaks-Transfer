@@ -83,7 +83,7 @@ def create_text_dataloader(
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=wandb_config["attack_kwargs"]["batch_size"],
-        shuffle=wandb_config["data"]["shuffle_train"],
+        shuffle=True if split == "train" else False,
         num_workers=wandb_config["data"]["num_workers"],
     )
 

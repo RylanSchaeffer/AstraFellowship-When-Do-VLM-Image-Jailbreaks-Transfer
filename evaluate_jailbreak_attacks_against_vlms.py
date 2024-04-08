@@ -42,11 +42,6 @@ def evaluate_vlm_adversarial_examples():
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
     wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
 
-    assert all(
-        model_str in wandb_config["model_generation_kwargs"]
-        for model_str in wandb_config["models_to_eval"]
-    )
-
     src.utils.set_seed(seed=wandb_config["seed"])
 
     api = wandb.Api()
@@ -65,6 +60,7 @@ def evaluate_vlm_adversarial_examples():
             file.download(root=file_dir_path, replace=True)
             file_path = os.path.join(file_dir_path, file_name)
             jailbreak_image_file_paths.append(file_path)
+
     harmbench_evaluator = HarmBenchEvaluator(
         device=int(cuda_visible_devices[-1]),
     )
