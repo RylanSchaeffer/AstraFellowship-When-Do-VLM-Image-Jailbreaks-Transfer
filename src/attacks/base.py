@@ -55,19 +55,6 @@ class AdversarialAttacker:
                 **kwargs,
             )
 
-            wandb.log(
-                {
-                    "original_image": wandb.Image(
-                        data_or_path=attack_results["original_image"],
-                        caption="Original Image",
-                    ),
-                    "adversarial_image": wandb.Image(
-                        data_or_path=attack_results["adversarial_image"],
-                        caption="Adversarial Image",
-                    ),
-                }
-            )
-
             # save_multi_images(adv_x, results_dir, begin_id=image_idx)
             print(f"Adversarial image {image_idx+1} optimized.")
 

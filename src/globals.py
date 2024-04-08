@@ -5,7 +5,7 @@ default_attack_config = {
         "batch_size": 2,
         # "clip_gradients": True,
         # "normalize_gradients": True,
-        "test_every_n_steps": 5,
+        "log_every_n_steps": 5,
         "step_size": 0.01,
         "total_steps": 10,
     },

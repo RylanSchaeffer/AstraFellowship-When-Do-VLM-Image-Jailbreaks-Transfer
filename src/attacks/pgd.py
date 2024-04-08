@@ -63,10 +63,33 @@ class PGDAttacker(AdversarialAttacker):
             for batch_idx, batch_text_data_by_model in enumerate(
                 tqdm.tqdm(text_dataloader)
             ):
+                gradient_step = wandb_logging_step_idx - 1
+                if (gradient_step % self.attack_kwargs["log_every_n_steps"]) == 0:
+                    wandb.log(
+                        {
+                            f"original_image_step={gradient_step}": wandb.Image(
+                                data_or_path=original_image,
+                                caption="Original Image",
+                            ),
+                            f"adversarial_image_step={gradient_step}": wandb.Image(
+                                data_or_path=adv_image,
+                                caption="Adversarial Image",
+                            ),
+                        },
+                        step=wandb_logging_step_idx,
+                    )
+
                 losses_per_model = self.vlm_ensemble.compute_loss(
                     image=adv_image,
                     text_data_by_model=batch_text_data_by_model,
                 )
+
+                losses_per_model["avg"].backward()
+                adv_image.data = (
+                    adv_image.data
+                    - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
+                ).clamp(0.0, 1.0)
+                adv_image.grad.zero_()
 
                 # Log the losses to W&B.
                 wandb.log(
@@ -77,12 +100,6 @@ class PGDAttacker(AdversarialAttacker):
                     step=wandb_logging_step_idx,
                 )
 
-                losses_per_model["avg"].backward()
-                adv_image.data = (
-                    adv_image.data
-                    - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
-                ).clamp(0.0, 1.0)
-                adv_image.grad.zero_()
                 wandb_logging_step_idx += 1
 
             # self.test_attack_against_vlms_and_log(

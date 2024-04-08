@@ -8,7 +8,7 @@ parameters:
         values: ["pgd"]
       batch_size:
         values: [4]
-      test_every_n_steps:
+      log_every_n_steps:
         values: [2500]
       step_size:
         values: [0.001]
