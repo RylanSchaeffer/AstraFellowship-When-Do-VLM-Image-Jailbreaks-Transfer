@@ -41,7 +41,17 @@ class PGDAttacker(JailbreakAttacker):
     ) -> Dict[str, torch.Tensor]:
         # Ensure gradients are computed for the image.
         original_image = image.clone()
-        adv_image = image
+        adv_image = image.clone()
+        if "precision" in self.attack_kwargs:
+            if self.attack_kwargs["precision"] == "bfloat16":
+                dtype = torch.bfloat16
+            elif self.attack_kwargs["precision"] == "float16":
+                dtype = torch.float16
+            elif self.attack_kwargs["precision"] == "float32":
+                dtype = torch.float32
+            else:
+                raise NotImplementedError
+            adv_image = adv_image.to(dtype=dtype)
         adv_image.requires_grad_(True)
         adv_image.retain_grad()
 

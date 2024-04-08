@@ -9,6 +9,7 @@ default_attack_config = {
         "log_loss_every_n_steps": 1,
         "step_size": 0.01,
         "total_steps": 10,
+        "precision": "bfloat16",
     },
     "compile": True,
     "data": {
