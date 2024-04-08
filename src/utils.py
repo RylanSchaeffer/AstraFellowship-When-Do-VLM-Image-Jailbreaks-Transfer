@@ -86,12 +86,13 @@ def create_text_dataloader(
 def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
         images = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
-        resizer = transforms.Resize((224, 224))
-        images = torch.stack(
-            [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
-        )
-        # Only use one image for one attack.
-        images: torch.Tensor = images[image_kwargs["datum_index"]].unsqueeze(0)
+        # resizer = transforms.Resize((224, 224))
+        # images = torch.stack(
+        #     [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
+        # )
+        # # Only use one image for one attack.
+        # images: torch.Tensor = images[image_kwargs["datum_index"]].unsqueeze(0)
+        raise NotImplementedError
     elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
         images: torch.Tensor = torch.rand((1, 1, 3, image_size, image_size))

@@ -5,6 +5,7 @@ from pathlib import Path
 from pprint import pprint
 import torch
 import torchvision
+from torchvision.transforms import Resize
 import torchvision.transforms.functional
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -33,13 +34,42 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         if model_str == "prism-reproduction-llava-v15+7b":
             model_str = "reproduction-llava-v15+7b"
+            input_image_size = (336, 336)
         elif model_str == "prism-reproduction-llava-v15+13b":
             model_str = "reproduction-llava-v15+13b"
-        elif model_str == "prism-llava-lvis4v-lrv+7b":
-            model_str = "llava-lvis4v-lrv+7b"
+            input_image_size = (336, 336)
+        elif model_str == "prism-clip-controlled+7b":
+            input_image_size = (336, 336)
+        elif model_str == "prism-clip-controlled+7b":
+            input_image_size = (336, 336)
+        elif model_str == "prism-clip+7b":
+            input_image_size = (336, 336)
+        elif model_str == "prism-clip+13b":
+            input_image_size = (336, 336)
+        elif model_str == "prism-siglip-controlled+7b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-siglip-controlled+13b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-siglip+7b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-siglip+13b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-dinosiglip-controlled+7b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-dinosiglip-controlled+13b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-dinosiglip+7b":
+            input_image_size = (384, 384)
+        elif model_str == "prism-dinosiglip+13b":
+            input_image_size = (384, 384)
+        else:
+            # input_image_size = (336, 336)
+            raise NotImplementedError
 
         # self.accelerator = accelerator
         self.model_str = model_str
+        self.input_image_size = input_image_size
+        self.resizer = Resize(input_image_size)
         self.generation_kwargs = generation_kwargs
 
         hf_token = (
@@ -63,6 +93,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
+        image = self.resizer(image)
         images = image.to(self.device_str, non_blocking=True).repeat(
             len(input_ids), 1, 1, 1
         )
