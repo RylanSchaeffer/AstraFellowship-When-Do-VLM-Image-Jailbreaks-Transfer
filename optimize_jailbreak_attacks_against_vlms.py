@@ -56,7 +56,7 @@ def optimize_vlm_adversarial_examples():
     accelerator = Accelerator()
 
     vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-        models_to_attack=wandb_config["models_to_attack"],
+        model_strs=wandb_config["models_to_attack"],
         model_generation_kwargs=wandb_config["model_generation_kwargs"],
         accelerator=accelerator,
     )

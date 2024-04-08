@@ -35,6 +35,11 @@ def evaluate_vlm_adversarial_examples():
 
     print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
 
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, torch_dtype=dtype, device_map=device
+    )
+
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
     wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
@@ -67,7 +72,7 @@ def evaluate_vlm_adversarial_examples():
         accelerator = Accelerator()
 
         vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-            models_to_attack=model_str,
+            model_strs=[model_str],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
             accelerator=accelerator,
         )
@@ -77,7 +82,7 @@ def evaluate_vlm_adversarial_examples():
             vlm_ensemble=vlm_ensemble,
             prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
             wandb_config=wandb_config,
-            split="train",
+            split="test",
         )
 
         if wandb_config["compile"]:

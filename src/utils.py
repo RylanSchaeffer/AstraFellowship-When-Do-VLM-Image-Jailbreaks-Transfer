@@ -107,13 +107,13 @@ def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
 
 
 def instantiate_vlm_ensemble(
-    models_to_attack: List[str],
+    model_strs: List[str],
     model_generation_kwargs: Dict[str, Dict[str, Any]],
     accelerator: Accelerator,
 ) -> VLMEnsemble:
     # TODO: This function is probably overengineered.
     vlm_ensemble = VLMEnsemble(
-        model_strs=models_to_attack,
+        model_strs=model_strs,
         model_generation_kwargs=model_generation_kwargs,
         accelerator=accelerator,
     )
