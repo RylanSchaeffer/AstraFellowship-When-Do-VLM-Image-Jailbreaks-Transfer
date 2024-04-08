@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 
 from src.globals import default_eval_config
 from src.models.ensemble import VLMEnsemble
+from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
 import src.utils
 
 
@@ -34,10 +35,15 @@ def evaluate_vlm_adversarial_examples():
     pp.pprint(wandb_config)
 
     print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+    cuda_visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+    assert len(cuda_visible_devices) == 3
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, torch_dtype=dtype, device_map=device
+    harmbench_evaluator = HarmBenchEvaluator(
+        device=int(cuda_visible_devices[-1]),
+    )
+
+    llamaguard_evalutor = LlamaGuardEvaluator(
+        device=int(cuda_visible_devices[-2]),
     )
 
     # Convert these strings to sets of strings.

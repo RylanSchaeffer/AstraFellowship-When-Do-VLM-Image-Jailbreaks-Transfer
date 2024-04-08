@@ -8,8 +8,10 @@ parameters:
         values: ["pgd"]
       batch_size:
         values: [4]
-      log_every_n_steps:
+      log_image_every_n_steps:
         values: [2500]
+      log_loss_every_n_steps:
+        values: [100]
       step_size:
         values: [0.001]
       total_steps:
