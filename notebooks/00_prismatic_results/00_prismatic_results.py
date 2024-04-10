@@ -19,13 +19,11 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 )
 
 sweep_ids = [
-    "8maxlygp",  # MMCR Sweep Part 1
-    "zaqw7l33",  # MMCR Sweep Part 2
+    "swhukev7",  # Prism with N_Choose_1 Jailbreaks
 ]
 
-
 runs_configs_df = src.analyze.download_wandb_project_runs_configs(
-    wandb_project_path="maximum-manifold-capacity-representations",
+    wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
@@ -33,23 +31,8 @@ runs_configs_df = src.analyze.download_wandb_project_runs_configs(
 )
 
 
-# Extract the embedding dimensionality.
-def extract_embedding_dimensionality(row: pd.Series):
-    # TODO: Why are some stored as dicts and others as strings?
-    if isinstance(row["projection_kwargs"], dict):
-        projection_kwargs = row["projection_kwargs"]
-    else:
-        projection_kwargs = ast.literal_eval(row["projection_kwargs"])
-    return ast.literal_eval(projection_kwargs["layer_widths"])[-1]
-
-
-runs_configs_df["embedding_dimensionality"] = runs_configs_df.apply(
-    extract_embedding_dimensionality,
-    axis=1,
-)
-
 runs_histories_df = src.analyze.download_wandb_project_runs_histories(
-    wandb_project_path="maximum-manifold-capacity-representations",
+    wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
@@ -63,3 +46,6 @@ runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     ],
     max_num_samples_per_run=100000,
 )
+
+
+print("Finished notebooks/00_prismatic_results.py!")

@@ -163,10 +163,7 @@ def load_jailbreak_dicts_list(
             # becomes
             #   500
             wandb_logging_step = int(file_name.split("_")[2][5:])
-            n_gradient_steps = (
-                run.config["attack_kwargs"]["log_image_every_n_steps"]
-                * wandb_logging_step
-            )
+            n_gradient_steps = wandb_logging_step
             file_path = os.path.join(file_dir_path, file_name)
             runs_jailbreak_dict_list.append(
                 {
@@ -179,6 +176,11 @@ def load_jailbreak_dicts_list(
                     ),
                 }
             )
+    # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.
+    runs_jailbreak_dict_list = sorted(
+        runs_jailbreak_dict_list,
+        key=lambda x: (x["wandb_run_id"], x["n_gradient_steps"]),
+    )
     return runs_jailbreak_dict_list
 
 
