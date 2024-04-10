@@ -18,6 +18,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
     refresh=False,
 )
 
+
 sweep_ids = [
     "i303bcvb",  # Prismatic with N-Choose-1 Jailbreaks
     # "i303bcvb",  # Prismatic with N-Choose-2 Jailbreaks
@@ -31,11 +32,16 @@ runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     finished_only=False,
 )
 
-unique_and_ordered_eval_model_strs = runs_configs_df["eval_model_str"].unique().sort()
-unique_and_ordered_attack_models_strs = (
-    runs_configs_df["attack_models_str"].unique().sort()
+vlm_metadata_df = pd.read_csv(
+    os.path.join("configs", "vlm_metadata.csv"),
 )
-
+unique_and_ordered_eval_model_strs = vlm_metadata_df["Name"]
+# Keep only if the eval_model_str is in the unique_and_ordered_eval_model_strs.
+unique_and_ordered_eval_model_strs = [
+    eval_model_str
+    for eval_model_str in unique_and_ordered_eval_model_strs
+    if eval_model_str in runs_configs_df["eval_model_str"].unique()
+]
 
 runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
@@ -54,7 +60,7 @@ g = sns.relplot(
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
     row="attack_models_str",
-    row_order=unique_and_ordered_attack_models_strs,
+    # row_order=unique_and_ordered_attack_models_strs,
     col="eval_model_str",
     col_order=unique_and_ordered_eval_model_strs,
     facet_kws={"margin_titles": True},
@@ -72,7 +78,7 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
 )
-plt.show()
+# plt.show()
 
 
 plt.close()
@@ -84,11 +90,11 @@ g = sns.relplot(
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
     row="attack_models_str",
-    row_order=unique_and_ordered_attack_models_strs,
+    # row_order=unique_and_ordered_attack_models_strs,
     col="eval_model_str",
     col_order=unique_and_ordered_eval_model_strs,
 )
-g.set_axis_labels("Gradient Step", "Exact Match of Generation & Target")
+g.set_axis_labels("Gradient Step", "Exact Match of Generation \& Target")
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
 plt.tight_layout()
@@ -96,7 +102,7 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_exact_match_vs_gradient_step_cols=eval_models_rows=attack_models",
 )
-plt.show()
+# plt.show()
 
 
 print("Finished notebooks/00_prismatic_results.py!")
