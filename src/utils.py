@@ -174,6 +174,7 @@ def load_jailbreak_dicts_list(
                     "wandb_run_train_indices": np.array(
                         ast.literal_eval(run.config["train_indices"])
                     ),
+                    "attack_models_str": run.config["models_to_attack"],
                 }
             )
     # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.

@@ -99,8 +99,10 @@ class JailbreakAttacker:
                         total_losses_per_model[model_name] += batch_size * loss
                 total_samples += batch_size
 
-        for model_name, total_loss in total_losses_per_model.items():
-            total_losses_per_model[model_name] = total_loss / total_samples
+        total_losses_per_model = {
+            f"eval/loss_model={model_name}": total_loss / total_samples
+            for model_name, total_loss in total_losses_per_model.items()
+        }
 
         # Choose a fixed subset of samples to evaluate.
         batch_prompts, batch_targets = self.sample_prompts_and_targets(
@@ -125,6 +127,7 @@ class JailbreakAttacker:
                 )
             )
 
+            # TODO: Add a key about which model was attacked and which model was evaluated.
             evaluation_results[model_name] = {
                 f"generations_{model_name}_step={wandb_logging_step_idx}": wandb.Table(
                     columns=[
@@ -147,12 +150,13 @@ class JailbreakAttacker:
                 ),
                 # Pytorch uses (C, H, W), but wandb uses (H, W, C).
                 # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
-                "adversarial_image": wandb.Image(
-                    image[0].detach().numpy().transpose(1, 2, 0),
-                    caption="Adversarial Image",
-                ),
-                "test/generation_begins_with_target": model_adv_generation_begins_with_target,
+                # "adversarial_image": wandb.Image(
+                #     image[0].detach().numpy().transpose(1, 2, 0),
+                #     caption="Adversarial Image",
+                # ),
+                "eval/generation_begins_with_target": model_adv_generation_begins_with_target,
             }
+            evaluation_results[model_name].update(total_losses_per_model)
 
         return evaluation_results
 

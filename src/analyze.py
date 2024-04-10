@@ -104,7 +104,9 @@ def download_wandb_project_runs_histories(
             sweep = api.sweep(f"{wandb_username}/{wandb_project_path}/{sweep_id}")
             for run in tqdm(sweep.runs):
                 # https://community.wandb.ai/t/run-history-returns-different-values-on-almost-each-call/2431/4
-                history = run.history(samples=wandb_run_history_samples)
+                history = run.history(
+                    samples=wandb_run_history_samples,
+                )
                 if history.empty:
                     continue
                 history["run_id"] = run.id
@@ -113,9 +115,7 @@ def download_wandb_project_runs_histories(
         assert len(runs_histories_list) > 0
         runs_histories_df = pd.concat(runs_histories_list, sort=False)
 
-        runs_histories_df.sort_values(
-            ["run_id", "trainer/global_step"], ascending=True, inplace=True
-        )
+        runs_histories_df.sort_values(["run_id"], ascending=True, inplace=True)
 
         runs_histories_df.reset_index(inplace=True, drop=True)
         runs_histories_df.to_csv(runs_histories_df_path, index=False)

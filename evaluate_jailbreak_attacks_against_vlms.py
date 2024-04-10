@@ -112,7 +112,7 @@ def evaluate_vlm_adversarial_examples():
                 wandb_logging_step_idx=run_jailbreak_dict["n_gradient_steps"],
             )[model_name_str]
 
-            model_evaluation_results["model_str"] = model_name_str
+            model_evaluation_results["eval_model_str"] = model_name_str
             model_evaluation_results["wandb_run_id"] = run_jailbreak_dict[
                 "wandb_run_id"
             ]
@@ -121,6 +121,9 @@ def evaluate_vlm_adversarial_examples():
             ]
             model_evaluation_results["n_gradient_steps"] = run_jailbreak_dict[
                 "n_gradient_steps"
+            ]
+            model_evaluation_results["attack_models_str"] = run_jailbreak_dict[
+                "attack_models_str"
             ]
 
             # Log the evaluation results.

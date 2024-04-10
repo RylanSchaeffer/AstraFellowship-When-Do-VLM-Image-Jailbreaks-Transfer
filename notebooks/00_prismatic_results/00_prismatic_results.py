@@ -19,7 +19,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 )
 
 sweep_ids = [
-    "swhukev7",  # Prism with N_Choose_1 Jailbreaks
+    "xk0nv314",  # Prismatic with N_Choose_1 Jailbreaks
 ]
 
 runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -27,7 +27,7 @@ runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    finished_only=True,
+    finished_only=False,
 )
 
 
@@ -36,16 +36,33 @@ runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    keys=[
-        "epoch",
-        "linear/val_top1",
-        "linear/val_probs_mean",
-        "pretrain/percent_error_step",
-        "pretrain/total_loss_step",
-        "pretrain/1_minus_average_centroid_norm_step",
-    ],
-    max_num_samples_per_run=100000,
+    wandb_run_history_samples=10000,
 )
+
+plt.close()
+g = sns.relplot(
+    data=runs_histories_df,
+    x="n_gradient_step",
+    y="eval/loss_model=avg",
+    row="attack_models_str",
+    col="eval_model_str",
+)
+
+g.set_axis_labels("Gradient Step", "Cross Entropy of Target | Prompt, Image")
+plt.show()
+
+
+plt.close()
+g = sns.relplot(
+    data=runs_histories_df,
+    x="n_gradient_step",
+    y="eval/generation_begins_with_target",
+    row="attack_models_str",
+    col="eval_model_str",
+)
+
+g.set_axis_labels("Gradient Step", "Cross Entropy of Target | Prompt, Image")
+plt.show()
 
 
 print("Finished notebooks/00_prismatic_results.py!")
