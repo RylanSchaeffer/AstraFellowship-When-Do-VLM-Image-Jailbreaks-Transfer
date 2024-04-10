@@ -10,8 +10,8 @@ import src.plot
 import src.utils
 
 
-# refresh = True
-refresh = False
+refresh = True
+# refresh = False
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -19,7 +19,8 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 )
 
 sweep_ids = [
-    "xk0nv314",  # Prismatic with N_Choose_1 Jailbreaks
+    "i303bcvb",  # Prismatic with N-Choose-1 Jailbreaks
+    # "i303bcvb",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
 runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -28,6 +29,11 @@ runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     sweep_ids=sweep_ids,
     refresh=refresh,
     finished_only=False,
+)
+
+unique_and_ordered_eval_model_strs = runs_configs_df["eval_model_str"].unique().sort()
+unique_and_ordered_attack_models_strs = (
+    runs_configs_df["attack_models_str"].unique().sort()
 )
 
 
@@ -42,26 +48,54 @@ runs_histories_df = src.analyze.download_wandb_project_runs_histories(
 plt.close()
 g = sns.relplot(
     data=runs_histories_df,
-    x="n_gradient_step",
+    kind="line",
+    x="n_gradient_steps",
     y="eval/loss_model=avg",
+    hue="eval_model_str",
+    hue_order=unique_and_ordered_eval_model_strs,
     row="attack_models_str",
+    row_order=unique_and_ordered_attack_models_strs,
     col="eval_model_str",
+    col_order=unique_and_ordered_eval_model_strs,
+    facet_kws={"margin_titles": True},
 )
-
-g.set_axis_labels("Gradient Step", "Cross Entropy of Target | Prompt, Image")
+g.set_axis_labels("Gradient Step", "Cross Entropy of P(Target | Prompt, Image)")
+g.set_titles(col_template="{col_name}", row_template="{row_name}")
+sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+plt.tight_layout()
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title="prismatic_loss_vs_gradient_step_cols=eval_models_rows=attack_models",
+)
+g.set(xscale="log", yscale="log")
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
+)
 plt.show()
 
 
 plt.close()
 g = sns.relplot(
     data=runs_histories_df,
-    x="n_gradient_step",
+    kind="line",
+    x="n_gradient_steps",
     y="eval/generation_begins_with_target",
+    hue="eval_model_str",
+    hue_order=unique_and_ordered_eval_model_strs,
     row="attack_models_str",
+    row_order=unique_and_ordered_attack_models_strs,
     col="eval_model_str",
+    col_order=unique_and_ordered_eval_model_strs,
 )
-
-g.set_axis_labels("Gradient Step", "Cross Entropy of Target | Prompt, Image")
+g.set_axis_labels("Gradient Step", "Exact Match of Generation & Target")
+g.set_titles(col_template="{col_name}", row_template="{row_name}")
+sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+plt.tight_layout()
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title="prismatic_exact_match_vs_gradient_step_cols=eval_models_rows=attack_models",
+)
 plt.show()
 
 
