@@ -1,5 +1,5 @@
-program: evaluate_jailbreak_attacks_against_vlms.py
-project: universal-vlm-jailbreak-eval
+program: optimize_jailbreak_attacks_against_vlms.py
+project: universal-vlm-jailbreak
 method: grid
 parameters:
   attack_kwargs:
