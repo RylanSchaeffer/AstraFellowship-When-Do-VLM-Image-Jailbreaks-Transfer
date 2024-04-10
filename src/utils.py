@@ -122,7 +122,7 @@ def instantiate_vlm_ensemble(
     model_generation_kwargs: Dict[str, Dict[str, Any]],
     accelerator: Accelerator,
 ) -> VLMEnsemble:
-    # TODO: This function is probably overengineered.
+    # TODO: This function is probably overengineered and should be deleted.
     vlm_ensemble = VLMEnsemble(
         model_strs=model_strs,
         model_generation_kwargs=model_generation_kwargs,

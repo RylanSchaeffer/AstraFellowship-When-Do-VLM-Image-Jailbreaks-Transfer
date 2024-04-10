@@ -41,6 +41,9 @@ default_eval_config = {
         "attack_name": "eval",
         "batch_size": 1,
     },
+    "data": {
+        "num_workers": 1,
+    },
     "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     "model_generation_kwargs": {
         # "prism-reproduction-llava-v15+7b": {
