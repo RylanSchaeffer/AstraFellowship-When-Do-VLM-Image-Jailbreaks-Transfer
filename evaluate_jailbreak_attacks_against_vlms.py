@@ -109,7 +109,7 @@ def evaluate_vlm_adversarial_examples():
                 text_dataloader=text_dataloader,
                 # harmbench_evaluator=None,  # harmbench_evaluator,
                 # llamaguard_evalutor=None,  # llamaguard_evalutor,
-                wandb_logging_step_idx=1,
+                wandb_logging_step_idx=run_jailbreak_dict["n_gradient_steps"],
             )[model_name_str]
 
             model_evaluation_results["model_str"] = model_name_str

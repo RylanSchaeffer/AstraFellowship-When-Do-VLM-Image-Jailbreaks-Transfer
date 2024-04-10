@@ -42,9 +42,20 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 7. `git submodule update --init --recursive`
 
+## Optimizing Jailbreaks
+
+## Evaluating Jailbreaks
+
+```
+cd PerezAstraFellowship-Image-DAN-VLM-Attack
+conda activate universal_vlm_jailbreak_env
+export PYTHONPATH=.
+export CUDA_VISIBLE_DEVICES=5
+wandb agent rylan/universal-vlm-jailbreak-eval/swhukev7
+```
 
 
-### Results
+## Results
 
 
 
