@@ -126,6 +126,10 @@ def evaluate_vlm_adversarial_examples():
             # Log the evaluation results.
             wandb.log(model_evaluation_results)
 
+            print(
+                f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['n_gradient_steps']}"
+            )
+
 
 if __name__ == "__main__":
     if "CUDA_VISIBLE_DEVICES" not in os.environ:

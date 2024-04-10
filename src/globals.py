@@ -45,6 +45,7 @@ default_eval_config = {
         "num_workers": 1,
     },
     "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    # "models_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
         # "prism-reproduction-llava-v15+7b": {
         #     "temperature": 0.1,
