@@ -89,6 +89,7 @@ def create_text_dataloader(
         batch_size=wandb_config["attack_kwargs"]["batch_size"],
         shuffle=True if split == "train" else False,
         num_workers=wandb_config["data"]["num_workers"],
+        drop_last=True if split == "train" else False,
     )
 
     return prompts_and_targets_dict, dataloader

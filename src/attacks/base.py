@@ -3,6 +3,7 @@ from abc import abstractmethod
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import random
 import torch
 import torch.utils.data
 import tqdm
@@ -71,26 +72,41 @@ class JailbreakAttacker:
     def evaluate_jailbreak_against_vlms_and_log(
         self,
         vlm_ensemble: VLMEnsemble,
-        adv_image: torch.Tensor,
+        image: torch.Tensor,
         prompts_and_targets_dict: Dict[str, List[str]],
         text_dataloader: torch.utils.data.DataLoader,
-        harmbench_evaluator: HarmBenchEvaluator,
-        llamaguard_evalutor: LlamaGuardEvaluator,
+        # harmbench_evaluator: HarmBenchEvaluator,
+        # llamaguard_evalutor: LlamaGuardEvaluator,
         wandb_logging_step_idx: int = 1,
     ) -> Dict[str, Dict[str, Any]]:
         total_losses_per_model = {}
+        total_samples = 0
         for batch_idx, batch_text_data_by_model in enumerate(
             tqdm.tqdm(text_dataloader)
         ):
+            batch_size = batch_text_data_by_model[
+                list(batch_text_data_by_model.keys())[0]  # any key will work
+            ]["input_ids"].shape[0]
             with torch.no_grad():
                 batch_losses_per_model = vlm_ensemble.compute_loss(
-                    image=adv_image,
+                    image=image,
                     text_data_by_model=batch_text_data_by_model,
                 )
+                for model_name, loss in batch_losses_per_model.items():
+                    if model_name not in total_losses_per_model:
+                        total_losses_per_model[model_name] = batch_size * loss
+                    else:
+                        total_losses_per_model[model_name] += batch_size * loss
+                total_samples += batch_size
 
+        for model_name, total_loss in total_losses_per_model.items():
+            total_losses_per_model[model_name] = total_loss / total_samples
+
+        # Choose a fixed subset of samples to evaluate.
         batch_prompts, batch_targets = self.sample_prompts_and_targets(
-            prompts=prompts_and_targets_dict["test"]["prompts"],
-            targets=prompts_and_targets_dict["test"]["targets"],
+            prompts=prompts_and_targets_dict["prompts"],
+            targets=prompts_and_targets_dict["targets"],
+            batch_size=10,
         )
 
         evaluation_results = {}
@@ -99,7 +115,7 @@ class JailbreakAttacker:
             model_wrapper,
         ) in vlm_ensemble.vlms_dict.items():
             batch_model_generations = model_wrapper.generate(
-                image=adv_image,
+                image=image,
                 prompts=batch_prompts,
             )
             model_adv_generation_begins_with_target = (
@@ -132,10 +148,23 @@ class JailbreakAttacker:
                 # Pytorch uses (C, H, W), but wandb uses (H, W, C).
                 # See https://github.com/wandb/wandb/issues/393#issuecomment-1808432690.
                 "adversarial_image": wandb.Image(
-                    adv_image[0].detach().numpy().transpose(1, 2, 0),
+                    image[0].detach().numpy().transpose(1, 2, 0),
                     caption="Adversarial Image",
                 ),
                 "test/generation_begins_with_target": model_adv_generation_begins_with_target,
             }
 
         return evaluation_results
+
+    def sample_prompts_and_targets(
+        self, prompts: List[str], targets: List[str], batch_size: int = 10
+    ):
+        batch_idx = random.sample(range(len(prompts)), batch_size)
+        batch_prompts = [
+            prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
+        ]
+        batch_targets = [
+            target for idx, target in enumerate(targets) if idx in batch_idx
+        ]
+
+        return batch_prompts, batch_targets

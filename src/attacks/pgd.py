@@ -3,7 +3,6 @@ from accelerate import Accelerator
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 import seaborn as sns
 import torch
 import torch.utils.data
@@ -125,14 +124,3 @@ class PGDAttacker(JailbreakAttacker):
         }
 
         return attack_results
-
-    def sample_prompts_and_targets(self, prompts: List[str], targets: List[str]):
-        batch_idx = random.sample(range(len(prompts)), self.attack_kwargs["batch_size"])
-        batch_prompts = [
-            prompt for idx, prompt in enumerate(prompts) if idx in batch_idx
-        ]
-        batch_targets = [
-            target for idx, target in enumerate(targets) if idx in batch_idx
-        ]
-
-        return batch_prompts, batch_targets

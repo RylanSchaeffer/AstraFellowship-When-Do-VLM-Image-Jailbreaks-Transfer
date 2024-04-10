@@ -1,0 +1,15 @@
+Name,Vision Backbone,Language Backbone,Datasets
+prism-reproduction-llava-v15+7b,CLIP ViT-L/14 @ 336px,Vicuna v1.5 7B,LLaVa v1.5 Instruct
+prism-reproduction-llava-v15+13b,CLIP ViT-L/14 @ 336px,Vicuna v1.5 13B,LLaVa v1.5 Instruct
+prism-clip-controlled+7b,CLIP ViT-L/14 @ 336px,Llama 2 Chat 7B,LLaVa v1.5 Instruct
+prism-clip-controlled+13b,CLIP ViT-L/14 @ 336px,Llama 2 Chat 13B,LLaVa v1.5 Instruct
+prism-clip+7b,CLIP ViT-L/14 @ 336px,Llama 2 Chat 7B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct
+prism-clip+13b,CLIP ViT-L/14 @ 336px,Llama 2 Chat 13B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct
+prism-siglip-controlled+7b,SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 7B,LLaVa v1.5 Instruct
+prism-siglip-controlled+13b,SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 13B,LLaVa v1.5 Instruct
+prism-siglip+7b,SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 7B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct
+prism-siglip+13b,SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 13B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct
+prism-dinosiglip-controlled+7b,DINOv2 ViT-L/14 + SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 7B,LLaVa v1.5 Instruct
+prism-dinosiglip-controlled+13b,DINOv2 ViT-L/14 + SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 13B,LLaVa v1.5 Instruct
+prism-dinosiglip+7b,DINOv2 ViT-L/14 + SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 7B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct
+prism-dinosiglip+13b,DINOv2 ViT-L/14 + SigLIP ViT-SO/14 @ 384px,Llama 2 Chat 13B,LLaVa v1.5 Instruct; LVIS-Instruct-4V; LRV-Instruct

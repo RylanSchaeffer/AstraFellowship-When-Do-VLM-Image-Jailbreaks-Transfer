@@ -107,8 +107,8 @@ def evaluate_vlm_adversarial_examples():
                 image=adv_image,
                 prompts_and_targets_dict=prompts_and_targets_dict,
                 text_dataloader=text_dataloader,
-                harmbench_evaluator=None,  # harmbench_evaluator,
-                llamaguard_evalutor=None,  # llamaguard_evalutor,
+                # harmbench_evaluator=None,  # harmbench_evaluator,
+                # llamaguard_evalutor=None,  # llamaguard_evalutor,
                 wandb_logging_step_idx=1,
             )[model_name_str]
 
@@ -124,7 +124,7 @@ def evaluate_vlm_adversarial_examples():
             ]
 
             # Log the evaluation results.
-            wandb.log(model_evaluation_results, step=1)
+            wandb.log(model_evaluation_results)
 
 
 if __name__ == "__main__":
