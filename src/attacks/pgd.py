@@ -80,7 +80,7 @@ class PGDAttacker(JailbreakAttacker):
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
                     with torch.no_grad():
-                        losses_per_model = self.vlm_ensemble.compute_loss(
+                        uint8_losses_per_model = self.vlm_ensemble.compute_loss(
                             image=(255.0 * adv_image).to(dtype=torch.uint8) / 255.0,
                             text_data_by_model=batch_text_data_by_model,
                         )
@@ -88,7 +88,7 @@ class PGDAttacker(JailbreakAttacker):
                     wandb.log(
                         {
                             f"sanity_check_discretization/loss_{key}": value.item()
-                            for key, value in losses_per_model.items()
+                            for key, value in uint8_losses_per_model.items()
                         },
                         step=wandb_logging_step_idx,
                     )
