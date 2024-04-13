@@ -133,7 +133,7 @@ class VLMEnsemble(torch.nn.Module):
         avg_loss = torch.zeros(1, requires_grad=True, device="cpu")[0]
         for model_name, loss in losses_per_model.items():
             losses_per_model[model_name] = loss.to("cpu")
-            avg_loss += losses_per_model[model_name]
+            avg_loss = avg_loss + losses_per_model[model_name]
         avg_loss /= len(losses_per_model)
         losses_per_model["avg"] = avg_loss
         return losses_per_model
