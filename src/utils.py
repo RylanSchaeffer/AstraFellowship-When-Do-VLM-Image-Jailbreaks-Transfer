@@ -149,7 +149,8 @@ def load_jailbreak_dicts_list(
 ) -> List[Dict[str, Any]]:
     os.makedirs(data_dir_path, exist_ok=True)
     runs_jailbreak_dict_list_path = os.path.join(
-        data_dir_path, "runs_jailbreak_dict_list.joblib"
+        data_dir_path,
+        f"runs_jailbreak_dict_list_sweep={wandb_config['wandb_sweep_id']}.joblib",
     )
     if refresh or not os.path.exists(runs_jailbreak_dict_list_path):
         print("Downloading jailbreak images...")

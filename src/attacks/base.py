@@ -80,12 +80,14 @@ class JailbreakAttacker:
         wandb_logging_step_idx: int = 1,
     ) -> Dict[str, Dict[str, Any]]:
         total_losses_per_model = {}
-        total_samples = 0
+        total_samples = 0.0
         for batch_idx, batch_text_data_by_model in enumerate(
             tqdm.tqdm(text_dataloader)
         ):
             batch_size = batch_text_data_by_model[
-                list(batch_text_data_by_model.keys())[0]  # any key will work
+                list(batch_text_data_by_model.keys())[
+                    0
+                ]  # Any key will work for obtaining batch size.
             ]["input_ids"].shape[0]
             with torch.no_grad():
                 batch_losses_per_model = vlm_ensemble.compute_loss(

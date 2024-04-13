@@ -107,19 +107,18 @@ class VLMEnsemble(torch.nn.Module):
     ) -> Dict[str, torch.Tensor]:
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
-        model_losses: List[torch.Tensor] = []
 
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
             # Move all tensors to the correct device so we aren't blocked waiting for one model.
-            image_on_device = image.to(model_wrapper.device_str, non_blocking=True)
+            image_on_device = image.to(model_wrapper.device_str)
             input_ids_on_device = text_data_by_model[model_name]["input_ids"].to(
-                model_wrapper.device_str, non_blocking=True
+                model_wrapper.device_str
             )
             attention_mask_on_device = text_data_by_model[model_name][
                 "attention_mask"
-            ].to(model_wrapper.device_str, non_blocking=True)
+            ].to(model_wrapper.device_str)
             labels_on_device = text_data_by_model[model_name]["labels"].to(
-                model_wrapper.device_str, non_blocking=True
+                model_wrapper.device_str,
             )
 
             # Compute the loss for each model
@@ -129,17 +128,14 @@ class VLMEnsemble(torch.nn.Module):
                 attention_mask=attention_mask_on_device,
                 labels=labels_on_device,
             )
-            model_losses.append(loss.to("cpu", non_blocking=True))
-
-        # Stack the model losses and compute the average loss
-        stacked_losses = torch.stack(model_losses)
-
-        # Store the model losses and average loss in the dictionary
-        for model_name, loss in zip(self.vlms_dict.keys(), model_losses):
             losses_per_model[model_name] = loss
 
-        losses_per_model["avg"] = torch.mean(stacked_losses).to("cpu")
-
+        avg_loss = torch.zeros(1, requires_grad=True, device="cpu")[0]
+        for model_name, loss in losses_per_model.items():
+            losses_per_model[model_name] = loss.to("cpu")
+            avg_loss += losses_per_model[model_name]
+        avg_loss /= len(losses_per_model)
+        losses_per_model["avg"] = avg_loss
         return losses_per_model
 
     def disable_model_gradients(self):

@@ -58,7 +58,7 @@ def evaluate_vlm_adversarial_examples():
     # )
 
     runs_jailbreak_dict_list = [
-        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "dz2maypg"
+        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "r4l59tv3"
     ]
     runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
 
@@ -98,7 +98,7 @@ def evaluate_vlm_adversarial_examples():
                 },
             )
 
-            # Read image from disk.
+            # Read image from disk. This image data should match the uint8 images.
             adv_image_frame = Image.open(
                 run_jailbreak_dict["file_path"], mode="r"
             )  # .size is Width-Height
