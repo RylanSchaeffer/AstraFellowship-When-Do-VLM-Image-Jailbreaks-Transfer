@@ -2,6 +2,7 @@
 from accelerate import Accelerator
 import ast
 import getpass
+import joblib
 import numpy as np
 import os
 import pandas as pd
@@ -143,45 +144,75 @@ def is_dist_avail_and_initialized():
 
 def load_jailbreak_dicts_list(
     wandb_config: Dict[str, Any],
+    data_dir_path: str = "eval_data",
+    refresh: bool = False,
 ) -> List[Dict[str, Any]]:
-    api = wandb.Api()
-    sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
-    runs = list(sweep.runs)
-    runs_jailbreak_dict_list = []
-    for run in runs:
-        for file in run.files():
-            file_name = str(file.name)
-            if not file_name.endswith(".png"):
-                continue
-            file_dir_path = os.path.join(
-                "eval_data", f"sweep={wandb_config['wandb_sweep_id']}", run.id
-            )
-            os.makedirs(file_dir_path, exist_ok=True)
-            file.download(root=file_dir_path, replace=True)
-            # Example:
-            #   'eval_data/sweep=7v3u4uq5/dz2maypg/media/images/jailbreak_image_step=500_0_6bff027c89aa794cfb3b.png'
-            # becomes
-            #   500
-            wandb_logging_step = int(file_name.split("_")[2][5:])
-            n_gradient_steps = wandb_logging_step
-            file_path = os.path.join(file_dir_path, file_name)
-            runs_jailbreak_dict_list.append(
-                {
-                    "file_path": file_path,
-                    "wandb_run_id": run.id,
-                    "wandb_logging_step": wandb_logging_step,
-                    "n_gradient_steps": n_gradient_steps,
-                    "wandb_run_train_indices": np.array(
-                        ast.literal_eval(run.config["train_indices"])
-                    ),
-                    "attack_models_str": run.config["models_to_attack"],
-                }
-            )
-    # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.
-    runs_jailbreak_dict_list = sorted(
-        runs_jailbreak_dict_list,
-        key=lambda x: (x["wandb_run_id"], x["n_gradient_steps"]),
+    os.makedirs(data_dir_path, exist_ok=True)
+    runs_jailbreak_dict_list_path = os.path.join(
+        data_dir_path, "runs_jailbreak_dict_list.joblib"
     )
+    if refresh or not os.path.exists(runs_jailbreak_dict_list_path):
+        print("Downloading jailbreak images...")
+
+        api = wandb.Api()
+        sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
+        runs = list(sweep.runs)
+        runs_jailbreak_dict_list = []
+        for run in runs:
+            for file in run.files():
+                file_name = str(file.name)
+                if not file_name.endswith(".png"):
+                    continue
+                file_dir_path = os.path.join(
+                    "data_dir_path", f"sweep={wandb_config['wandb_sweep_id']}", run.id
+                )
+                os.makedirs(file_dir_path, exist_ok=True)
+                file.download(root=file_dir_path, replace=True)
+                # Example:
+                #   'eval_data/sweep=7v3u4uq5/dz2maypg/media/images/jailbreak_image_step=500_0_6bff027c89aa794cfb3b.png'
+                # becomes
+                #   500
+                wandb_logging_step = int(file_name.split("_")[2][5:])
+                n_gradient_steps = wandb_logging_step
+                file_path = os.path.join(file_dir_path, file_name)
+                runs_jailbreak_dict_list.append(
+                    {
+                        "file_path": file_path,
+                        "wandb_run_id": run.id,
+                        "wandb_logging_step": wandb_logging_step,
+                        "n_gradient_steps": n_gradient_steps,
+                        "wandb_run_train_indices": np.array(
+                            ast.literal_eval(run.config["train_indices"])
+                        ),
+                        "attack_models_str": run.config["models_to_attack"],
+                    }
+                )
+
+                print(
+                    "Downloaded jailbreak image for run: ",
+                    run.id,
+                    " at step: ",
+                    n_gradient_steps,
+                )
+
+        # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.
+        runs_jailbreak_dict_list = sorted(
+            runs_jailbreak_dict_list,
+            key=lambda x: (x["wandb_run_id"], x["n_gradient_steps"]),
+        )
+
+        joblib.dump(
+            value=runs_jailbreak_dict_list,
+            filename=runs_jailbreak_dict_list_path,
+        )
+
+        print("Saved runs_jailbreak_dict_list to: ", runs_jailbreak_dict_list_path)
+
+    else:
+        runs_jailbreak_dict_list = joblib.load(runs_jailbreak_dict_list_path)
+
+        print("Loaded runs_jailbreak_dict_list from: ", runs_jailbreak_dict_list_path)
+
     return runs_jailbreak_dict_list
 
 

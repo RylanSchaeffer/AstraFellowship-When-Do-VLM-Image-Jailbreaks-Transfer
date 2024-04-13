@@ -37,7 +37,7 @@ class JailbreakAttacker:
     ):
         pass
 
-    def compute_adversarial_examples(
+    def optimize_image_jailbreaks(
         self,
         tensor_images: torch.Tensor,
         text_dataloader: torch.utils.data.DataLoader,

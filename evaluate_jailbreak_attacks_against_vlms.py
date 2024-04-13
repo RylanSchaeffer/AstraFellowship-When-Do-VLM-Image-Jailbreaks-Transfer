@@ -57,6 +57,11 @@ def evaluate_vlm_adversarial_examples():
     #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
     # )
 
+    runs_jailbreak_dict_list = [
+        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "dz2maypg"
+    ]
+    runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
+
     for model_name_str in wandb_config["models_to_eval"]:
         vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
             model_strs=[model_name_str],
@@ -94,12 +99,18 @@ def evaluate_vlm_adversarial_examples():
             )
 
             # Read image from disk.
-            adv_image_frame = Image.open(run_jailbreak_dict["file_path"])
+            adv_image_frame = Image.open(
+                run_jailbreak_dict["file_path"], mode="r"
+            )  # .size is Width-Height
             adv_image = (
-                torch.from_numpy(np.array(adv_image_frame))
-                .unsqueeze(0)
-                .permute(0, 3, 1, 2)
+                torch.from_numpy(np.array(adv_image_frame))  # Height-Width-Channel
+                .permute(
+                    2, 0, 1
+                )  # Move channel to first dimension to match PyTorch notation.
+                .unsqueeze(0)  # Add batch dimension.
             )
+            if torch.max(adv_image) > 1.0:
+                adv_image = adv_image / 255.0
 
             # Measure and log metrics of model on attacks.
             model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(

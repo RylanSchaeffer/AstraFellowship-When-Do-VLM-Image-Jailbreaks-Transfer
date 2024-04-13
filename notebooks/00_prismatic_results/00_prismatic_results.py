@@ -10,8 +10,8 @@ import src.plot
 import src.utils
 
 
-refresh = True
-# refresh = False
+# refresh = True
+refresh = False
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -20,8 +20,8 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "i303bcvb",  # Prismatic with N-Choose-1 Jailbreaks
-    # "i303bcvb",  # Prismatic with N-Choose-2 Jailbreaks
+    "kd52kb2u",  # Prismatic with N-Choose-1 Jailbreaks
+    # "i303bcvb",       # Prismatic with N-Choose-2 Jailbreaks
 ]
 
 runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -65,7 +65,7 @@ g = sns.relplot(
     col_order=unique_and_ordered_eval_model_strs,
     facet_kws={"margin_titles": True},
 )
-g.set_axis_labels("Gradient Step", "Cross Entropy of P(Target | Prompt, Image)")
+g.set_axis_labels("Gradient Step", r"Cross Entropy of P(Target $\lvert$ Prompt, Image)")
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
 plt.tight_layout()

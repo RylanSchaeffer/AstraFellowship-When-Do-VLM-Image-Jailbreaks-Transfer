@@ -82,7 +82,7 @@ def optimize_vlm_adversarial_examples():
         accelerator=accelerator,
     )
 
-    attacker.compute_adversarial_examples(
+    attacker.optimize_image_jailbreaks(
         tensor_images=tensor_images,
         text_dataloader=text_dataloader,
         prompts_and_targets_dict=prompts_and_targets_dict,
