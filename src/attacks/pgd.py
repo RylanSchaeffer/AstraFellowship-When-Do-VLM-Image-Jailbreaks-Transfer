@@ -59,17 +59,8 @@ class PGDAttacker(JailbreakAttacker):
         n_train_epochs = math.ceil(
             self.attack_kwargs["total_steps"] / len(text_dataloader)
         )
-        n_train_steps = n_train_epochs * len(text_dataloader)
 
         gradient_step = 0
-        # self.test_attack_against_vlms_and_log(
-        #     original_image=original_image,
-        #     adv_image=adv_image,
-        #     prompts_and_targets_dict=prompts_and_targets_dict,
-        #     text_dataloader=text_dataloader,
-        #     wandb_logging_step_idx=wandb_logging_step_idx,
-        # )
-
         for epoch_idx in range(n_train_epochs):
             for batch_idx, batch_text_data_by_model in enumerate(
                 tqdm.tqdm(text_dataloader)
@@ -86,6 +77,22 @@ class PGDAttacker(JailbreakAttacker):
                         step=wandb_logging_step_idx,
                     )
 
+                if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
+                    wandb_logging_step_idx = gradient_step + 1
+                    with torch.no_grad():
+                        losses_per_model = self.vlm_ensemble.compute_loss(
+                            image=(255.0 * adv_image).to(dtype=torch.uint8) / 255.0,
+                            text_data_by_model=batch_text_data_by_model,
+                        )
+
+                    wandb.log(
+                        {
+                            f"sanity_check_discretization/loss_{key}": value.item()
+                            for key, value in losses_per_model.items()
+                        },
+                        step=wandb_logging_step_idx,
+                    )
+
                 losses_per_model = self.vlm_ensemble.compute_loss(
                     image=adv_image,
                     text_data_by_model=batch_text_data_by_model,
@@ -93,10 +100,11 @@ class PGDAttacker(JailbreakAttacker):
 
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
+
                     # Log the losses to W&B.
                     wandb.log(
                         {
-                            f"train/loss_{key}": value
+                            f"train/loss_{key}": value.item()
                             for key, value in losses_per_model.items()
                         },
                         step=wandb_logging_step_idx,
@@ -110,13 +118,6 @@ class PGDAttacker(JailbreakAttacker):
                 adv_image.grad.zero_()
 
                 gradient_step += 1
-
-            # self.test_attack_against_vlms_and_log(
-            #     original_image=original_image,
-            #     adv_image=adv_image,
-            #     prompts_and_targets_dict=prompts_and_targets_dict,
-            #     wandb_logging_step_idx=wandb_logging_step_idx,
-            # )
 
         attack_results = {
             "original_image": original_image,

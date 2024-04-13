@@ -253,6 +253,7 @@ def load_prompts_and_targets(
             )
         else:
             unique_indices = np.arange(len(prompts))
+            wandb.config.update({"n_unique_prompts_and_targets": len(prompts)})
     elif split == "eval":
         # TODO: Fix this in the future.
         # assert "train_indices" in kwargs

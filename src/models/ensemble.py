@@ -1,7 +1,6 @@
 import os
-
-import torch.nn
 from accelerate import Accelerator
+import torch.nn
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -108,7 +107,8 @@ class VLMEnsemble(torch.nn.Module):
     ) -> Dict[str, torch.Tensor]:
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
-        total_loss = torch.zeros(1, requires_grad=True, device="cpu")
+        model_losses: List[torch.Tensor] = []
+
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
             # Move all tensors to the correct device so we aren't blocked waiting for one model.
             image_on_device = image.to(model_wrapper.device_str, non_blocking=True)
@@ -122,38 +122,25 @@ class VLMEnsemble(torch.nn.Module):
                 model_wrapper.device_str, non_blocking=True
             )
 
-            loss_for_model = model_wrapper.compute_loss(
+            # Compute the loss for each model
+            loss = model_wrapper.compute_loss(
                 image=image_on_device,
                 input_ids=input_ids_on_device,
                 attention_mask=attention_mask_on_device,
                 labels=labels_on_device,
             )
-            losses_per_model[model_name] = loss_for_model.to("cpu", non_blocking=True)
-            if model_name in self.vlms_dict:
-                total_loss = total_loss + losses_per_model[model_name]
-        avg_loss = total_loss / len(self.vlms_dict)
-        losses_per_model["avg"] = avg_loss.to("cpu", non_blocking=True)
-        return losses_per_model
+            model_losses.append(loss)
 
-    # def compute_loss_parallel(
-    #     self, image: torch.Tensor, prompts: List[str], targets: List[str]
-    # ) -> Dict[str, torch.Tensor]:
-    #     # Always calculate loss per model and use for updating the adversarial example.
-    #     losses_per_model: Dict[str, torch.Tensor] = {}
-    #     images_replicated = [
-    #         image.to(model_wrapper.device_str, non_blocking=True)
-    #         for model_wrapper in self.vlms_to_eval_dict.values()
-    #     ]
-    #     prompts_replicated = [prompts for _ in self.vlms_to_eval_dict]
-    #     targets_replicated = [targets for _ in self.vlms_to_eval_dict]
-    #     losses_per_model = torch.nn.parallel.parallel_apply(
-    #         modules=self.vlms_to_eval_dict.values(),
-    #         inputs=(images_replicated, prompts_replicated, targets_replicated),
-    #         devices=list(range(len(self.vlms_to_eval_dict))),
-    #     )
-    #     # avg_loss = total_loss / len(self.vlms_to_attack_dict)
-    #     # losses_per_model["avg"] = avg_loss.to("cpu", non_blocking=True)
-    #     return losses_per_model
+        # Stack the model losses and compute the average loss
+        stacked_losses = torch.stack(model_losses)
+        avg_loss = torch.mean(stacked_losses)
+
+        # Store the model losses and average loss in the dictionary
+        for model_name, loss in zip(self.vlms_dict.keys(), model_losses):
+            losses_per_model[model_name] = loss.to("cpu", non_blocking=True)
+        losses_per_model["avg"] = avg_loss.to("cpu")
+
+        return losses_per_model
 
     def disable_model_gradients(self):
         # set all models' requires_grad to False
