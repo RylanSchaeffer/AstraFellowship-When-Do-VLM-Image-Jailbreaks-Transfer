@@ -80,8 +80,16 @@ class PGDAttacker(JailbreakAttacker):
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
                     with torch.no_grad():
+                        uint8_adv_image = (255.0 * adv_image).to(
+                            dtype=torch.uint8
+                        ) / 255.0
+                        # Log some numerical values to later debug.
+                        print(
+                            f"uint8 image at step {gradient_step}:\n",
+                            uint8_adv_image[0, 0],
+                        )
                         uint8_losses_per_model = self.vlm_ensemble.compute_loss(
-                            image=(255.0 * adv_image).to(dtype=torch.uint8) / 255.0,
+                            image=uint8_adv_image,
                             text_data_by_model=batch_text_data_by_model,
                         )
 
@@ -100,6 +108,9 @@ class PGDAttacker(JailbreakAttacker):
 
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
+
+                    # Log some numerical values to later debug.
+                    print(f"full image at step {gradient_step}:\n", adv_image[0, 0])
 
                     # Log the losses to W&B.
                     wandb.log(

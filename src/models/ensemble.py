@@ -129,14 +129,14 @@ class VLMEnsemble(torch.nn.Module):
                 attention_mask=attention_mask_on_device,
                 labels=labels_on_device,
             )
-            model_losses.append(loss)
+            model_losses.append(loss.to("cpu", non_blocking=True))
 
         # Stack the model losses and compute the average loss
         stacked_losses = torch.stack(model_losses)
 
         # Store the model losses and average loss in the dictionary
         for model_name, loss in zip(self.vlms_dict.keys(), model_losses):
-            losses_per_model[model_name] = loss.to("cpu", non_blocking=True)
+            losses_per_model[model_name] = loss
 
         losses_per_model["avg"] = torch.mean(stacked_losses).to("cpu")
 

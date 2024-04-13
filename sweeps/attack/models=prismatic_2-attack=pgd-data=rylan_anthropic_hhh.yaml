@@ -24,11 +24,16 @@ parameters:
   models_to_attack:
     values:
       [
-        "{'prism-reproduction-llava-v15+7b'}",
-        "{'prism-clip+7b'}",
-        "{'prism-siglip+7b'}",
-        "{'prism-clip-controlled+7b'}",
-        "{'prism-siglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-siglip+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-clip+7b', 'prism-siglip+7b'}",
+        "{'prism-clip+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-clip+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-siglip+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-siglip+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-clip-controlled+7b', 'prism-siglip-controlled+7b'}",
       ]
   prompt_and_targets_kwargs:
     parameters:
