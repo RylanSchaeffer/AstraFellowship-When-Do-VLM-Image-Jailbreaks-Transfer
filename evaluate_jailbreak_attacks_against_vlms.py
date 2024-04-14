@@ -58,7 +58,7 @@ def evaluate_vlm_adversarial_examples():
     # )
 
     runs_jailbreak_dict_list = [
-        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "r4l59tv3"
+        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "qy7ptwbj"
     ]
     runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
 

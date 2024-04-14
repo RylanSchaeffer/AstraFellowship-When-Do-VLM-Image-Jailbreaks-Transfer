@@ -165,7 +165,7 @@ def load_jailbreak_dicts_list(
                 if not file_name.endswith(".png"):
                     continue
                 file_dir_path = os.path.join(
-                    "data_dir_path", f"sweep={wandb_config['wandb_sweep_id']}", run.id
+                    data_dir_path, f"sweep={wandb_config['wandb_sweep_id']}", run.id
                 )
                 os.makedirs(file_dir_path, exist_ok=True)
                 file.download(root=file_dir_path, replace=True)

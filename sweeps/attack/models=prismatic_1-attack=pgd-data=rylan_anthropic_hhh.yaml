@@ -35,12 +35,9 @@ parameters:
       dataset_train:
         values:
           ["rylan_anthropic_hhh"]
-      dataset_test:
-        values:
-          ["advbench"]
       n_unique_prompts_and_targets:
         values:
-          [ 189]
+          [189]
   seed:
     values:
       [0]

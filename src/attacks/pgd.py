@@ -31,7 +31,7 @@ class PGDAttacker(JailbreakAttacker):
 
         self.losses_history: Optional[np.ndarray] = None
 
-    def attack(
+    def optimize_image_jailbreak(
         self,
         image: torch.Tensor,
         text_dataloader: torch.utils.data.DataLoader,
@@ -70,7 +70,12 @@ class PGDAttacker(JailbreakAttacker):
                     wandb.log(
                         {
                             f"jailbreak_image_step={gradient_step}": wandb.Image(
-                                data_or_path=adv_image,
+                                # https://docs.wandb.ai/ref/python/data-types/image
+                                data_or_path=self.convert_tensor_to_pil_image(
+                                    adv_image[0].to(
+                                        torch.float32
+                                    )  # The transformation doesn't accept bfloat16.
+                                ),
                                 caption="Adversarial Image",
                             ),
                         },
@@ -80,6 +85,7 @@ class PGDAttacker(JailbreakAttacker):
                 if (gradient_step % self.attack_kwargs["log_loss_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
                     with torch.no_grad():
+                        # Note: This has type torch.float32.
                         uint8_adv_image = (255.0 * adv_image).to(
                             dtype=torch.uint8
                         ) / 255.0
@@ -127,7 +133,6 @@ class PGDAttacker(JailbreakAttacker):
                     - self.attack_kwargs["step_size"] * adv_image.grad.detach().sign()
                 ).clamp(0.0, 1.0)
                 adv_image.grad.zero_()
-
                 gradient_step += 1
 
         attack_results = {

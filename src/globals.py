@@ -23,7 +23,8 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_attack": "{'prism-dinosiglip+7b'}",
+    # "models_to_attack": "{'prism-dinosiglip+7b'}",
+    "models_to_attack": "{'prism-clip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
@@ -46,7 +47,8 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
     },
-    "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    # "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    "models_to_eval": "{'prism-clip+7b'}",
     # "models_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
         # "prism-reproduction-llava-v15+7b": {
@@ -90,5 +92,5 @@ default_eval_config = {
         "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,
-    "wandb_sweep_id": "8090iibg",
+    "wandb_sweep_id": "7mwtky7q",
 }
