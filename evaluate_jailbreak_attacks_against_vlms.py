@@ -1,3 +1,4 @@
+import torchvision.transforms.v2.functional
 from accelerate import Accelerator
 import ast
 import json
@@ -47,7 +48,10 @@ def evaluate_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Load jailbreak images, their paths.
-    runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(wandb_config)
+    runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
+        wandb_sweep_id=wandb_config["wandb_sweep_id"],
+        refresh=False,
+    )
 
     accelerator = Accelerator()
     # harmbench_evaluator = HarmBenchEvaluator(
@@ -99,18 +103,13 @@ def evaluate_vlm_adversarial_examples():
             )
 
             # Read image from disk. This image data should match the uint8 images.
-            adv_image_frame = Image.open(
-                run_jailbreak_dict["file_path"], mode="r"
-            )  # .size is Width-Height
+            # Shape: Batch-Channel-Height-Width
             adv_image = (
-                torch.from_numpy(np.array(adv_image_frame))  # Height-Width-Channel
-                .permute(
-                    2, 0, 1
-                )  # Move channel to first dimension to match PyTorch notation.
-                .unsqueeze(0)  # Add batch dimension.
+                torchvision.transforms.v2.functional.pil_to_tensor(
+                    Image.open(run_jailbreak_dict["file_path"], mode="r")
+                ).unsqueeze(0)
+                / 255.0
             )
-            if torch.max(adv_image) > 1.0:
-                adv_image = adv_image / 255.0
 
             # Measure and log metrics of model on attacks.
             model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(

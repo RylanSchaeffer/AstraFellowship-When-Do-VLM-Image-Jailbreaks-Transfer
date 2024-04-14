@@ -143,20 +143,20 @@ def is_dist_avail_and_initialized():
 
 
 def load_jailbreak_dicts_list(
-    wandb_config: Dict[str, Any],
+    wandb_sweep_id: str,
     data_dir_path: str = "eval_data",
     refresh: bool = False,
 ) -> List[Dict[str, Any]]:
     os.makedirs(data_dir_path, exist_ok=True)
     runs_jailbreak_dict_list_path = os.path.join(
         data_dir_path,
-        f"runs_jailbreak_dict_list_sweep={wandb_config['wandb_sweep_id']}.joblib",
+        f"runs_jailbreak_dict_list_sweep={wandb_sweep_id}.joblib",
     )
     if refresh or not os.path.exists(runs_jailbreak_dict_list_path):
         print("Downloading jailbreak images...")
 
         api = wandb.Api()
-        sweep = api.sweep("universal-vlm-jailbreak/" + wandb_config["wandb_sweep_id"])
+        sweep = api.sweep(f"universal-vlm-jailbreak/{wandb_sweep_id}")
         runs = list(sweep.runs)
         runs_jailbreak_dict_list = []
         for run in runs:
@@ -165,7 +165,7 @@ def load_jailbreak_dicts_list(
                 if not file_name.endswith(".png"):
                     continue
                 file_dir_path = os.path.join(
-                    data_dir_path, f"sweep={wandb_config['wandb_sweep_id']}", run.id
+                    data_dir_path, f"sweep={wandb_sweep_id}", run.id
                 )
                 os.makedirs(file_dir_path, exist_ok=True)
                 file.download(root=file_dir_path, replace=True)

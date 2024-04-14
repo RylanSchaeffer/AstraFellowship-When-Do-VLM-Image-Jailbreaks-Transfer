@@ -175,8 +175,9 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # We should only have a single image.
         assert image.shape[0] == 1
-        pil_image = torchvision.transforms.functional.to_pil_image(image[0])
-        # pil_image = self.accelerator.prepare(pil_image)
+        pil_image = torchvision.transforms.functional.to_pil_image(
+            image[0].to(torch.float32)
+        )
         model_generations = []
         # Currently, Prismatic only supports one prompt at a time.
         # See https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L535

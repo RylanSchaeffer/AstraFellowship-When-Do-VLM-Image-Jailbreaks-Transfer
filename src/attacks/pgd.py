@@ -92,7 +92,7 @@ class PGDAttacker(JailbreakAttacker):
                         # Log some numerical values to later debug.
                         print(
                             f"uint8 image at step {gradient_step}:\n",
-                            uint8_adv_image[0, 0],
+                            uint8_adv_image[0],
                         )
                         uint8_losses_per_model = self.vlm_ensemble.compute_loss(
                             image=uint8_adv_image,
@@ -116,7 +116,7 @@ class PGDAttacker(JailbreakAttacker):
                     wandb_logging_step_idx = gradient_step + 1
 
                     # Log some numerical values to later debug.
-                    print(f"full image at step {gradient_step}:\n", adv_image[0, 0])
+                    print(f"full image at step {gradient_step}:\n", adv_image[0])
 
                     # Log the losses to W&B.
                     wandb.log(

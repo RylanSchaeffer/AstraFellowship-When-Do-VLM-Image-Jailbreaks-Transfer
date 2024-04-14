@@ -104,7 +104,7 @@ class JailbreakAttacker:
         for batch_idx, batch_text_data_by_model in enumerate(
             tqdm.tqdm(text_dataloader)
         ):
-            batch_size = batch_text_data_by_model[
+            batch_size: int = batch_text_data_by_model[
                 list(batch_text_data_by_model.keys())[
                     0
                 ]  # Any key will work for obtaining batch size.
@@ -171,8 +171,8 @@ class JailbreakAttacker:
                     ],
                 ),
                 "eval/generation_begins_with_target": model_adv_generation_begins_with_target,
+                "eval/loss": total_losses_per_model[f"eval/loss_model={model_name}"],
             }
-            evaluation_results[model_name].update(total_losses_per_model)
 
         return evaluation_results
 
