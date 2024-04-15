@@ -34,14 +34,13 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 `pip install --upgrade pip`
 
-5. Manually install a few additional packages using pip that aren't/weren't available via conda:
+5. Manually install a few additional packages:
 
-`pip install joblib pandas matplotlib seaborn nvidia-htop`
+`pip install joblib pandas matplotlib seaborn nvidia-htop black`
 
 6. Make sure to log in to W&B by running `wandb login`.
 
-7. Obtain the git submodules: `git submodule update --init --recursive`
-
+7. Grab the git submodules: `git submodule update --init --recursive`
 8. cd into `submodules/prismatic` and run `pip install -e .`.
 9. Then follow their instructions:
 
@@ -49,7 +48,29 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 `pip install flash-attn --no-build-isolation`
 
+11. Install more stuff `pip install sentencepiece`
+
+- Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 should work.
+- Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
+  - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
+
+### Additional Modifications
+
+- Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 is necessary to optimize attacks.
+- Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
+  - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
+
+
 ## Optimizing Jailbreaks
+
+```
+cd PerezAstraFellowship-Universal-VLM-Jailbreak
+conda activate universal_vlm_jailbreak_env
+export PYTHONPATH=.
+export CUDA_VISIBLE_DEVICES=2,3
+wandb agent rylan/universal-vlm-jailbreak/cewqh39e
+```
+
 
 ## Evaluating Jailbreaks
 
