@@ -20,8 +20,8 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "kd52kb2u",  # Prismatic with N-Choose-1 Jailbreaks
-    # "i303bcvb",       # Prismatic with N-Choose-2 Jailbreaks
+    "0wfs2n4g",  # Prismatic with N-Choose-1 Jailbreaks
+    # "cewqh39e",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
 runs_configs_df = src.analyze.download_wandb_project_runs_configs(

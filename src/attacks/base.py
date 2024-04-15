@@ -83,9 +83,7 @@ class JailbreakAttacker:
         total_losses_per_model = {}
         total_samples = 0.0
         image = image.to(torch.bfloat16)
-        for batch_idx, batch_text_data_by_model in enumerate(
-            tqdm.tqdm(text_dataloader)
-        ):
+        for batch_idx, batch_text_data_by_model in enumerate(text_dataloader):
             batch_size: int = batch_text_data_by_model[
                 list(batch_text_data_by_model.keys())[
                     0
@@ -108,6 +106,7 @@ class JailbreakAttacker:
             f"eval/loss_model={model_name}": total_loss / total_samples
             for model_name, total_loss in total_losses_per_model.items()
         }
+        print("Total losses per model: ", total_losses_per_model)
 
         # Choose a fixed subset of samples to evaluate.
         batch_prompts, batch_targets = self.sample_prompts_and_targets(

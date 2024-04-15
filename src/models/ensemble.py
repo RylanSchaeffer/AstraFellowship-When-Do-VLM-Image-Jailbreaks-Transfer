@@ -109,7 +109,6 @@ class VLMEnsemble(torch.nn.Module):
         losses_per_model: Dict[str, torch.Tensor] = {}
 
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
-            # Move all tensors to the correct device so we aren't blocked waiting for one model.
             image_on_device = image.to(model_wrapper.device_str)
             input_ids_on_device = text_data_by_model[model_name]["input_ids"].to(
                 model_wrapper.device_str
