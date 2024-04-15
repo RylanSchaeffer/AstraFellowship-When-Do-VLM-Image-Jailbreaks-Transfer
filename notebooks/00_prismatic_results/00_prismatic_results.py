@@ -1,5 +1,6 @@
 import ast
 import matplotlib.pyplot as plt
+import matplotlib.transforms
 import numpy as np
 import os
 import pandas as pd
@@ -20,7 +21,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "0wfs2n4g",  # Prismatic with N-Choose-1 Jailbreaks
+    "8jdk1pyw",  # Prismatic with N-Choose-1 Jailbreaks
     # "cewqh39e",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
@@ -56,19 +57,28 @@ g = sns.relplot(
     data=runs_histories_df,
     kind="line",
     x="n_gradient_steps",
-    y="eval/loss_model=avg",
+    y="eval/loss",
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
-    row="attack_models_str",
-    # row_order=unique_and_ordered_attack_models_strs,
-    col="eval_model_str",
-    col_order=unique_and_ordered_eval_model_strs,
+    col="attack_models_str",
+    # col_order=unique_and_ordered_attack_models_strs,
+    row="eval_model_str",
+    row_order=unique_and_ordered_eval_model_strs,
     facet_kws={"margin_titles": True},
 )
 g.set_axis_labels("Gradient Step", r"Cross Entropy of P(Target $\lvert$ Prompt, Image)")
+g.fig.suptitle("Attacked Model(s)")
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-plt.tight_layout()
+g.fig.text(
+    1.01,
+    0.5,
+    "Evaluated Model",
+    rotation=-90,
+    va="center",
+    ha="left",
+    transform=g.fig.transFigure,
+)
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_vs_gradient_step_cols=eval_models_rows=attack_models",
@@ -89,15 +99,24 @@ g = sns.relplot(
     y="eval/generation_begins_with_target",
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
-    row="attack_models_str",
-    # row_order=unique_and_ordered_attack_models_strs,
-    col="eval_model_str",
-    col_order=unique_and_ordered_eval_model_strs,
+    col="attack_models_str",
+    # col_order=unique_and_ordered_attack_models_strs,
+    row="eval_model_str",
+    row_order=unique_and_ordered_eval_model_strs,
 )
 g.set_axis_labels("Gradient Step", "Exact Match of Generation \& Target")
-g.set_titles(col_template="{col_name}", row_template="{row_name}")
+g.fig.suptitle("Attacked Model(s)")
+g.set_titles(col_template="{col_name}", row_template="Eval: {row_name}")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-plt.tight_layout()
+g.fig.text(
+    1.01,
+    0.5,
+    "Evaluated Model",
+    rotation=-90,
+    va="center",
+    ha="left",
+    transform=g.fig.transFigure,
+)
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_exact_match_vs_gradient_step_cols=eval_models_rows=attack_models",
