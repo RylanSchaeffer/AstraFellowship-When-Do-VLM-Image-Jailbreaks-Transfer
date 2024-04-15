@@ -101,18 +101,14 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         labels: torch.Tensor,
     ) -> torch.Tensor:
         image = self.resizer(image)
-        images = image.to(self.device_str, non_blocking=True).repeat(
-            len(input_ids), 1, 1, 1
-        )
-        images_pixel_values = normalize_images(images).to(
-            self.device_str, non_blocking=True
-        )
+        images = image.to(self.device_str).repeat(len(input_ids), 1, 1, 1)
+        images_pixel_values = normalize_images(images).to(self.device_str)
 
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            pixel_values=images_pixel_values.to(self.device_str, non_blocking=True),
+            pixel_values=images_pixel_values.to(self.device_str),
         )
         return outputs.loss
 

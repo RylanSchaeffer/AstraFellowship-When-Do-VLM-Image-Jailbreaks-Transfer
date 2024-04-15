@@ -48,24 +48,6 @@ class JailbreakAttacker:
         **kwargs,
     ):
         os.makedirs(results_dir, exist_ok=True)
-        # tensor_images = self.accelerator.prepare(tensor_images)
-
-        # from PIL import Image
-        #
-        # test_path = "data_dir_path/sweep=7mwtky7q/qy7ptwbj/media/images/jailbreak_image_step=3000_2976_a5ae6348c943f58a88ac.png"
-        #
-        # # Read image from disk. This image data should match the uint8 images.
-        # adv_image_frame = Image.open(test_path, mode="r")  # .size is Width-Height
-        # adv_image = (
-        #     torch.from_numpy(np.array(adv_image_frame))  # Height-Width-Channel
-        #     .permute(
-        #         2, 0, 1
-        #     )  # Move channel to first dimension to match PyTorch notation.
-        #     .unsqueeze(0)  # Add batch dimension.
-        # )
-        # if torch.max(adv_image) > 1.0:
-        #     adv_image = adv_image / 255.0
-
         for image_idx, image in enumerate(tensor_images):
             self.optimize_image_jailbreak(
                 image=image,

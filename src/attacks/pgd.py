@@ -101,7 +101,7 @@ class PGDAttacker(JailbreakAttacker):
 
                     wandb.log(
                         {
-                            f"sanity_check_discretization/loss_{key}": value.item()
+                            f"train_uint8/loss_{key}": value.item()
                             for key, value in uint8_losses_per_model.items()
                         },
                         step=wandb_logging_step_idx,
