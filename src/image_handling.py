@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 import os
 from torch import Tensor
-import cv2
+# import cv2
 from typing import List, Callable
 from tqdm import tqdm
 
