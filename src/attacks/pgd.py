@@ -62,9 +62,7 @@ class PGDAttacker(JailbreakAttacker):
 
         gradient_step = 0
         for epoch_idx in range(n_train_epochs):
-            for batch_idx, batch_text_data_by_model in enumerate(
-                tqdm.tqdm(text_dataloader)
-            ):
+            for batch_idx, batch_text_data_by_model in enumerate(text_dataloader):
                 if (gradient_step % self.attack_kwargs["log_image_every_n_steps"]) == 0:
                     wandb_logging_step_idx = gradient_step + 1
                     wandb.log(

@@ -50,6 +50,7 @@ def evaluate_vlm_adversarial_examples():
     # Load jailbreak images, their paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_sweep_id=wandb_config["wandb_sweep_id"],
+        # refresh=True,
         refresh=False,
     )
 
@@ -79,13 +80,6 @@ def evaluate_vlm_adversarial_examples():
             vlm_ensemble=vlm_ensemble,
             accelerator=accelerator,
         )
-
-        # if wandb_config["compile"]:
-        #     vlm_ensemble: VLMEnsemble = torch.compile(
-        #         vlm_ensemble,
-        #         mode="default",  # good balance between performance and overhead
-        #         # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
-        #     )
 
         for run_jailbreak_dict in runs_jailbreak_dict_list:
             # We need to load the VLMs ensemble in order to tokenize the dataset.

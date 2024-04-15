@@ -22,9 +22,9 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 `conda update -n base -c defaults conda`
 
-2. Create a conda environment with the required packages:
+2. Create a conda environment :
 
-`conda env create --file environment.yml`
+`conda create -n universal_vlm_jailbreak_env python=3.11`
 
 3. Activate the environment:
 
@@ -36,11 +36,18 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 5. Manually install a few additional packages using pip that aren't/weren't available via conda:
 
-`pip install joblib`
+`pip install joblib pandas matplotlib seaborn nvidia-htop`
 
 6. Make sure to log in to W&B by running `wandb login`.
 
-7. `git submodule update --init --recursive`
+7. Obtain the git submodules: `git submodule update --init --recursive`
+
+8. cd into `submodules/prismatic` and run `pip install -e .`.
+9. Then follow their instructions:
+
+`pip install packaging ninja`
+
+`pip install flash-attn --no-build-isolation`
 
 ## Optimizing Jailbreaks
 
