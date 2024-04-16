@@ -5,9 +5,9 @@ from pathlib import Path
 from pprint import pprint
 import torch
 import torchvision
-from torchvision.transforms import Resize
+import torchvision.transforms
 import torchvision.transforms.functional
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from prismatic import (
     available_models,
@@ -39,44 +39,9 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
                 "max_new_tokens": 100,
                 "min_new_tokens": 5,
             }
-        if model_str == "prism-reproduction-llava-v15+7b":
-            model_str = "reproduction-llava-v15+7b"
-            input_image_size = (336, 336)
-        elif model_str == "prism-reproduction-llava-v15+13b":
-            model_str = "reproduction-llava-v15+13b"
-            input_image_size = (336, 336)
-        elif model_str == "prism-clip-controlled+7b":
-            input_image_size = (336, 336)
-        elif model_str == "prism-clip-controlled+13b":
-            input_image_size = (336, 336)
-        elif model_str == "prism-clip+7b":
-            input_image_size = (336, 336)
-        elif model_str == "prism-clip+13b":
-            input_image_size = (336, 336)
-        elif model_str == "prism-siglip-controlled+7b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-siglip-controlled+13b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-siglip+7b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-siglip+13b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-dinosiglip-controlled+7b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-dinosiglip-controlled+13b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-dinosiglip+7b":
-            input_image_size = (384, 384)
-        elif model_str == "prism-dinosiglip+13b":
-            input_image_size = (384, 384)
-        else:
-            # input_image_size = (336, 336)
-            raise NotImplementedError
 
         # self.accelerator = accelerator
         self.model_str = model_str
-        self.input_image_size = input_image_size
-        self.resizer = Resize(input_image_size)
         self.generation_kwargs = generation_kwargs
 
         hf_token = (
@@ -92,6 +57,52 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
         self.device_str = None
+        self.images_transform_fn = self.create_images_transform_fn(model_str)
+
+    def create_images_transform_fn(self, model_str: str) -> Callable:
+        if "dinosiglip" in model_str:
+            # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
+            dino_transforms = torchvision.transforms.Compose(
+                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                + [
+                    t
+                    for t in self.model.vision_backbone.image_transform.dino_image_transform.transforms
+                    if not isinstance(t, torchvision.transforms.ToTensor)
+                ]
+            )
+
+            siglip_transforms = torchvision.transforms.Compose(
+                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                + [
+                    t
+                    for t in self.model.vision_backbone.image_transform.siglip_image_transform.transforms
+                    if not isinstance(t, torchvision.transforms.ToTensor)
+                ]
+            )
+
+            def images_transform_fn(images: torch.Tensor) -> Dict[str, torch.Tensor]:
+                transformed_images = {
+                    "dino": dino_transforms(images).to(self.device_str),
+                    "siglip": siglip_transforms(images).to(self.device_str),
+                }
+                return transformed_images
+
+        else:
+            # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
+            transforms = torchvision.transforms.Compose(
+                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                + [
+                    t
+                    for t in self.model.vision_backbone.image_transform.transforms
+                    if not isinstance(t, torchvision.transforms.ToTensor)
+                ]
+            )
+
+            def images_transform_fn(images: torch.Tensor) -> torch.Tensor:
+                transformed_images = transforms(images).to(self.device_str)
+                return transformed_images
+
+        return images_transform_fn
 
     def compute_loss(
         self,
@@ -100,15 +111,14 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        image = self.resizer(image)
         images = image.to(self.device_str).repeat(len(input_ids), 1, 1, 1)
-        images_pixel_values = normalize_images(images).to(self.device_str)
+        images_pixel_values = self.images_transform_fn(images)
 
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            pixel_values=images_pixel_values.to(self.device_str),
+            pixel_values=images_pixel_values,
         )
         return outputs.loss
 

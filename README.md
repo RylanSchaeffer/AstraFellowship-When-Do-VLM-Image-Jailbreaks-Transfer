@@ -22,7 +22,7 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 `conda update -n base -c defaults conda`
 
-2. Create a conda environment :
+2. Create a conda environment:
 
 `conda create -n universal_vlm_jailbreak_env python=3.11`
 
@@ -36,12 +36,12 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 5. Manually install a few additional packages:
 
-`pip install joblib pandas matplotlib seaborn nvidia-htop black`
+`pip install joblib pandas matplotlib seaborn nvidia-htop black wandb`
 
 6. Make sure to log in to W&B by running `wandb login`.
 
 7. Grab the git submodules: `git submodule update --init --recursive`
-8. cd into `submodules/prismatic` and run `pip install -e .`.
+8. `cd submodules/prismatic-vlms && pip install -e .`.
 9. Then follow their instructions:
 
 `pip install packaging ninja`
@@ -83,11 +83,30 @@ wandb agent rylan/universal-vlm-jailbreak-eval/qrq79qj5
 ```
 
 
-## Results
+## Runpod IO Setup
 
 
 
-Our code is implemented based on [**MiniGPT4**](https://github.com/Vision-CAIR/MiniGPT-4) and [**AdversarialAttacks**](https://github.com/huanranchen/AdversarialAttacks).  Thanks them for supporting! 
+```bash
+apt-get update && apt-get install vim -y && apt-get install nano -y
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
+```
 
+Create SSH key and register it with GitHub:
+```bash
+ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
+eval "$(ssh-agent -s)"
+ssh-add /workspace/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
 
+Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
 
+`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
+
+Then modify your `.bashrc` to add:
+
+```
+conda activate universal_vlm_jailbreak_env
+cd PerezAstraFellowship-Universal-VLM-Jailbreak
+```
