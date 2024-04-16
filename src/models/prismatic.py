@@ -7,7 +7,7 @@ import torch
 import torchvision
 import torchvision.transforms
 import torchvision.transforms.functional
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from prismatic import (
     available_models,
@@ -112,13 +112,14 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         labels: torch.Tensor,
     ) -> torch.Tensor:
         images = image.to(self.device_str).repeat(len(input_ids), 1, 1, 1)
-        images_pixel_values = self.images_transform_fn(images)
-
+        transformed_images: Union[
+            torch.Tensor, Dict[str, torch.Tensor]
+        ] = self.images_transform_fn(images)
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            pixel_values=images_pixel_values,
+            pixel_values=transformed_images,
         )
         return outputs.loss
 
