@@ -14,6 +14,7 @@ from prismatic import (
     get_model_description,
     load,
 )
+from prismatic.models.backbones.vision.base_vision import LetterboxPad
 
 from src.image_handling import normalize_images
 from src.models.base import VisionLanguageModel
@@ -94,12 +95,14 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
         else:
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
+            # TODO: Decide what to do about that LetterboxPadding.
             transforms = torchvision.transforms.Compose(
                 [torchvision.transforms.ConvertImageDtype(torch.float32)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.transforms
                     if not isinstance(t, torchvision.transforms.ToTensor)
+                    and not isinstance(t, LetterboxPad)
                 ]
             )
 
