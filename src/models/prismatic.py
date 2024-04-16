@@ -40,6 +40,11 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
                 "min_new_tokens": 5,
             }
 
+        if model_str == "prism-reproduction-llava-v15+7b":
+            model_str = "reproduction-llava-v15+7b"
+        elif model_str == "prism-reproduction-llava-v15+13b":
+            model_str = "reproduction-llava-v15+13b"
+
         # self.accelerator = accelerator
         self.model_str = model_str
         self.generation_kwargs = generation_kwargs
