@@ -154,7 +154,7 @@ class VLMEnsembleSystem(lightning.LightningModule):
                                 torch.float32
                             )  # The transformation doesn't accept bfloat16.
                         ),
-                        caption="Adversarial Image",
+                        # caption="Adversarial Image",
                     ),
                 },
             )

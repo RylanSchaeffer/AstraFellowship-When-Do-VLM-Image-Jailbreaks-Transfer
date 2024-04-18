@@ -20,6 +20,7 @@ import torch
 import wandb
 from typing import Any, Dict, List
 
+# torch.use_deterministic_algorithms(True)
 
 from src.globals import default_attack_config
 from src.models.ensemble import VLMEnsemble
@@ -90,7 +91,7 @@ def optimize_vlm_adversarial_examples():
         callbacks=callbacks,
         check_val_every_n_epoch=3,  # default
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
-        deterministic=True,
+        # deterministic=True,
         devices=devices,
         logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
         log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
