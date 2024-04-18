@@ -36,6 +36,7 @@ default_attack_config = {
         "n_unique_prompts_and_targets": 189,  # -1 means use all prompts and targets.
     },
     "optimization": {
+        "eps": 1e-4,
         "learning_rate": 0.001,
         "momentum": 0.9,
         "optimizer": "adam",

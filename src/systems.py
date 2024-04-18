@@ -34,39 +34,44 @@ class VLMEnsembleSystem(lightning.LightningModule):
         # TODO: Maybe add SWA
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.StochasticWeightAveraging.html#pytorch_lightning.callbacks.StochasticWeightAveraging
         optimization_kwargs = self.wandb_config["optimization"]
-        if optimization_kwargs["optimizer"]:
+        if optimization_kwargs["optimizer"] == "adadelta":
             optimizer = torch.optim.Adadelta(
-                self.tensor_image,
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
             )
-        elif self.wandb_config["optimizer"] == "adam":
+        elif optimization_kwargs["optimizer"] == "adam":
             optimizer = torch.optim.Adam(
-                self.tensor_image,
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
-                eps=1e-4,  # https://stackoverflow.com/a/42420014/4570472
+                eps=optimization_kwargs[
+                    "eps"
+                ],  # https://stackoverflow.com/a/42420014/4570472
             )
-        elif self.wandb_config["optimizer"] == "adamw":
+        elif optimization_kwargs["optimizer"] == "adamw":
             optimizer = torch.optim.AdamW(
-                self.tensor_image,
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
-                eps=1e-4,  # https://stackoverflow.com/a/42420014/4570472
+                eps=optimization_kwargs[
+                    "eps"
+                ],  # https://stackoverflow.com/a/42420014/4570472
             )
-        elif self.wandb_config["optimizer"] == "rmsprop":
+        elif optimization_kwargs["optimizer"] == "rmsprop":
             optimizer = torch.optim.RMSprop(
-                self.parameters(),
+                [self.parameters()],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
-                momentum=0.9,
+                momentum=optimization_kwargs["momentum"],
                 eps=1e-4,
             )
-        elif self.wandb_config["optimizer"] == "sgd":
+        elif optimization_kwargs["optimizer"] == "sgd":
             optimizer = torch.optim.SGD(
-                self.tensor_image,
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
+                momentum=optimization_kwargs["momentum"],
             )
         else:
             # TODO: add adafactor https://pytorch-optimizer.readthedocs.io/en/latest/index.html
@@ -141,8 +146,11 @@ class VLMEnsembleSystem(lightning.LightningModule):
                 {
                     f"jailbreak_image_step={self.optimizer_step_counter}": wandb.Image(
                         # https://docs.wandb.ai/ref/python/data-types/image
+                        # 0 removes the size-1 batch dimension.
                         data_or_path=self.convert_tensor_to_pil_image(
-                            self.tensor_image.clone().to(
+                            self.tensor_image[0]
+                            .clone()
+                            .to(
                                 torch.float32
                             )  # The transformation doesn't accept bfloat16.
                         ),
