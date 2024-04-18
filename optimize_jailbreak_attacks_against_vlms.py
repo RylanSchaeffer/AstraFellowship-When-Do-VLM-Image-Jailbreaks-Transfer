@@ -1,6 +1,19 @@
-from accelerate import Accelerator
+import os
+
+# Rok asked us to include the following specifications in our code to prevent CPUs from spinning idly:
+n_threads_str = "4"
+os.environ["OMP_NUM_THREADS"] = n_threads_str
+os.environ["OPENBLAS_NUM_THREADS"] = n_threads_str
+os.environ["MKL_NUM_THREADS"] = n_threads_str
+os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
+os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
+
 import ast
 import json
+import lightning
+import lightning.pytorch.callbacks
+import lightning.pytorch.loggers
+import math
 import os
 import pprint
 import torch
@@ -10,6 +23,7 @@ from typing import Any, Dict, List
 
 from src.globals import default_attack_config
 from src.models.ensemble import VLMEnsemble
+import src.systems
 import src.utils
 
 
@@ -43,23 +57,13 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    # Load initial image plus prompt and target data.
-    tensor_images: torch.Tensor = src.utils.create_initial_images(
-        image_kwargs=wandb_config["image_kwargs"],
-    )
-
-    accelerator = Accelerator()
-
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-        model_strs=wandb_config["models_to_attack"],
-        model_generation_kwargs=wandb_config["model_generation_kwargs"],
-        accelerator=accelerator,
+    vlm_ensemble_system = src.systems.VLMEnsembleSystem(
+        wandb_config=wandb_config,
     )
 
     # We need to load the VLMs ensemble in order to tokenize the dataset.
-    prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
-        vlm_ensemble=vlm_ensemble,
+    prompts_and_targets_dict, text_datamodule = src.utils.create_text_datamodule(
+        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
         prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
         wandb_config=wandb_config,
         split="train",
@@ -69,24 +73,64 @@ def optimize_vlm_adversarial_examples():
         # allow_val_change=True,
     )
 
-    if wandb_config["compile"]:
-        vlm_ensemble: VLMEnsemble = torch.compile(
-            vlm_ensemble,
-            mode="default",  # good balance between performance and overhead
-            # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
-        )
+    # Compute how many epochs we need, based on accumulate gradient steps and total steps.
 
-    attacker = src.utils.create_attacker(
-        wandb_config=wandb_config,
-        vlm_ensemble=vlm_ensemble,
-        accelerator=accelerator,
+    n_train_epochs = math.ceil(
+        wandb_config["n_grad_steps"]
+        * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
+        / len(prompts_and_targets_dict["indices"])
     )
 
-    attacker.optimize_image_jailbreaks(
-        tensor_images=tensor_images,
-        text_dataloader=text_dataloader,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-        results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+    callbacks = []
+    if torch.cuda.is_available():
+        accelerator = "gpu"
+        devices = torch.cuda.device_count()
+        callbacks.extend(
+            [
+                # DeviceStatsMonitor()
+            ]
+        )
+        print("GPUs available: ", devices)
+    else:
+        accelerator = "cpu"
+        devices = None
+        callbacks.extend([])
+        print("No GPU available.")
+
+    if wandb_config["compile"]:
+        vlm_ensemble_system: VLMEnsemble = torch.compile(
+            vlm_ensemble_system,
+            mode="default",  # Good balance between performance and overhead.
+        )
+
+    # https://lightning.ai/docs/pytorch/stable/common/trainer.html
+    trainer = lightning.pytorch.Trainer(
+        accelerator=accelerator,
+        accumulate_grad_batches=wandb_config["lightning_kwargs"][
+            "accumulate_grad_batches"
+        ],
+        # auto_scale_batch_size=wandb_config['auto_scale_batch_size'],
+        callbacks=callbacks,
+        check_val_every_n_epoch=3,  # default
+        default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+        deterministic=True,
+        devices=devices,
+        logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
+        log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
+        # overfit_batches=1,  # useful for debugging
+        gradient_clip_val=wandb_config["lightning_kwargs"]["gradient_clip_val"],
+        # gradient_clip_val=None,  # default
+        max_epochs=n_train_epochs,
+        min_epochs=n_train_epochs,
+        # profiler="simple",  # Simplest profiler
+        # profiler="advanced",  # More advanced profiler
+        # profiler=PyTorchProfiler(filename=),  # PyTorch specific profiler
+        precision=wandb_config["lightning_kwargs"]["precision"],
+    )
+
+    trainer.fit(
+        model=vlm_ensemble_system,
+        datamodule=text_datamodule,
     )
 
 

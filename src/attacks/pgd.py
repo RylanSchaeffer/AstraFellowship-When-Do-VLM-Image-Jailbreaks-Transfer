@@ -56,10 +56,6 @@ class PGDAttacker(JailbreakAttacker):
         adv_image.requires_grad_(True)
         adv_image.retain_grad()
 
-        n_train_epochs = math.ceil(
-            self.attack_kwargs["total_steps"] / len(text_dataloader)
-        )
-
         gradient_step = 0
         for epoch_idx in range(n_train_epochs):
             for batch_idx, batch_text_data_by_model in enumerate(text_dataloader):

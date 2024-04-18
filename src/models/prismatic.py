@@ -27,7 +27,6 @@ IGNORE_INDEX = -100
 class PrismaticVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
-        accelerator: Accelerator,
         model_str: str = "prism-dinosiglip+7b",
         generation_kwargs: Dict[str, Any] = None,
     ):
@@ -218,6 +217,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self.model.projector.eval()
         self.model.vision_backbone.requires_grad_(False)
         self.model.vision_backbone.eval()
+        self.model.eval()
 
     def to(self, device_str: str):
         self.model.llm_backbone = self.model.llm_backbone.to(device_str)

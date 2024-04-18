@@ -1,3 +1,4 @@
+import lightning
 import torch
 import torch.utils.data
 from typing import Dict, List
@@ -38,3 +39,35 @@ class VLMEnsembleDataset(torch.utils.data.Dataset):
             }
             for vlm_name in self.data
         }
+
+
+class VLMEnsembleTextDataModule(lightning.LightningDataModule):
+    def __init__(
+        self,
+        vlm_ensemble: VLMEnsemble,
+        prompts_and_targets_dict: Dict[str, List[str]],
+        wandb_config: Dict[str, any],
+    ):
+        super(VLMEnsembleTextDataModule, self).__init__()
+        self.vlm_ensemble = vlm_ensemble
+        self.prompts_and_targets_dict = prompts_and_targets_dict
+        self.wandb_config = wandb_config
+        self.train_dataset = None
+
+    def setup(self, stage=None):
+        if stage == "fit" or stage is None:
+            self.train_dataset = VLMEnsembleDataset(
+                vlm_ensemble=self.vlm_ensemble,
+                prompts_and_targets_dict=self.prompts_and_targets_dict,
+            )
+
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.wandb_config["data"]["batch_size"],
+            shuffle=True,
+            num_workers=self.wandb_config["data"]["num_workers"],
+        )
+
+    def teardown(self):
+        del self.train_dataset
