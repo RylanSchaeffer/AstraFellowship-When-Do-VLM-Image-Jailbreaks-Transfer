@@ -16,7 +16,7 @@ default_attack_config = {
         "gradient_clip_val": 10.0,
         "log_loss_every_n_steps": 25,
         "log_image_every_n_steps": 1000,
-        "precision": "bf16",
+        "precision": "bf16-mixed",
     },
     # "models_to_attack": "{'llava-v1p5-vicuna7b'}",
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",

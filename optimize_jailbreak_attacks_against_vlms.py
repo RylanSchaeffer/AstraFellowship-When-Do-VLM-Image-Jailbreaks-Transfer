@@ -57,28 +57,11 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    vlm_ensemble_system = src.systems.VLMEnsembleSystem(
-        wandb_config=wandb_config,
-    )
-
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    prompts_and_targets_dict, text_datamodule = src.utils.create_text_datamodule(
-        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-        wandb_config=wandb_config,
-        split="train",
-    )
-    wandb.config.update(
-        {"train_indices": str(prompts_and_targets_dict["indices"].tolist())},
-        # allow_val_change=True,
-    )
-
     # Compute how many epochs we need, based on accumulate gradient steps and total steps.
-
     n_train_epochs = math.ceil(
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
-        / len(prompts_and_targets_dict["indices"])
+        / wandb_config["prompt_and_targets_kwargs"]["n_unique_prompts_and_targets"]
     )
 
     callbacks = []
@@ -96,12 +79,6 @@ def optimize_vlm_adversarial_examples():
         devices = None
         callbacks.extend([])
         print("No GPU available.")
-
-    if wandb_config["compile"]:
-        vlm_ensemble_system: VLMEnsemble = torch.compile(
-            vlm_ensemble_system,
-            mode="default",  # Good balance between performance and overhead.
-        )
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
@@ -127,6 +104,31 @@ def optimize_vlm_adversarial_examples():
         # profiler=PyTorchProfiler(filename=),  # PyTorch specific profiler
         precision=wandb_config["lightning_kwargs"]["precision"],
     )
+
+    # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
+    # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
+    with trainer.init_module():
+        vlm_ensemble_system = src.systems.VLMEnsembleSystem(
+            wandb_config=wandb_config,
+        )
+
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    prompts_and_targets_dict, text_datamodule = src.utils.create_text_datamodule(
+        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
+        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
+        wandb_config=wandb_config,
+        split="train",
+    )
+    wandb.config.update(
+        {"train_indices": str(prompts_and_targets_dict["indices"].tolist())},
+        # allow_val_change=True,
+    )
+
+    if wandb_config["compile"]:
+        vlm_ensemble_system: VLMEnsemble = torch.compile(
+            vlm_ensemble_system,
+            mode="default",  # Good balance between performance and overhead.
+        )
 
     trainer.fit(
         model=vlm_ensemble_system,
