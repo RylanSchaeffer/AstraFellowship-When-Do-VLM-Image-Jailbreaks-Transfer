@@ -1,20 +1,4 @@
-# Attack-Bard
-
-## News
-
----
-
-[2023/10/14] We have updated the results on GPT-4V. The attack success rate is 45%!.
-
-
-## Introduction
-
----
-
-Multimodal Large Language Models (MLLMs) that integrate text and other modalities (especially vision) have achieved unprecedented performance in various multimodal tasks. However, due to the unsolved adversarial robustness problem of vision models, MLLMs can have more severe safety and security risks by introducing the vision inputs. In this work, we study the adversarial robustness of Google's Bard, a competitive chatbot to ChatGPT that released its multimodal capability recently, to better understand the vulnerabilities of commercial MLLMs. By attacking white-box surrogate vision encoders or MLLMs, the generated adversarial examples can mislead Bard to output wrong image descriptions with a 22% success rate based solely on the transferability. We show that the adversarial examples can also attack other MLLMs, e.g., 26% attack success rate against Bing Chat and 86\% attack success rate against ERNIE bot. Moreover, we identify two defense mechanisms of Bard, including face detection and toxicity detection of images. We design corresponding attacks to evade these defenses, demonstrating that the current defenses of Bard are also vulnerable. We hope this work can deepen our understanding on the robustness of MLLMs and facilitate future research on defenses. 
-
-![image](https://github.com/thu-ml/Attack-Bard/blob/main/dataset/demos/VQA.png)
-
+# Perez Astra Fellowship Universal & Transferable VLM Jailbreaks
 
 ## Setup
 
@@ -63,12 +47,14 @@ Multimodal Large Language Models (MLLMs) that integrate text and other modalitie
 
 ## Optimizing Jailbreaks
 
+Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. This will give you a W&B sweep ID. Then:
+
 ```
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
 export CUDA_VISIBLE_DEVICES=2,3
-wandb agent rylan/universal-vlm-jailbreak/cewqh39e
+wandb agent rylan/universal-vlm-jailbreak/<sweep id>
 ```
 
 
