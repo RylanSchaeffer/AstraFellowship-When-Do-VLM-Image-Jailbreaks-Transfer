@@ -138,14 +138,14 @@ class VLMEnsembleSystem(lightning.LightningModule):
                 sync_dist=True,
             )
 
-        if batch_idx == 0:
-            print(torch.cuda.memory_summary())
-            # for obj in gc.get_objects():
-            #     try:
-            #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-            #             print(type(obj), obj.size())
-            #     except:
-            #         pass
+        # if batch_idx == 0:
+        #     print(torch.cuda.memory_summary())
+        # for obj in gc.get_objects():
+        #     try:
+        #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+        #             print(type(obj), obj.size())
+        #     except:
+        #         pass
 
         return losses_per_model["avg"]
 
@@ -169,3 +169,4 @@ class VLMEnsembleSystem(lightning.LightningModule):
             )
         super().optimizer_step(*args, **kwargs)
         self.optimizer_step_counter += 1
+        self.tensor_image.data = self.tensor_image.data.clamp(min=0.0, max=1.0)

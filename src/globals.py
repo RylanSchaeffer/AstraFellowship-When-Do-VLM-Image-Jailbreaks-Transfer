@@ -2,11 +2,11 @@ default_attack_config = {
     "attack_kwargs": {
         "attack_name": "pgd",
     },
-    # "compile": True,
-    "compile": False,
+    "compile": True,
+    # "compile": False,
     "data": {
         "num_workers": 1,
-        "batch_size": 2,
+        "batch_size": 4,
     },
     "image_kwargs": {
         "image_size": 512,
