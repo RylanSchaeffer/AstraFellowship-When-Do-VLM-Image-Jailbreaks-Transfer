@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Tuple
 import wandb
 
 from src.attacks.base import JailbreakAttacker
-from src.data import VLMEnsembleDataset
+from src.data import VLMEnsembleTextDataset, VLMEnsembleTextDataModule
 from src.models.ensemble import VLMEnsemble
 from src.image_handling import get_list_image
 
@@ -29,14 +29,12 @@ def calc_rank():
 def create_attacker(
     wandb_config: Dict[str, Any],
     vlm_ensemble: VLMEnsemble,
-    accelerator: Accelerator,
 ) -> JailbreakAttacker:
     if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
         from src.attacks.pgd import PGDAttacker
 
         attacker = PGDAttacker(
             vlm_ensemble=vlm_ensemble,
-            accelerator=accelerator,
             attack_kwargs=wandb_config["attack_kwargs"],
         )
     elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
@@ -56,7 +54,6 @@ def create_attacker(
 
         attacker = JailbreakAttacker(
             vlm_ensemble=vlm_ensemble,
-            accelerator=accelerator,
             attack_kwargs=wandb_config["attack_kwargs"],
         )
     else:
@@ -80,7 +77,7 @@ def create_text_dataloader(
         **load_prompts_and_targets_kwargs,
     )
 
-    dataset = VLMEnsembleDataset(
+    dataset = VLMEnsembleTextDataset(
         vlm_ensemble=vlm_ensemble,
         prompts_and_targets_dict=prompts_and_targets_dict,
     )
@@ -96,9 +93,25 @@ def create_text_dataloader(
     return prompts_and_targets_dict, dataloader
 
 
-def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
+def create_text_datamodule(
+    vlm_ensemble: VLMEnsemble,
+    prompt_and_targets_kwargs: Dict[str, Any],
+    wandb_config: Dict[str, Any],
+    split: str = "train",
+    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
+    prompts_and_targets_dir: str = "prompts_and_targets",
+) -> VLMEnsembleTextDataModule:
+    text_datamodule = VLMEnsembleTextDataModule(
+        vlm_ensemble=vlm_ensemble,
+        prompts_and_targets_dict=prompts_and_targets_dict,
+        wandb_config=wandb_config,
+    )
+    return text_datamodule
+
+
+def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
-        images = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
+        image = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         # resizer = transforms.Resize((224, 224))
         # images = torch.stack(
         #     [resizer(i).unsqueeze(0).to(torch.float16) for i in images]
@@ -108,15 +121,15 @@ def create_initial_images(image_kwargs: Dict[str, Any]) -> torch.Tensor:
         raise NotImplementedError
     elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
-        images: torch.Tensor = torch.rand((1, 1, 3, image_size, image_size))
+        image: torch.Tensor = torch.rand((1, 3, image_size, image_size))
     else:
         raise ValueError(
             "Invalid image_initialization: {}".format(
                 image_kwargs["image_initialization_str"]
             )
         )
-    assert len(images.shape) == 5
-    return images
+    assert len(image.shape) == 4
+    return image
 
 
 def instantiate_vlm_ensemble(

@@ -61,11 +61,11 @@ wandb agent rylan/universal-vlm-jailbreak/<sweep id>
 ## Evaluating Jailbreaks
 
 ```
-cd PerezAstraFellowship-Image-DAN-VLM-Attack
+cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=0
-wandb agent rylan/universal-vlm-jailbreak-eval/qrq79qj5
+export CUDA_VISIBLE_DEVICES=1
+wandb agent rylan/universal-vlm-jailbreak/nojkv34a
 ```
 
 

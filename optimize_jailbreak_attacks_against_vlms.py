@@ -1,15 +1,31 @@
-from accelerate import Accelerator
+import os
+
+# Rok asked us to include the following specifications in our code to prevent CPUs from spinning idly:
+n_threads_str = "4"
+os.environ["OMP_NUM_THREADS"] = n_threads_str
+os.environ["OPENBLAS_NUM_THREADS"] = n_threads_str
+os.environ["MKL_NUM_THREADS"] = n_threads_str
+os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
+os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
+
 import ast
 import json
+import lightning
+import lightning.pytorch.callbacks
+import lightning.pytorch.loggers
+import math
 import os
 import pprint
 import torch
 import wandb
 from typing import Any, Dict, List
 
+# torch.use_deterministic_algorithms(True)
 
+import src.data
 from src.globals import default_attack_config
 from src.models.ensemble import VLMEnsemble
+import src.systems
 import src.utils
 
 
@@ -21,6 +37,14 @@ def optimize_vlm_adversarial_examples():
         entity=wandb_username,
     )
     wandb_config = dict(wandb.config)
+
+    # Log the effective batch size.
+    wandb.config.update(
+        {
+            "effective_batch_size": wandb_config["data"]["batch_size"]
+            * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
+        }
+    )
 
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
@@ -43,50 +67,85 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    # Load initial image plus prompt and target data.
-    tensor_images: torch.Tensor = src.utils.create_initial_images(
-        image_kwargs=wandb_config["image_kwargs"],
+    # Compute how many epochs we need, based on accumulate gradient steps and total steps.
+    n_train_epochs = math.ceil(
+        wandb_config["n_grad_steps"]
+        * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
+        / wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
     )
 
-    accelerator = Accelerator()
+    callbacks = []
+    if torch.cuda.is_available():
+        accelerator = "gpu"
+        devices = torch.cuda.device_count()
+        callbacks.extend(
+            [
+                # DeviceStatsMonitor()
+            ]
+        )
+        print("GPUs available: ", devices)
+    else:
+        accelerator = "cpu"
+        devices = None
+        callbacks.extend([])
+        print("No GPU available.")
 
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-        model_strs=wandb_config["models_to_attack"],
-        model_generation_kwargs=wandb_config["model_generation_kwargs"],
+    # https://lightning.ai/docs/pytorch/stable/common/trainer.html
+    trainer = lightning.pytorch.Trainer(
         accelerator=accelerator,
+        accumulate_grad_batches=wandb_config["lightning_kwargs"][
+            "accumulate_grad_batches"
+        ],
+        callbacks=callbacks,
+        check_val_every_n_epoch=0,
+        default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+        # deterministic=True,
+        devices=devices,
+        logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
+        log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
+        # overfit_batches=1,  # useful for debugging
+        gradient_clip_val=wandb_config["lightning_kwargs"]["gradient_clip_val"],
+        # gradient_clip_val=None,  # default
+        max_epochs=n_train_epochs,
+        min_epochs=n_train_epochs,
+        # profiler="simple",  # Simplest profiler
+        profiler="advanced",  # More advanced profiler
+        precision=wandb_config["lightning_kwargs"]["precision"],
     )
 
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    prompts_and_targets_dict, text_dataloader = src.utils.create_text_dataloader(
-        vlm_ensemble=vlm_ensemble,
-        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-        wandb_config=wandb_config,
+    # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
+    # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
+    with trainer.init_module():
+        vlm_ensemble_system = src.systems.VLMEnsembleSystem(
+            wandb_config=wandb_config,
+        )
+
+    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
+        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
+        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        prompts_and_targets_dir="prompts_and_targets",
         split="train",
     )
-    wandb.config.update(
-        {"train_indices": str(prompts_and_targets_dict["indices"].tolist())},
-        # allow_val_change=True,
+
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    text_datamodule = src.data.VLMEnsembleTextDataModule(
+        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
+        tokenized_dir_path=tokenized_dir_path,
+        wandb_config=wandb_config,
     )
 
     if wandb_config["compile"]:
-        vlm_ensemble: VLMEnsemble = torch.compile(
-            vlm_ensemble,
-            mode="default",  # good balance between performance and overhead
-            # mode="reduce-overhead",  # not guaranteed to work, but good for small batches.
+        # vlm_ensemble_system: VLMEnsemble = torch.compile(
+        #     vlm_ensemble_system,
+        #     mode="default",  # Good balance between performance and overhead.
+        # )
+        print(
+            "Reminder: torch.compile() doesn't work for variable length input tensors."
         )
 
-    attacker = src.utils.create_attacker(
-        wandb_config=wandb_config,
-        vlm_ensemble=vlm_ensemble,
-        accelerator=accelerator,
-    )
-
-    attacker.optimize_image_jailbreaks(
-        tensor_images=tensor_images,
-        text_dataloader=text_dataloader,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-        results_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+    trainer.fit(
+        model=vlm_ensemble_system,
+        datamodule=text_datamodule,
     )
 
 

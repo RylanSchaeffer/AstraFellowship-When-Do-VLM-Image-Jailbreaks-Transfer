@@ -27,7 +27,6 @@ IGNORE_INDEX = -100
 class PrismaticVisionLanguageModel(VisionLanguageModel):
     def __init__(
         self,
-        accelerator: Accelerator,
         model_str: str = "prism-dinosiglip+7b",
         generation_kwargs: Dict[str, Any] = None,
     ):
@@ -62,7 +61,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
-        self.device_str = None
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
@@ -88,8 +86,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
 
             def images_transform_fn(images: torch.Tensor) -> Dict[str, torch.Tensor]:
                 transformed_images = {
-                    "dino": dino_transforms(images).to(self.device_str),
-                    "siglip": siglip_transforms(images).to(self.device_str),
+                    "dino": dino_transforms(images),
+                    "siglip": siglip_transforms(images),
                 }
                 return transformed_images
 
@@ -107,7 +105,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             )
 
             def images_transform_fn(images: torch.Tensor) -> torch.Tensor:
-                transformed_images = transforms(images).to(self.device_str)
+                transformed_images = transforms(images)
                 return transformed_images
 
         return images_transform_fn
@@ -119,7 +117,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        images = image.to(self.device_str).repeat(len(input_ids), 1, 1, 1)
+        images = image.repeat(len(input_ids), 1, 1, 1)
         transformed_images: Union[
             torch.Tensor, Dict[str, torch.Tensor]
         ] = self.images_transform_fn(images)
@@ -218,12 +216,4 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self.model.projector.eval()
         self.model.vision_backbone.requires_grad_(False)
         self.model.vision_backbone.eval()
-
-    def to(self, device_str: str):
-        self.model.llm_backbone = self.model.llm_backbone.to(device_str)
-        self.model.projector = self.model.projector.to(device_str)
-        self.model.vision_backbone = self.model.vision_backbone.to(device_str)
-        self.model = self.model.to(device_str)
-        self.device_str = device_str
-        print(f"Moved Prismatic VLM {self.model_str} to device: {device_str}")
-        return self
+        self.model.eval()

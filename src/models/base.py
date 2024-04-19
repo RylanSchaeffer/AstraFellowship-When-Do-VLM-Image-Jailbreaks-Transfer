@@ -1,9 +1,10 @@
 import abc
+import lightning
 import torch.nn
 from typing import List, Optional
 
 
-class VisionLanguageModel(abc.ABC, torch.nn.Module):
+class VisionLanguageModel(abc.ABC, lightning.LightningModule):
     def __init__(self):
         super().__init__()
 
