@@ -17,7 +17,7 @@ parameters:
     parameters:
       accumulate_grad_batches:
         values:
-          [1]
+          [1, 4, 8]
       gradient_clip_val:
         values:
           [10.0]
@@ -41,6 +41,9 @@ parameters:
         "{'prism-siglip-controlled+7b'}",
         "{'prism-dinosiglip-controlled+7b'}",
       ]
+  n_grad_steps:
+    values:
+      [50000]
   prompt_and_targets_kwargs:
     parameters:
       dataset_train:
