@@ -1,7 +1,4 @@
 default_attack_config = {
-    "attack_kwargs": {
-        "attack_name": "pgd",
-    },
     # "compile": True,
     "compile": False,
     "data": {
