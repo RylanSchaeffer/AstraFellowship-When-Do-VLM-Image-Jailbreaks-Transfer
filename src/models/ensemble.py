@@ -99,32 +99,23 @@ class VLMEnsemble(lightning.LightningModule):
         losses_per_model: Dict[str, torch.Tensor] = {}
 
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
-            image_on_device = image.to(model_wrapper.device_str)
-            input_ids_on_device = text_data_by_model[model_name]["input_ids"].to(
-                model_wrapper.device_str
-            )
-            attention_mask_on_device = text_data_by_model[model_name][
-                "attention_mask"
-            ].to(model_wrapper.device_str)
-            labels_on_device = text_data_by_model[model_name]["labels"].to(
-                model_wrapper.device_str,
-            )
-
             # Compute the loss for each model
             loss = model_wrapper.compute_loss(
-                image=image_on_device,
-                input_ids=input_ids_on_device,
-                attention_mask=attention_mask_on_device,
-                labels=labels_on_device,
+                image=image,
+                input_ids=text_data_by_model[model_name]["input_ids"],
+                attention_mask=text_data_by_model[model_name]["attention_mask"],
+                labels=text_data_by_model[model_name]["labels"],
             )
             losses_per_model[model_name] = loss
 
-        avg_loss = torch.zeros(1, requires_grad=True, device="cpu")[0]
-        for model_name, loss in losses_per_model.items():
-            losses_per_model[model_name] = loss.to("cpu")
-            avg_loss = avg_loss + losses_per_model[model_name]
-        avg_loss /= len(losses_per_model)
-        losses_per_model["avg"] = avg_loss
+        # avg_loss = torch.zeros(1, requires_grad=True)[0]
+        # for model_name, loss in losses_per_model.items():
+        #     losses_per_model[model_name] = loss
+        #     avg_loss = avg_loss + losses_per_model[model_name]
+        # avg_loss /= len(losses_per_model)
+        losses_per_model["avg"] = torch.mean(
+            torch.stack(list(losses_per_model.values()))
+        )
         return losses_per_model
 
     def disable_vlm_gradients(self):

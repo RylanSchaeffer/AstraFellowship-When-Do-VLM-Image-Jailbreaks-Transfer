@@ -6,8 +6,6 @@ import torch
 import torch.utils.data
 from typing import Any, Dict, List
 
-from src.models.ensemble import VLMEnsemble
-
 
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
     def __init__(

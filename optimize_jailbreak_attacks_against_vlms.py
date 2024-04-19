@@ -88,9 +88,8 @@ def optimize_vlm_adversarial_examples():
         accumulate_grad_batches=wandb_config["lightning_kwargs"][
             "accumulate_grad_batches"
         ],
-        # auto_scale_batch_size=wandb_config['auto_scale_batch_size'],
         callbacks=callbacks,
-        check_val_every_n_epoch=3,  # default
+        check_val_every_n_epoch=0,
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
         # deterministic=True,
         devices=devices,
@@ -102,8 +101,7 @@ def optimize_vlm_adversarial_examples():
         max_epochs=n_train_epochs,
         min_epochs=n_train_epochs,
         # profiler="simple",  # Simplest profiler
-        # profiler="advanced",  # More advanced profiler
-        # profiler=PyTorchProfiler(filename=),  # PyTorch specific profiler
+        profiler="advanced",  # More advanced profiler
         precision=wandb_config["lightning_kwargs"]["precision"],
     )
 

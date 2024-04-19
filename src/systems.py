@@ -1,3 +1,4 @@
+import gc
 import lightning
 import torch
 import torch.optim
@@ -120,7 +121,9 @@ class VLMEnsembleSystem(lightning.LightningModule):
 
         return optimizer_and_maybe_others_dict
 
-    def training_step(self, batch: Tuple, batch_idx: int) -> torch.Tensor:
+    def training_step(
+        self, batch: Dict[str, Dict[str, torch.Tensor]], batch_idx: int
+    ) -> torch.Tensor:
         # https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#training_step
         losses_per_model: Dict[str, torch.Tensor] = self.vlm_ensemble.compute_loss(
             image=self.tensor_image,
@@ -129,11 +132,20 @@ class VLMEnsembleSystem(lightning.LightningModule):
         for loss_str, loss_val in losses_per_model.items():
             self.log(
                 f"loss/{loss_str}",
-                loss_val,
+                loss_val.detach().item(),
                 on_step=True,
                 on_epoch=False,
                 sync_dist=True,
             )
+
+        if batch_idx == 0:
+            print(torch.cuda.memory_summary())
+            # for obj in gc.get_objects():
+            #     try:
+            #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+            #             print(type(obj), obj.size())
+            #     except:
+            #         pass
 
         return losses_per_model["avg"]
 
@@ -147,12 +159,9 @@ class VLMEnsembleSystem(lightning.LightningModule):
                     f"jailbreak_image_step={self.optimizer_step_counter}": wandb.Image(
                         # https://docs.wandb.ai/ref/python/data-types/image
                         # 0 removes the size-1 batch dimension.
+                        # The transformation doesn't accept bfloat16.
                         data_or_path=self.convert_tensor_to_pil_image(
-                            self.tensor_image[0]
-                            .clone()
-                            .to(
-                                torch.float32
-                            )  # The transformation doesn't accept bfloat16.
+                            self.tensor_image[0].detach().to(torch.float32)
                         ),
                         # caption="Adversarial Image",
                     ),
