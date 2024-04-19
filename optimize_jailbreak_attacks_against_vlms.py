@@ -38,6 +38,14 @@ def optimize_vlm_adversarial_examples():
     )
     wandb_config = dict(wandb.config)
 
+    # Log the effective batch size.
+    wandb.config.update(
+        {
+            "effective_batch_size": wandb_config["data"]["batch_size"]
+            * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
+        }
+    )
+
     # Create checkpoint directory for this run, and save the config to the directory.
     wandb_run_dir = os.path.join("runs", wandb.run.id)
     os.makedirs(wandb_run_dir)
@@ -127,9 +135,12 @@ def optimize_vlm_adversarial_examples():
     )
 
     if wandb_config["compile"]:
-        vlm_ensemble_system: VLMEnsemble = torch.compile(
-            vlm_ensemble_system,
-            mode="default",  # Good balance between performance and overhead.
+        # vlm_ensemble_system: VLMEnsemble = torch.compile(
+        #     vlm_ensemble_system,
+        #     mode="default",  # Good balance between performance and overhead.
+        # )
+        print(
+            "Reminder: torch.compile() doesn't work for variable length input tensors."
         )
 
     trainer.fit(

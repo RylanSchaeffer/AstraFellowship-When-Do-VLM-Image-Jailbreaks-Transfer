@@ -169,4 +169,5 @@ class VLMEnsembleSystem(lightning.LightningModule):
             )
         super().optimizer_step(*args, **kwargs)
         self.optimizer_step_counter += 1
-        self.tensor_image.data = self.tensor_image.data.clamp(min=0.0, max=1.0)
+        with torch.no_grad():
+            self.tensor_image.data = self.tensor_image.data.clamp(min=0.0, max=1.0)
