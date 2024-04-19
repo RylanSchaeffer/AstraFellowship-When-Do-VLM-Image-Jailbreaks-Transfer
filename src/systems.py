@@ -138,6 +138,14 @@ class VLMEnsembleSystem(lightning.LightningModule):
                 sync_dist=True,
             )
 
+        self.log(
+            "optimizer_step_counter",
+            self.optimizer_step_counter,
+            on_step=True,
+            on_epoch=False,
+            sync_dist=True,
+        )
+
         # if batch_idx == 0:
         #     print(torch.cuda.memory_summary())
         # for obj in gc.get_objects():
