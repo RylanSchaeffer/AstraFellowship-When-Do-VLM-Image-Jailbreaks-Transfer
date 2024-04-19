@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Tuple
 import wandb
 
 from src.attacks.base import JailbreakAttacker
-from src.data import VLMEnsembleDataset, VLMEnsembleTextDataModule
+from src.data import VLMEnsembleTextDataset, VLMEnsembleTextDataModule
 from src.models.ensemble import VLMEnsemble
 from src.image_handling import get_list_image
 
@@ -77,7 +77,7 @@ def create_text_dataloader(
         **load_prompts_and_targets_kwargs,
     )
 
-    dataset = VLMEnsembleDataset(
+    dataset = VLMEnsembleTextDataset(
         vlm_ensemble=vlm_ensemble,
         prompts_and_targets_dict=prompts_and_targets_dict,
     )
@@ -99,19 +99,14 @@ def create_text_datamodule(
     wandb_config: Dict[str, Any],
     split: str = "train",
     load_prompts_and_targets_kwargs: Dict[str, Any] = {},
-) -> Tuple[Dict, VLMEnsembleTextDataModule]:
-    prompts_and_targets_dict: Dict[str, List[str]] = load_prompts_and_targets(
-        prompts_and_targets_kwargs=prompt_and_targets_kwargs,
-        split=split,
-        **load_prompts_and_targets_kwargs,
-    )
-
+    prompts_and_targets_dir: str = "prompts_and_targets",
+) -> VLMEnsembleTextDataModule:
     text_datamodule = VLMEnsembleTextDataModule(
         vlm_ensemble=vlm_ensemble,
         prompts_and_targets_dict=prompts_and_targets_dict,
         wandb_config=wandb_config,
     )
-    return prompts_and_targets_dict, text_datamodule
+    return text_datamodule
 
 
 def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
