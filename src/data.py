@@ -58,7 +58,7 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
                 ]
             )
         self.num_files_per_vlm = [
-            len(self.tokenized_data_paths[k]) for k in self.tokenized_data_paths.keys()
+            len(self.tokenized_data_paths[vlm_name]) for vlm_name in self.vlm_names
         ]
         # Check that every VLM has the same number of files.
         assert all(
@@ -67,9 +67,10 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
                 for i in range(len(self.tokenized_data_paths))
             ]
         )
+        self.length = self.num_files_per_vlm[0]
 
     def __len__(self):
-        return len(self.num_files_per_vlm)
+        return self.length
 
     def __getitem__(self, idx):
         datum_per_vlm = {}
