@@ -1,2 +1,5 @@
 .idea/
 **/__pycache__/
+SECRETS
+.venv/
+prompt_history/
