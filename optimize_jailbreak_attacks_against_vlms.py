@@ -22,6 +22,7 @@ from typing import Any, Dict, List
 
 # torch.use_deterministic_algorithms(True)
 
+import src.data
 from src.globals import default_attack_config
 from src.models.ensemble import VLMEnsemble
 import src.systems
@@ -62,7 +63,7 @@ def optimize_vlm_adversarial_examples():
     n_train_epochs = math.ceil(
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
-        / wandb_config["prompt_and_targets_kwargs"]["n_unique_prompts_and_targets"]
+        / wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
     )
 
     callbacks = []
@@ -113,12 +114,18 @@ def optimize_vlm_adversarial_examples():
             wandb_config=wandb_config,
         )
 
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
-    text_datamodule = src.utils.create_text_datamodule(
+    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
-        wandb_config=wandb_config,
+        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        prompts_and_targets_dir="prompts_and_targets",
         split="train",
+    )
+
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    text_datamodule = src.data.VLMEnsembleTextDataModule(
+        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
+        tokenized_dir_path=tokenized_dir_path,
+        wandb_config=wandb_config,
     )
 
     if wandb_config["compile"]:

@@ -30,7 +30,7 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
     "n_grad_steps": 10000,
-    "prompt_and_targets_kwargs": {
+    "prompts_and_targets_kwargs": {
         "dataset_train": "rylan_anthropic_hhh",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
         "n_unique_prompts_and_targets": 189,  # -1 means use all prompts and targets.
@@ -95,7 +95,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "prompt_and_targets_kwargs": {
+    "prompts_and_targets_kwargs": {
         "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,

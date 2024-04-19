@@ -12,21 +12,21 @@ from src.models.ensemble import VLMEnsemble
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
     def __init__(
         self,
-        vlm_ensemble: VLMEnsemble,
-        prompts_and_targets_dict: Dict[str, List[str]],
+        vlm_names: List[str],
+        tokenized_dir_path: str,
         wandb_config: Dict[str, any],
     ):
         super(VLMEnsembleTextDataModule, self).__init__()
-        self.vlm_ensemble = vlm_ensemble
-        self.prompts_and_targets_dict = prompts_and_targets_dict
+        self.vlm_names = vlm_names
+        self.tokenized_dir_path = tokenized_dir_path
         self.wandb_config = wandb_config
         self.train_dataset = None
 
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
             self.train_dataset = VLMEnsembleTextDataset(
-                vlm_ensemble=self.vlm_ensemble,
-                prompts_and_targets_dict=self.prompts_and_targets_dict,
+                vlm_names=self.vlm_names,
+                tokenized_dir_path=self.tokenized_dir_path,
             )
 
     def train_dataloader(self):
@@ -39,39 +39,54 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
             pin_memory=torch.cuda.is_available(),
         )
 
-    def teardown(self):
-        del self.train_dataset
-
 
 class VLMEnsembleTextDataset(torch.utils.data.Dataset):
     def __init__(
         self,
-        prompts_and_targets_kwargs: Dict[str, Any],
-        vlm_ensemble: VLMEnsemble,
-        split: str = "train",
-        prompts_and_targets_dir: str = "prompts_and_targets",
+        vlm_names: List[str],
+        tokenized_dir_path: str,
     ):
-        self.split = split
-        paths = tokenize_prompts_and_targets_using_vlm_ensemble(
-            prompts_and_targets_kwargs=prompts_and_targets_kwargs,
-            prompts_and_targets_dir=prompts_and_targets_dir,
-            vlm_ensemble=vlm_ensemble,
-            split=split,
+        self.vlm_names = vlm_names
+        self.tokenized_dir_path = tokenized_dir_path
+        self.tokenized_data_paths = {}
+        for vlm_name in self.vlm_names:
+            vlm_tokenized_data_dir = os.path.join(tokenized_dir_path, vlm_name)
+            self.tokenized_data_paths[vlm_name] = sorted(
+                [
+                    os.path.join(vlm_tokenized_data_dir, f)
+                    for f in os.listdir(vlm_tokenized_data_dir)
+                ]
+            )
+        self.num_files_per_vlm = [
+            len(self.tokenized_data_paths[k]) for k in self.tokenized_data_paths.keys()
+        ]
+        # Check that every VLM has the same number of files.
+        assert all(
+            [
+                self.num_files_per_vlm[i] == self.num_files_per_vlm[0]
+                for i in range(len(self.tokenized_data_paths))
+            ]
         )
-        self.paths = paths
 
     def __len__(self):
-        return len(self.paths)
+        return len(self.num_files_per_vlm)
 
     def __getitem__(self, idx):
-        return {
-            vlm_name: {
-                "input_ids": self.data[vlm_name]["input_ids"][idx],
-                "attention_mask": self.data[vlm_name]["attention_mask"][idx],
-                "labels": self.data[vlm_name]["labels"][idx],
+        datum_per_vlm = {}
+        for vlm_name in self.vlm_names:
+            datum_file_path = os.path.join(
+                self.tokenized_dir_path,
+                vlm_name,
+                f"tokenized_datum_idx={str(idx).zfill(6)}.npz",
+            )
+            datum_npz = np.load(datum_file_path)
+            datum_per_vlm[vlm_name] = {
+                "input_ids": datum_npz["input_ids"],
+                "attention_mask": datum_npz["input_ids"],
+                "labels": datum_npz["labels"],
             }
-            for vlm_name in self.data
-        }
+            datum_npz.close()
+        return datum_per_vlm
 
 
 def tokenize_prompts_and_targets_using_vlm_ensemble(
@@ -80,7 +95,7 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
-) -> Dict[str, List[str]]:
+) -> str:
     prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
     if prompts_and_targets_str == "advbench":
         prompts_and_targets_path = os.path.join(
@@ -107,26 +122,27 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
 
-    tokenized_file_paths = {vlm_name: [] for vlm_name in vlm_ensemble.vlms_dict}
     for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
-        tokenized_data = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+        vlm_tokenized_data_path = os.path.join(tokenized_dir_path, vlm_name)
+        os.makedirs(vlm_tokenized_data_path, exist_ok=True)
+        tokenized_data: Dict[
+            str, torch.Tensor
+        ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
             prompts=prompts,
             targets=prompts,
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
             datum_file_path = os.path.join(
-                tokenized_dir_path,
-                vlm_name,
+                vlm_tokenized_data_path,
                 f"tokenized_datum_idx={str(datum_idx).zfill(6)}.npz",
             )
             if not os.path.isfile(datum_file_path):
                 np.savez(
                     file=datum_file_path,
-                    input_ids=tokenized_data["input_ids"][datum_idx],
-                    attention_mask=tokenized_data["attention_mask"][datum_idx],
-                    labels=tokenized_data["labels"][datum_idx],
+                    input_ids=tokenized_data["input_ids"][datum_idx].numpy(),
+                    attention_mask=tokenized_data["attention_mask"][datum_idx].numpy(),
+                    labels=tokenized_data["labels"][datum_idx].numpy(),
                 )
-            tokenized_file_paths[vlm_name].append(datum_file_path)
 
-    return tokenized_file_paths
+    return tokenized_dir_path

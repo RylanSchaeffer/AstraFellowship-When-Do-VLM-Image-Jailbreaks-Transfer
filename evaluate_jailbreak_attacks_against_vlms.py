@@ -88,7 +88,7 @@ def evaluate_vlm_adversarial_examples():
                 text_dataloader,
             ) = src.utils.create_text_dataloader(
                 vlm_ensemble=vlm_ensemble,
-                prompt_and_targets_kwargs=wandb_config["prompt_and_targets_kwargs"],
+                prompt_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
                 wandb_config=wandb_config,
                 split="eval",
                 load_prompts_and_targets_kwargs={
