@@ -14,7 +14,6 @@ from torchvision import transforms
 from typing import Any, Dict, List, Tuple
 import wandb
 
-from src.attacks.base import JailbreakAttacker
 from src.data import VLMEnsembleTextDataset, VLMEnsembleTextDataModule
 from src.models.ensemble import VLMEnsemble
 from src.image_handling import get_list_image
@@ -24,44 +23,6 @@ def calc_rank():
     if not is_dist_avail_and_initialized():
         return 0
     return torch.distributed.get_rank()
-
-
-def create_attacker(
-    wandb_config: Dict[str, Any],
-    vlm_ensemble: VLMEnsemble,
-) -> JailbreakAttacker:
-    if wandb_config["attack_kwargs"]["attack_name"] == "pgd":
-        from src.attacks.pgd import PGDAttacker
-
-        attacker = PGDAttacker(
-            vlm_ensemble=vlm_ensemble,
-            attack_kwargs=wandb_config["attack_kwargs"],
-        )
-    elif wandb_config["attack_kwargs"]["attack_name"] == "ssa_common_weakness":
-        # from old.how_robust_is_bard.src.attacks.SpectrumSimulationAttack import (
-        #     SpectrumSimulationCommonWeaknessAttack,
-        # )
-        #
-        # attacker = SpectrumSimulationCommonWeaknessAttack(
-        #     models_to_attack_dict=models_to_attack_dict,
-        #     models_to_eval_dict=models_to_eval_dict,
-        #     criterion=GPT4AttackCriterion(),
-        #     **wandb_config["attack_kwargs"],
-        # )
-        raise NotImplementedError
-    elif wandb_config["attack_kwargs"]["attack_name"] == "eval":
-        from src.attacks.base import JailbreakAttacker
-
-        attacker = JailbreakAttacker(
-            vlm_ensemble=vlm_ensemble,
-            attack_kwargs=wandb_config["attack_kwargs"],
-        )
-    else:
-        raise NotImplementedError(
-            f"Invalid attack_name: {wandb_config['attack_kwargs']['attack_name']}"
-        )
-
-    return attacker
 
 
 def create_text_dataloader(
