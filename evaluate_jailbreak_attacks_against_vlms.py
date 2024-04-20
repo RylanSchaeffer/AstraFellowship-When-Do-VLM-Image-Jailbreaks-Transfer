@@ -1,9 +1,18 @@
+import os
+
+# Rok asked us to include the following specifications in our code to prevent CPUs from spinning idly:
+n_threads_str = "4"
+os.environ["OMP_NUM_THREADS"] = n_threads_str
+os.environ["OPENBLAS_NUM_THREADS"] = n_threads_str
+os.environ["MKL_NUM_THREADS"] = n_threads_str
+os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
+os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
+
 import torchvision.transforms.v2.functional
-from accelerate import Accelerator
 import ast
 import json
+import lightning
 import numpy as np
-import os
 from PIL import Image
 import pprint
 import torch
@@ -12,8 +21,7 @@ from typing import Any, Dict, List
 
 
 from src.globals import default_eval_config
-from src.models.ensemble import VLMEnsemble
-from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
+import src.systems
 import src.utils
 
 
@@ -43,9 +51,53 @@ def evaluate_vlm_adversarial_examples():
 
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
-    wandb_config["models_to_eval"] = ast.literal_eval(wandb_config["models_to_eval"])
+    wandb_config["model_to_eval"] = ast.literal_eval(wandb_config["model_to_eval"])
 
     src.utils.set_seed(seed=wandb_config["seed"])
+
+    callbacks = []
+    if torch.cuda.is_available():
+        accelerator = "gpu"
+        devices = torch.cuda.device_count()
+        callbacks.extend(
+            [
+                # DeviceStatsMonitor()
+            ]
+        )
+        print("GPUs available: ", devices)
+    else:
+        accelerator = "cpu"
+        devices = None
+        callbacks.extend([])
+        print("No GPU available.")
+
+    # https://lightning.ai/docs/pytorch/stable/common/trainer.html
+    trainer = lightning.pytorch.Trainer(
+        accelerator=accelerator,
+        accumulate_grad_batches=wandb_config["lightning_kwargs"][
+            "accumulate_grad_batches"
+        ],
+        callbacks=callbacks,
+        check_val_every_n_epoch=0,
+        default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+        # deterministic=True,
+        devices=devices,
+        logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
+        log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
+        # overfit_batches=1,  # useful for debugging
+        max_epochs=1,
+        min_epochs=1,
+        # profiler="simple",  # Simplest profiler
+        # profiler="advanced",  # More advanced profiler
+        precision=wandb_config["lightning_kwargs"]["precision"],
+    )
+
+    # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
+    # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
+    with trainer.init_module():
+        vlm_ensemble_system = src.systems.VLMEnsembleEvaluatingSystem(
+            wandb_config=wandb_config,
+        )
 
     # Load jailbreak images, their paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
@@ -54,88 +106,63 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
 
-    accelerator = Accelerator()
-    # harmbench_evaluator = HarmBenchEvaluator(
-    #     device=len(cuda_visible_devices) - 1,  # Place on the last GPU (arbitrary).
-    # )
-    # llamaguard_evalutor = LlamaGuardEvaluator(
-    #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
-    # )
-
     runs_jailbreak_dict_list = [
         ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "qy7ptwbj"
     ]
     runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
 
-    for model_name_str in wandb_config["models_to_eval"]:
-        vlm_ensemble: VLMEnsemble = src.utils.instantiate_vlm_ensemble(
-            model_strs=[model_name_str],
-            model_generation_kwargs=wandb_config["model_generation_kwargs"],
-            accelerator=accelerator,
+    for run_jailbreak_dict in runs_jailbreak_dict_list:
+        # Read image from disk. This image data should match the uint8 images.
+        # Shape: Batch-Channel-Height-Width
+        adv_image = (
+            torchvision.transforms.v2.functional.pil_to_tensor(
+                Image.open(run_jailbreak_dict["file_path"], mode="r")
+            ).unsqueeze(0)
+            / 255.0
         )
 
-        assert wandb_config["attack_kwargs"]["attack_name"] == "eval"
-        attacker = src.utils.create_attacker(
-            wandb_config=wandb_config,
+        # We need to load the VLMs ensemble in order to tokenize the dataset.
+        (
+            prompts_and_targets_dict,
+            text_dataloader,
+        ) = src.utils.create_text_dataloader(
             vlm_ensemble=vlm_ensemble,
-            accelerator=accelerator,
+            prompt_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+            wandb_config=wandb_config,
+            split="eval",
+            load_prompts_and_targets_kwargs={
+                "train_indices": run_jailbreak_dict["wandb_run_train_indices"],
+            },
         )
+        # Measure and log metrics of model on attacks.
+        model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(
+            vlm_ensemble=vlm_ensemble,
+            image=adv_image,
+            prompts_and_targets_dict=prompts_and_targets_dict,
+            text_dataloader=text_dataloader,
+            # harmbench_evaluator=None,  # harmbench_evaluator,
+            # llamaguard_evalutor=None,  # llamaguard_evalutor,
+            wandb_logging_step_idx=run_jailbreak_dict["n_gradient_steps"],
+        )[model_name_str]
 
-        for run_jailbreak_dict in runs_jailbreak_dict_list:
-            # We need to load the VLMs ensemble in order to tokenize the dataset.
-            (
-                prompts_and_targets_dict,
-                text_dataloader,
-            ) = src.utils.create_text_dataloader(
-                vlm_ensemble=vlm_ensemble,
-                prompt_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
-                wandb_config=wandb_config,
-                split="eval",
-                load_prompts_and_targets_kwargs={
-                    "train_indices": run_jailbreak_dict["wandb_run_train_indices"],
-                },
-            )
+        model_evaluation_results["eval_model_str"] = model_name_str
+        model_evaluation_results["wandb_run_id"] = run_jailbreak_dict["wandb_run_id"]
+        model_evaluation_results["wandb_logging_step"] = run_jailbreak_dict[
+            "wandb_logging_step"
+        ]
+        model_evaluation_results["n_gradient_steps"] = run_jailbreak_dict[
+            "n_gradient_steps"
+        ]
+        model_evaluation_results["attack_models_str"] = run_jailbreak_dict[
+            "attack_models_str"
+        ]
 
-            # Read image from disk. This image data should match the uint8 images.
-            # Shape: Batch-Channel-Height-Width
-            adv_image = (
-                torchvision.transforms.v2.functional.pil_to_tensor(
-                    Image.open(run_jailbreak_dict["file_path"], mode="r")
-                ).unsqueeze(0)
-                / 255.0
-            )
+        # Log the evaluation results.
+        wandb.log(model_evaluation_results)
 
-            # Measure and log metrics of model on attacks.
-            model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(
-                vlm_ensemble=vlm_ensemble,
-                image=adv_image,
-                prompts_and_targets_dict=prompts_and_targets_dict,
-                text_dataloader=text_dataloader,
-                # harmbench_evaluator=None,  # harmbench_evaluator,
-                # llamaguard_evalutor=None,  # llamaguard_evalutor,
-                wandb_logging_step_idx=run_jailbreak_dict["n_gradient_steps"],
-            )[model_name_str]
-
-            model_evaluation_results["eval_model_str"] = model_name_str
-            model_evaluation_results["wandb_run_id"] = run_jailbreak_dict[
-                "wandb_run_id"
-            ]
-            model_evaluation_results["wandb_logging_step"] = run_jailbreak_dict[
-                "wandb_logging_step"
-            ]
-            model_evaluation_results["n_gradient_steps"] = run_jailbreak_dict[
-                "n_gradient_steps"
-            ]
-            model_evaluation_results["attack_models_str"] = run_jailbreak_dict[
-                "attack_models_str"
-            ]
-
-            # Log the evaluation results.
-            wandb.log(model_evaluation_results)
-
-            print(
-                f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['n_gradient_steps']}"
-            )
+        print(
+            f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['n_gradient_steps']}"
+        )
 
 
 if __name__ == "__main__":

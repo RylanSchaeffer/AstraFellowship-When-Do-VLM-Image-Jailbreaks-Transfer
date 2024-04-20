@@ -7,10 +7,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
+from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
 from src.utils import create_initial_image
 
 
-class VLMEnsembleSystem(lightning.LightningModule):
+class VLMEnsembleAttackingSystem(lightning.LightningModule):
     def __init__(
         self,
         wandb_config: Dict[str, Any],
@@ -179,3 +180,24 @@ class VLMEnsembleSystem(lightning.LightningModule):
         self.optimizer_step_counter += 1
         with torch.no_grad():
             self.tensor_image.data = self.tensor_image.data.clamp(min=0.0, max=1.0)
+
+
+class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
+    def __init__(
+        self,
+        wandb_config: Dict[str, Any],
+        tensor_image: torch.Tensor,
+    ):
+        super().__init__()
+        self.wandb_config = wandb_config
+        self.vlm_ensemble = VLMEnsemble(
+            model_strs=wandb_config["models_to_eval"],
+            model_generation_kwargs=wandb_config["model_generation_kwargs"],
+        )
+        # harmbench_evaluator = HarmBenchEvaluator(
+        #     device=len(cuda_visible_devices) - 1,  # Place on the last GPU (arbitrary).
+        # )
+        # llamaguard_evalutor = LlamaGuardEvaluator(
+        #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
+        # )
+        self.tensor_image = tensor_image

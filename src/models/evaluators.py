@@ -1,13 +1,15 @@
+import lightning
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-class HarmBenchEvaluator:
-    def __init__(self, device: int, dtype: torch.dtype = torch.bfloat16):
+class HarmBenchEvaluator(lightning.LightningModule):
+    def __init__(
+        self,
+    ):
+        super().__init__()
         # See: https://huggingface.co/cais/HarmBench-Llama-2-13b-cls
         self.model_id = "cais/HarmBench-Llama-2-13b-cls"
-        self.device = f"cuda:{str(device)}"
-        self.dtype = dtype
         self.template = {
             "description": "Template For Llama-2-13b-behavior classifier",
             "prompt": """[INST] <<SYS>>
@@ -66,8 +68,9 @@ class HarmBenchEvaluator:
         return self.model.generate(inputs)
 
 
-class LlamaGuardEvaluator:
+class LlamaGuardEvaluator(lightning.LightningModule):
     def __init__(self, device: int, dtype: torch.dtype = torch.bfloat16):
+        super().__init__()
         # See: https://huggingface.co/meta-llama/LlamaGuard-7b
         self.model_id = "meta-llama/LlamaGuard-7b"
         self.device = f"cuda:{str(device)}"

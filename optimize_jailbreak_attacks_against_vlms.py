@@ -24,7 +24,6 @@ from typing import Any, Dict, List
 
 import src.data
 from src.globals import default_attack_config
-from src.models.ensemble import VLMEnsemble
 import src.systems
 import src.utils
 
@@ -109,14 +108,14 @@ def optimize_vlm_adversarial_examples():
         max_epochs=n_train_epochs,
         min_epochs=n_train_epochs,
         # profiler="simple",  # Simplest profiler
-        profiler="advanced",  # More advanced profiler
+        # profiler="advanced",  # More advanced profiler
         precision=wandb_config["lightning_kwargs"]["precision"],
     )
 
     # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
     # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
     with trainer.init_module():
-        vlm_ensemble_system = src.systems.VLMEnsembleSystem(
+        vlm_ensemble_system = src.systems.VLMEnsembleAttackingSystem(
             wandb_config=wandb_config,
         )
 
