@@ -20,7 +20,8 @@ import wandb
 from typing import Any, Dict, List
 
 
-from src.globals import default_eval_config
+import src.data
+import src.globals
 import src.systems
 import src.utils
 
@@ -29,7 +30,7 @@ def evaluate_vlm_adversarial_examples():
     wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
-        config=default_eval_config,
+        config=src.globals.default_eval_config,
         entity=wandb_username,
     )
     wandb_config: Dict[str, Any] = dict(wandb.config)
@@ -99,6 +100,20 @@ def evaluate_vlm_adversarial_examples():
             wandb_config=wandb_config,
         )
 
+    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
+        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
+        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        prompts_and_targets_dir="prompts_and_targets",
+        split="train",
+    )
+
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    text_datamodule = src.data.VLMEnsembleTextDataModule(
+        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
+        tokenized_dir_path=tokenized_dir_path,
+        wandb_config=wandb_config,
+    )
+
     # Load jailbreak images, their paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_sweep_id=wandb_config["wandb_sweep_id"],
@@ -111,6 +126,8 @@ def evaluate_vlm_adversarial_examples():
     ]
     runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
 
+    model_name_str = list(wandb_config["model_to_eval"])[0]
+
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -121,29 +138,12 @@ def evaluate_vlm_adversarial_examples():
             / 255.0
         )
 
-        # We need to load the VLMs ensemble in order to tokenize the dataset.
-        (
-            prompts_and_targets_dict,
-            text_dataloader,
-        ) = src.utils.create_text_dataloader(
-            vlm_ensemble=vlm_ensemble,
-            prompt_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
-            wandb_config=wandb_config,
-            split="eval",
-            load_prompts_and_targets_kwargs={
-                "train_indices": run_jailbreak_dict["wandb_run_train_indices"],
-            },
+        vlm_ensemble_system.tensor_image = adv_image
+
+        trainer.test(
+            model=vlm_ensemble_system,
+            datamodule=text_datamodule,
         )
-        # Measure and log metrics of model on attacks.
-        model_evaluation_results = attacker.evaluate_jailbreak_against_vlms_and_log(
-            vlm_ensemble=vlm_ensemble,
-            image=adv_image,
-            prompts_and_targets_dict=prompts_and_targets_dict,
-            text_dataloader=text_dataloader,
-            # harmbench_evaluator=None,  # harmbench_evaluator,
-            # llamaguard_evalutor=None,  # llamaguard_evalutor,
-            wandb_logging_step_idx=run_jailbreak_dict["n_gradient_steps"],
-        )[model_name_str]
 
         model_evaluation_results["eval_model_str"] = model_name_str
         model_evaluation_results["wandb_run_id"] = run_jailbreak_dict["wandb_run_id"]

@@ -191,7 +191,7 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
         super().__init__()
         self.wandb_config = wandb_config
         self.vlm_ensemble = VLMEnsemble(
-            model_strs=wandb_config["models_to_eval"],
+            model_strs=wandb_config["model_to_eval"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
         )
         # harmbench_evaluator = HarmBenchEvaluator(
