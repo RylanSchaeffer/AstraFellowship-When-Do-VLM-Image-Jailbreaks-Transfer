@@ -156,9 +156,6 @@ def load_jailbreak_dicts_list(
                         "wandb_run_id": run.id,
                         "wandb_logging_step": wandb_logging_step,
                         "n_gradient_steps": n_gradient_steps,
-                        "wandb_run_train_indices": np.array(
-                            ast.literal_eval(run.config["train_indices"])
-                        ),
                         "attack_models_str": run.config["models_to_attack"],
                     }
                 )

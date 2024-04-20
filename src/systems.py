@@ -5,6 +5,7 @@ import torch.optim
 import torchvision.transforms
 from typing import Any, Dict, List, Optional, Tuple
 import wandb
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 
 from src.models.ensemble import VLMEnsemble
 from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
@@ -186,7 +187,7 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
     def __init__(
         self,
         wandb_config: Dict[str, Any],
-        tensor_image: torch.Tensor,
+        tensor_image: Optional[torch.Tensor] = None,
     ):
         super().__init__()
         self.wandb_config = wandb_config
@@ -200,4 +201,82 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
         # llamaguard_evalutor = LlamaGuardEvaluator(
         #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
         # )
-        self.tensor_image = tensor_image
+        self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=False)
+
+    def test_step(self, batch: Dict[str, Dict[str, torch.Tensor]], batch_idx: int):
+        if self.tensor_image is None:
+            raise ValueError("Image must be provided!")
+
+        # https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#training_step
+        losses_per_model: Dict[str, torch.Tensor] = self.vlm_ensemble.compute_loss(
+            image=self.tensor_image,
+            text_data_by_model=batch,
+        )
+        for loss_str, loss_val in losses_per_model.items():
+            self.log(
+                f"loss/{loss_str}",
+                loss_val.detach().item(),
+                # on_step=True,
+                on_epoch=True,
+                sync_dist=True,
+            )
+
+        evaluation_results = {}
+        for (
+            model_name,
+            model_wrapper,
+        ) in self.vlm_ensemble.vlms_dict.items():
+            batch_model_generations = model_wrapper.generate(
+                image=self.image,
+                prompts=batch_prompts,
+            )
+            model_adv_generation_begins_with_target = (
+                self.compute_whether_generation_begins_with_target(
+                    model_generations=batch_model_generations,
+                    targets=batch_targets,
+                )
+            )
+
+            evaluation_results[model_name] = {
+                f"generations_{model_name}_step={wandb_logging_step_idx}": wandb.Table(
+                    columns=[
+                        "prompt",
+                        "generated",
+                        "target",
+                    ],
+                    data=[
+                        [
+                            prompt,
+                            model_generation,
+                            target,
+                        ]
+                        for prompt, model_generation, target in zip(
+                            batch_prompts,
+                            batch_model_generations,
+                            batch_targets,
+                        )
+                    ],
+                ),
+                "eval/generation_begins_with_target": model_adv_generation_begins_with_target,
+                "eval/loss": total_losses_per_model[f"eval/loss_model={model_name}"],
+            }
+
+
+class VLMEnsembleEvaluatingCallback(lightning.Callback):
+    # The normal Lightning validation step blocks gradients, even with respect to inputs.
+    # Consequently, we'll need to implement our own validation step.
+    def __init__(self, wandb_config: Dict[str, Any]):
+        super().__init__()
+        self.wandb_config = wandb_config
+        self.val_dataset = {}
+        self.val_dataloader = None
+
+        if "n_workers" not in self.wandb_config:
+            # n_workers = max(4, os.cpu_count() // 4)  # heuristic
+            self.n_workers = 1
+        else:
+            self.n_workers = self.wandb_config["n_workers"]
+
+    def on_test_epoch_end(self, trainer, pl_module):
+        # Generate examples for each model.
+        raise NotImplementedError

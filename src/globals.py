@@ -45,16 +45,17 @@ default_attack_config = {
 
 
 default_eval_config = {
-    "attack_kwargs": {
-        "attack_name": "eval",
-        "batch_size": 1,
-    },
     "data": {
         "num_workers": 1,
+        "batch_size": 1,
     },
-    # "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_eval": "{'prism-clip+7b'}",
-    # "models_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
+    "lightning_kwargs": {
+        "log_loss_every_n_steps": 1,
+        "precision": "bf16-mixed",
+    },
+    # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    "model_to_eval": "{'prism-clip+7b'}",
+    # "model_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
         # "prism-reproduction-llava-v15+7b": {
         #     "temperature": 0.1,
@@ -97,5 +98,5 @@ default_eval_config = {
         "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,
-    "wandb_sweep_id": "7mwtky7q",
+    "wandb_sweep_id": "yvqszl4d",
 }

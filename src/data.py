@@ -6,6 +6,8 @@ import torch
 import torch.utils.data
 from typing import Any, Dict, List
 
+from lightning.pytorch.utilities.types import EVAL_DATALOADERS
+
 
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
     def __init__(
@@ -19,10 +21,16 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
         self.tokenized_dir_path = tokenized_dir_path
         self.wandb_config = wandb_config
         self.train_dataset = None
+        self.test_dataset = None
 
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
             self.train_dataset = VLMEnsembleTextDataset(
+                vlm_names=self.vlm_names,
+                tokenized_dir_path=self.tokenized_dir_path,
+            )
+        else:
+            self.test_dataset = VLMEnsembleTextDataset(
                 vlm_names=self.vlm_names,
                 tokenized_dir_path=self.tokenized_dir_path,
             )
@@ -34,6 +42,16 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
             shuffle=True,
             num_workers=self.wandb_config["data"]["num_workers"],
             drop_last=True,
+            pin_memory=torch.cuda.is_available(),
+        )
+
+    def test_dataloader(self) -> EVAL_DATALOADERS:
+        return torch.utils.data.DataLoader(
+            self.test_dataset,
+            batch_size=self.wandb_config["data"]["batch_size"],
+            shuffle=False,
+            num_workers=self.wandb_config["data"]["num_workers"],
+            drop_last=False,
             pin_memory=torch.cuda.is_available(),
         )
 

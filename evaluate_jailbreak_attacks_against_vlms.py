@@ -56,7 +56,11 @@ def evaluate_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    callbacks = []
+    callbacks = [
+        src.systems.VLMEnsembleEvaluatingCallback(
+            wandb_config=wandb_config,
+        )
+    ]
     if torch.cuda.is_available():
         accelerator = "gpu"
         devices = torch.cuda.device_count()
@@ -75,9 +79,6 @@ def evaluate_vlm_adversarial_examples():
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
         accelerator=accelerator,
-        accumulate_grad_batches=wandb_config["lightning_kwargs"][
-            "accumulate_grad_batches"
-        ],
         callbacks=callbacks,
         check_val_every_n_epoch=0,
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
@@ -93,18 +94,40 @@ def evaluate_vlm_adversarial_examples():
         precision=wandb_config["lightning_kwargs"]["precision"],
     )
 
+    # Load jailbreak images, their paths.
+    runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
+        wandb_sweep_id=wandb_config["wandb_sweep_id"],
+        # refresh=True,
+        refresh=False,
+    )
+
+    runs_jailbreak_dict_list = [
+        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "8attseox"
+    ]
+    runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
+
+    # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
+    # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
+    placeholder_adv_image = (
+        torchvision.transforms.v2.functional.pil_to_tensor(
+            Image.open(runs_jailbreak_dict_list[0]["file_path"], mode="r")
+        ).unsqueeze(0)
+        / 255.0
+    )
+
     # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
     # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
     with trainer.init_module():
         vlm_ensemble_system = src.systems.VLMEnsembleEvaluatingSystem(
             wandb_config=wandb_config,
+            tensor_image=placeholder_adv_image,
         )
 
     tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
         prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
         prompts_and_targets_dir="prompts_and_targets",
-        split="train",
+        split="eval",
     )
 
     # We need to load the VLMs ensemble in order to tokenize the dataset.
@@ -114,20 +137,7 @@ def evaluate_vlm_adversarial_examples():
         wandb_config=wandb_config,
     )
 
-    # Load jailbreak images, their paths.
-    runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
-        wandb_sweep_id=wandb_config["wandb_sweep_id"],
-        # refresh=True,
-        refresh=False,
-    )
-
-    runs_jailbreak_dict_list = [
-        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "qy7ptwbj"
-    ]
-    runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
-
     model_name_str = list(wandb_config["model_to_eval"])[0]
-
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -138,7 +148,7 @@ def evaluate_vlm_adversarial_examples():
             / 255.0
         )
 
-        vlm_ensemble_system.tensor_image = adv_image
+        vlm_ensemble_system.tensor_image.data = adv_image
 
         trainer.test(
             model=vlm_ensemble_system,
