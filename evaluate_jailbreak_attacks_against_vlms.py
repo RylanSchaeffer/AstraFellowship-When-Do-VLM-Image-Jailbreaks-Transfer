@@ -148,27 +148,19 @@ def evaluate_vlm_adversarial_examples():
             / 255.0
         )
 
+        # Bind data to the evaluation system for W&B logging on epoch end.
         vlm_ensemble_system.tensor_image.data = adv_image
+        vlm_ensemble_system.wandb_additional_data = {
+            "eval_model_str": model_name_str,
+            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
+            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+        }
 
         trainer.test(
             model=vlm_ensemble_system,
             datamodule=text_datamodule,
         )
-
-        model_evaluation_results["eval_model_str"] = model_name_str
-        model_evaluation_results["wandb_run_id"] = run_jailbreak_dict["wandb_run_id"]
-        model_evaluation_results["wandb_logging_step"] = run_jailbreak_dict[
-            "wandb_logging_step"
-        ]
-        model_evaluation_results["n_gradient_steps"] = run_jailbreak_dict[
-            "n_gradient_steps"
-        ]
-        model_evaluation_results["attack_models_str"] = run_jailbreak_dict[
-            "attack_models_str"
-        ]
-
-        # Log the evaluation results.
-        wandb.log(model_evaluation_results)
 
         print(
             f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['n_gradient_steps']}"

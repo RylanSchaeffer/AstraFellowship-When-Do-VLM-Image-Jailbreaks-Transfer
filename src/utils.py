@@ -147,15 +147,13 @@ def load_jailbreak_dicts_list(
                 #   'eval_data/sweep=7v3u4uq5/dz2maypg/media/images/jailbreak_image_step=500_0_6bff027c89aa794cfb3b.png'
                 # becomes
                 #   500
-                wandb_logging_step = int(file_name.split("_")[2][5:])
-                n_gradient_steps = wandb_logging_step
+                optimizer_step_counter = int(file_name.split("_")[2][5:])
                 file_path = os.path.join(file_dir_path, file_name)
                 runs_jailbreak_dict_list.append(
                     {
                         "file_path": file_path,
                         "wandb_run_id": run.id,
-                        "wandb_logging_step": wandb_logging_step,
-                        "n_gradient_steps": n_gradient_steps,
+                        "optimizer_step_counter": optimizer_step_counter,
                         "attack_models_str": run.config["models_to_attack"],
                     }
                 )
@@ -163,14 +161,14 @@ def load_jailbreak_dicts_list(
                 print(
                     "Downloaded jailbreak image for run: ",
                     run.id,
-                    " at step: ",
-                    n_gradient_steps,
+                    " at optimizer step: ",
+                    optimizer_step_counter,
                 )
 
         # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.
         runs_jailbreak_dict_list = sorted(
             runs_jailbreak_dict_list,
-            key=lambda x: (x["wandb_run_id"], x["n_gradient_steps"]),
+            key=lambda x: (x["wandb_run_id"], x["optimizer_step_counter"]),
         )
 
         joblib.dump(

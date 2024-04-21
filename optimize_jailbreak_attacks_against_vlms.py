@@ -139,7 +139,7 @@ def optimize_vlm_adversarial_examples():
         #     mode="default",  # Good balance between performance and overhead.
         # )
         print(
-            "Reminder: torch.compile() doesn't work for variable length input tensors."
+            "Reminder: torch.compile() doesn't work. Some memory leak? Need to debug."
         )
 
     trainer.fit(
