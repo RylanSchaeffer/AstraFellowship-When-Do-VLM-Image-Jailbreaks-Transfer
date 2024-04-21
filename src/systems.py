@@ -285,7 +285,7 @@ class VLMEnsembleEvaluatingCallback(lightning.Callback):
             )
 
             model_evaluation_results = {
-                f"generations_{model_name}_step={wandb_additional_data['optimizer_step_counter']}": wandb.Table(
+                f"generations_{model_name}_optimizer_step={wandb_additional_data['optimizer_step_counter']}": wandb.Table(
                     columns=[
                         "prompt",
                         "generated",

@@ -97,8 +97,8 @@ def evaluate_vlm_adversarial_examples():
     # Load jailbreak images, their paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_sweep_id=wandb_config["wandb_sweep_id"],
-        refresh=True,
-        # refresh=False,
+        # refresh=True,
+        refresh=False,
     )
 
     # runs_jailbreak_dict_list = [
