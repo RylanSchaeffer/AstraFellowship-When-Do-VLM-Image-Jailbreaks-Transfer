@@ -2,15 +2,11 @@ program: evaluate_jailbreak_attacks_against_vlms.py
 project: universal-vlm-jailbreak-eval
 method: grid
 parameters:
-  attack_kwargs:
-    parameters:
-      attack_name:
-        values: ["eval"]
-      batch_size:
-        values: [1]
   data:
     parameters:
       num_workers:
+        values: [1]
+      batch_size:
         values: [1]
   model_to_eval:
     values:
@@ -40,4 +36,4 @@ parameters:
       [0]
   wandb_sweep_id:
     values:
-      ["0wfs2n4g"]
+      ["yvqszl4d"]
