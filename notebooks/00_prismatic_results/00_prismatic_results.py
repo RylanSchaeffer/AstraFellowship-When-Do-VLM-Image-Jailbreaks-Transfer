@@ -8,7 +8,6 @@ import seaborn as sns
 
 import src.analyze
 import src.plot
-import src.utils
 
 
 # refresh = True
@@ -21,7 +20,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "8jdk1pyw",  # Prismatic with N-Choose-1 Jailbreaks
+    "tc10qy1l",  # Prismatic with N-Choose-1 Jailbreaks
     # "cewqh39e",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
@@ -56,44 +55,35 @@ plt.close()
 g = sns.relplot(
     data=runs_histories_df,
     kind="line",
-    x="n_gradient_steps",
-    y="eval/loss",
+    x="loss/optimizer_step_counter_step",
+    y="loss/avg_step",
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
     col="attack_models_str",
-    # col_order=unique_and_ordered_attack_models_strs,
-    # row="eval_model_str",
-    # row_order=unique_and_ordered_eval_model_strs,
     facet_kws={"margin_titles": True},
 )
+plt.show()
 g.set_axis_labels("Gradient Step", r"Cross Entropy of P(Target $\lvert$ Prompt, Image)")
 g.fig.suptitle("Attacked Model(s)", y=1.0)
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
 # Set legend title to "Evaluated Model".
 g._legend.set_title("Evaluated Model")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-# g.fig.text(
-#     1.01,
-#     0.5,
-#     "Evaluated Model",
-#     rotation=-90,
-#     va="center",
-#     ha="left",
-#     transform=g.fig.transFigure,
-# )
 g.set(ylim=(-0.05, None))
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_vs_gradient_step_cols=eval_models_rows=attack_models",
 )
 g.set(
-    xscale="log", yscale="log", ylim=(0.95 * runs_histories_df["eval/loss"].min(), None)
+    xscale="log",
+    yscale="log",
+    ylim=(0.95 * runs_histories_df["loss/avg_step"].min(), None),
 )
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
 )
-# plt.show()
+plt.show()
 
 
 plt.close()

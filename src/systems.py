@@ -212,20 +212,24 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
             image=self.tensor_image,
             text_data_by_model=batch,
         )
-        # Make sure the number of optimizer steps is simultanously logged.
-        losses_per_model["optimizer_step_counter"] = self.wandb_additional_data[
-            "optimizer_step_counter"
-        ]
+
         for loss_str, loss_val in losses_per_model.items():
             self.log(
                 f"loss/{loss_str}",
-                loss_val.detach().item()
-                if isinstance(loss_val, torch.Tensor)
-                else loss_val,
+                loss_val.detach().item(),
                 on_step=True,
                 on_epoch=True,
                 sync_dist=True,
             )
+
+        # Make sure the number of optimizer steps is simultaneously logged.
+        self.log(
+            "optimizer_step_counter",
+            self.wandb_additional_data["optimizer_step_counter"],
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+        )
 
 
 class VLMEnsembleEvaluatingCallback(lightning.Callback):
