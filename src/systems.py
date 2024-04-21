@@ -219,8 +219,10 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
         for loss_str, loss_val in losses_per_model.items():
             self.log(
                 f"loss/{loss_str}",
-                loss_val.detach().item(),
-                # on_step=True,
+                loss_val.detach().item()
+                if isinstance(loss_val, torch.Tensor)
+                else loss_val,
+                on_step=True,
                 on_epoch=True,
                 sync_dist=True,
             )
@@ -267,13 +269,12 @@ class VLMEnsembleEvaluatingCallback(lightning.Callback):
 
         wandb_additional_data = pl_module.wandb_additional_data
 
-        evaluation_results = {}
         for (
             model_name,
             model_wrapper,
         ) in pl_module.vlm_ensemble.vlms_dict.items():
             batch_model_generations = model_wrapper.generate(
-                image=pl_module.image,
+                image=pl_module.tensor_image,
                 prompts=batch_prompts,
             )
             model_adv_generation_begins_with_target = (
@@ -283,7 +284,7 @@ class VLMEnsembleEvaluatingCallback(lightning.Callback):
                 )
             )
 
-            evaluation_results[model_name] = {
+            model_evaluation_results = {
                 f"generations_{model_name}_step={wandb_additional_data['optimizer_step_counter']}": wandb.Table(
                     columns=[
                         "prompt",
@@ -305,3 +306,5 @@ class VLMEnsembleEvaluatingCallback(lightning.Callback):
                 ),
                 "eval/generation_begins_with_target": model_adv_generation_begins_with_target,
             }
+            model_evaluation_results.update(pl_module.wandb_additional_data)
+            wandb.log(model_evaluation_results)

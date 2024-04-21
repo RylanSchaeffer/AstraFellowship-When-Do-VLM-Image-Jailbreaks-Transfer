@@ -97,14 +97,14 @@ def evaluate_vlm_adversarial_examples():
     # Load jailbreak images, their paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_sweep_id=wandb_config["wandb_sweep_id"],
-        # refresh=True,
-        refresh=False,
+        refresh=True,
+        # refresh=False,
     )
 
-    runs_jailbreak_dict_list = [
-        ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "8attseox"
-    ]
-    runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
+    # runs_jailbreak_dict_list = [
+    #     ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "8attseox"
+    # ]
+    # runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -163,7 +163,7 @@ def evaluate_vlm_adversarial_examples():
         )
 
         print(
-            f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['n_gradient_steps']}"
+            f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['optimizer_step_counter']}"
         )
 
 
