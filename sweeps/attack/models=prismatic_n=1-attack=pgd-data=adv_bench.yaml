@@ -31,7 +31,7 @@ parameters:
           [10.0]
       limit_train_batches:
         values:
-          [1.0, 0.316, 0.1]
+          [1.0]
       log_loss_every_n_steps:
         values:
           [25]

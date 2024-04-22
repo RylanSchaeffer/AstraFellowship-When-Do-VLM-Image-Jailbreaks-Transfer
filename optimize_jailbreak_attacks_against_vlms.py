@@ -37,6 +37,12 @@ def optimize_vlm_adversarial_examples():
     )
     wandb_config = dict(wandb.config)
 
+    # Ensure that this is a float and bounded between 0 and 1.
+    wandb_config["lightning_kwargs"]["limit_train_batches"] = float(
+        wandb_config["lightning_kwargs"]["limit_train_batches"]
+    )
+    assert 0.0 <= wandb_config["lightning_kwargs"]["limit_train_batches"] <= 1.0
+
     # Log the effective batch size.
     wandb.config.update(
         {
