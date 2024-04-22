@@ -69,24 +69,23 @@ class HarmBenchEvaluator(lightning.LightningModule):
 
 
 class LlamaGuardEvaluator(lightning.LightningModule):
-    def __init__(self, device: int, dtype: torch.dtype = torch.bfloat16):
+    def __init__(
+        self,
+    ):
         super().__init__()
-        # See: https://huggingface.co/meta-llama/LlamaGuard-7b
-        self.model_id = "meta-llama/LlamaGuard-7b"
-        self.device = f"cuda:{str(device)}"
-        self.dtype = dtype
-
+        # See: https://huggingface.co/meta-llama/Meta-Llama-Guard-2-8B
+        self.model_id = "meta-llama/Meta-Llama-Guard-2-8B"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_id, torch_dtype=self.dtype, device_map=self.device
         )
 
-    def evaluate(self, prompt: str, generated_output: str) -> str:
+    def evaluate(self, prompt: str, generation: str) -> str:
         chat = [
             {"role": "user", "content": prompt},
             {
                 "role": "assistant",
-                "content": generated_output,
+                "content": generation,
             },
         ]
 

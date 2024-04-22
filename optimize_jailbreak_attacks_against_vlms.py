@@ -71,6 +71,7 @@ def optimize_vlm_adversarial_examples():
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
         / wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
+        / wandb_config["lightning_kwargs"]["limit_train_batches"]
     )
 
     callbacks = []

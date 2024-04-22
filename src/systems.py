@@ -194,12 +194,8 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
             model_strs=wandb_config["model_to_eval"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
         )
-        # harmbench_evaluator = HarmBenchEvaluator(
-        #     device=len(cuda_visible_devices) - 1,  # Place on the last GPU (arbitrary).
-        # )
-        # llamaguard_evalutor = LlamaGuardEvaluator(
-        #     device=len(cuda_visible_devices) - 2,  # Place on 2nd-to-last GPU (arbitrary).
-        # )
+        # harmbench_evaluator = HarmBenchEvaluator()
+        llamaguard_evalutor = LlamaGuardEvaluator()
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=False)
         self.wandb_additional_data = {}
 
@@ -281,6 +277,14 @@ class VLMEnsembleEvaluatingCallback(lightning.Callback):
                 image=pl_module.tensor_image,
                 prompts=batch_prompts,
             )
+
+            llama_guard_evaluations = [
+                pl_module.llamaguard_evalutor.evaluate(
+                    prompt=prompt, generation=generation
+                )
+                for prompt, generation in zip(batch_prompts, batch_model_generations)
+            ]
+
             model_adv_generation_begins_with_target = (
                 pl_module.vlm_ensemble.compute_whether_generation_begins_with_target(
                     model_generations=batch_model_generations,

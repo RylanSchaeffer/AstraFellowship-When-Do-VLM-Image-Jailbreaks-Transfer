@@ -5,9 +5,9 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="CUDA_DEVICE_ORDER" value="PCI_BUS_ID" />
-      <env name="CUDA_VISIBLE_DEVICES" value="5" />
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="CUDA_DEVICE_ORDER" value="PCI_BUS_ID" />
+      <env name="CUDA_VISIBLE_DEVICES" value="4,5" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

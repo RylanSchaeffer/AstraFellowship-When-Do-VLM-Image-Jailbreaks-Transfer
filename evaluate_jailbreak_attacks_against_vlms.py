@@ -63,18 +63,21 @@ def evaluate_vlm_adversarial_examples():
     ]
     if torch.cuda.is_available():
         accelerator = "gpu"
-        devices = torch.cuda.device_count()
+        devices = "auto"
         callbacks.extend(
             [
                 # DeviceStatsMonitor()
             ]
         )
-        print("GPUs available: ", devices)
+        # os.environ["RANK"] = "0"
+        # os.environ["WORLD_SIZE"] = str(torch.cuda.device_count())
     else:
         accelerator = "cpu"
         devices = None
         callbacks.extend([])
         print("No GPU available.")
+
+    print("devices: ", devices)
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
