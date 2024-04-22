@@ -12,6 +12,7 @@ default_attack_config = {
     "lightning_kwargs": {
         "accumulate_grad_batches": 1,
         "gradient_clip_val": 10.0,
+        "limit_train_batches": 1.0,
         "log_loss_every_n_steps": 25,
         "log_image_every_n_steps": 1000,
         "precision": "bf16-mixed",

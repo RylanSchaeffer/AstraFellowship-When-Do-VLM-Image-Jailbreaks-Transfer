@@ -5,6 +5,14 @@ parameters:
   compile:
     values:
       [False]
+  data:
+    parameters:
+      batch_size:
+        values:
+          [3]
+      num_workers:
+        values:
+          [1]
   image_kwargs:
     parameters:
       image_size:
@@ -17,10 +25,13 @@ parameters:
     parameters:
       accumulate_grad_batches:
         values:
-          [1]
+          [2]
       gradient_clip_val:
         values:
           [10.0]
+      limit_train_batches:
+        values:
+          [0.1, 0.316, 1.0]
       log_loss_every_n_steps:
         values:
           [25]
