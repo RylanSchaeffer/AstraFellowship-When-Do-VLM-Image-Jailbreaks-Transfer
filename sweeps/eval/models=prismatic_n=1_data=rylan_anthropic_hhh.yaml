@@ -34,6 +34,22 @@ parameters:
   seed:
     values:
       [0]
-  wandb_sweep_id:
+  wandb_run_id:
     values:
-      ["yvqszl4d"]
+      [
+        "vyo7ikx0",
+        "fppu2myi",
+        "cjkfo6p2",
+        "td1f42fx",
+        "6e3x4tir",
+        "8attseox",
+        "h1ifn97s",
+        "zqudxut1",
+        "dc1cqvf0",
+        "oz3x4pv4",
+        "5nilvrfo",
+        "9j25up1y",
+        "5r339q1t",
+        "z7aqcepd",
+        "16ll3j7h",
+      ]

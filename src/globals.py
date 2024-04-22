@@ -98,5 +98,6 @@ default_eval_config = {
         "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,
-    "wandb_sweep_id": "yvqszl4d",
+    "wandb_run_id": "vyo7ikx0",
+    # "wandb_sweep_id": "yvqszl4d",
 }

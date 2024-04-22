@@ -20,7 +20,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "tc10qy1l",  # Prismatic with N-Choose-1 Jailbreaks
+    "9al2jgcn",  # Prismatic with N-Choose-1 Jailbreaks
     # "cewqh39e",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
@@ -31,6 +31,8 @@ runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     refresh=refresh,
     finished_only=False,
 )
+
+# TODO: Get run_configs of each attack run to have those hyperparameters.
 
 vlm_metadata_df = pd.read_csv(
     os.path.join("configs", "vlm_metadata.csv"),
@@ -55,8 +57,8 @@ plt.close()
 g = sns.relplot(
     data=runs_histories_df,
     kind="line",
-    x="loss/optimizer_step_counter_step",
-    y="loss/avg_step",
+    x="optimizer_step_counter_epoch",
+    y="loss/avg_epoch",
     hue="eval_model_str",
     hue_order=unique_and_ordered_eval_model_strs,
     col="attack_models_str",
