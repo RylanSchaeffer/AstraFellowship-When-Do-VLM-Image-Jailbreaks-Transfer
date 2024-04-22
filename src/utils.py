@@ -210,6 +210,10 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
         )
+    elif prompts_and_targets_str == "james_truthfulqa":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "truthfulqa", "truthfulqa_target_a.csv"
+        )
     elif prompts_and_targets_str == "robust_bard":
         raise NotImplementedError
     else:
