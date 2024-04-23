@@ -28,7 +28,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 4000,
+    "n_grad_steps": 10_000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
         "dataset_train": "james_truthfulqa",
