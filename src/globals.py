@@ -33,7 +33,7 @@ default_attack_config = {
         # "dataset_train": "rylan_anthropic_hhh",
         "dataset_train": "james_truthfulqa",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-        "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
+        "n_unique_prompts_and_targets": 500,  # -1 means use all prompts and targets.
     },
     "optimization": {
         "eps": 1e-4,
