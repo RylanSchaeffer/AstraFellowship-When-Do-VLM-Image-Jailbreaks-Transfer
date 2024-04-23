@@ -28,7 +28,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 10000,
+    "n_grad_steps": 1000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
         "dataset_train": "advbench",
@@ -37,7 +37,8 @@ default_attack_config = {
     },
     "optimization": {
         "eps": 1e-4,
-        "learning_rate": 0.001,
+        # "learning_rate": 0.001,
+        "learning_rate": 0.01,
         "momentum": 0.9,
         "optimizer": "adam",
         "weight_decay": 0.00001,

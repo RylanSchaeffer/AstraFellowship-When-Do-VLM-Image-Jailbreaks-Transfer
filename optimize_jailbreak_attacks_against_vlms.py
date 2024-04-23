@@ -79,6 +79,7 @@ def optimize_vlm_adversarial_examples():
         / wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
         / wandb_config["lightning_kwargs"]["limit_train_batches"]
     )
+    print("Number of training epochs: ", n_train_epochs)
 
     callbacks = []
     if torch.cuda.is_available():
