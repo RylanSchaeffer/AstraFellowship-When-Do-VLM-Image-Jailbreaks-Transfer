@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "num_workers": 1,
-        "batch_size": 4,
+        "batch_size": 2,
     },
     "image_kwargs": {
         "image_size": 512,
