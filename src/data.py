@@ -128,6 +128,13 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
+    elif prompts_and_targets_str == "james_truthfulqa":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "truthfulqa", "truthfulqa_target_a.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "truthfulqa", "tokenized"
+        )
     else:
         raise ValueError(
             "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
