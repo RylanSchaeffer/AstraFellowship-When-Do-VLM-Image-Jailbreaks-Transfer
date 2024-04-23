@@ -20,7 +20,7 @@
 
 5. Manually install a few additional packages:
 
-`pip install joblib pandas matplotlib seaborn nvidia-htop black wandb lightning torchvision sniffo anyio`
+`pip install joblib pandas matplotlib seaborn nvidia-htop black wandb lightning torchvision sniffio anyio`
 
 6. Make sure to log in to W&B by running `wandb login`.
 
