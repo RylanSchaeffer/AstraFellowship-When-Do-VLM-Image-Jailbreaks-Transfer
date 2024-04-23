@@ -57,9 +57,9 @@ def evaluate_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     callbacks = [
-        src.systems.VLMEnsembleEvaluatingCallback(
-            wandb_config=wandb_config,
-        )
+        # src.systems.VLMEnsembleEvaluatingCallback(
+        #     wandb_config=wandb_config,
+        # )
     ]
     if torch.cuda.is_available():
         accelerator = "gpu"
