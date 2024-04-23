@@ -57,7 +57,7 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-clip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
