@@ -162,6 +162,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         )
 
         if targets[0] is not None:
+            print("targets[0]:", targets[0])
             labels = input_ids.clone()
             last_nonpadding_indices = torch.argmin(
                 (labels != pad_token_input_id).float(), axis=1
