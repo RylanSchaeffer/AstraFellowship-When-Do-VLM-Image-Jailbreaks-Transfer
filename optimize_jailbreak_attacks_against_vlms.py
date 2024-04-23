@@ -74,7 +74,8 @@ def optimize_vlm_adversarial_examples():
 
     # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
     train_dataset_len = src.data.get_dataset_length(
-        dataset=wandb_config["prompts_and_targets_kwargs"]["dataset_train"],
+        dataset=wandb_config["data"]["dataset"],
+        split="train",
     )
     n_train_epochs = math.ceil(
         wandb_config["n_grad_steps"]
@@ -133,7 +134,7 @@ def optimize_vlm_adversarial_examples():
 
     tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        data_kwargs=wandb_config["data"],
         prompts_and_targets_dir="prompts_and_targets",
         split="train",
     )

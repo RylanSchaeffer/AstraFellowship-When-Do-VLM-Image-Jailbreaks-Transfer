@@ -109,15 +109,16 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
 def get_dataset_length(
     dataset: str,
     prompts_and_targets_dir: str = "prompts_and_targets",
+    split: str = "train",
     **kwargs,
 ) -> int:
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+            prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
     elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+            prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
@@ -127,22 +128,22 @@ def get_dataset_length(
 
 def tokenize_prompts_and_targets_using_vlm_ensemble(
     vlm_ensemble,
-    prompts_and_targets_kwargs: Dict[str, Any],
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
 ) -> str:
-    dataset = prompts_and_targets_kwargs[f"dataset_{split}"]
+    dataset = data_kwargs[f"dataset"]
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+            prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "advbench", "tokenized"
         )
     elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+            prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
@@ -165,7 +166,7 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             str, torch.Tensor
         ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
             prompts=prompts,
-            targets=targets if split == "train" else None,
+            targets=targets,
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):

@@ -125,7 +125,7 @@ def evaluate_vlm_adversarial_examples():
 
     tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        data_kwargs=wandb_config["prompts_and_targets_kwargs"],
         prompts_and_targets_dir="prompts_and_targets",
         split="eval",
     )
