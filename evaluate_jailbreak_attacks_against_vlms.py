@@ -27,7 +27,7 @@ import src.utils
 
 
 def evaluate_vlm_adversarial_examples():
-    wandb_username = src.utils.retrieve_wandb_username()
+    wandb_username = "chuajamessh"
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
         config=src.globals.default_eval_config,
