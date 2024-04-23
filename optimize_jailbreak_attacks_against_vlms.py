@@ -73,14 +73,14 @@ def optimize_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
-    dataset_len = src.data.get_dataset_length(
+    train_dataset_len = src.data.get_dataset_length(
         dataset=wandb_config["prompts_and_targets_kwargs"]["dataset_train"],
     )
     n_train_epochs = math.ceil(
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
         / wandb_config["lightning_kwargs"]["limit_train_batches"]
-        / dataset_len
+        / train_dataset_len
     )
     print("Number of Train Epochs: ", n_train_epochs)
 

@@ -56,11 +56,7 @@ def evaluate_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    callbacks = [
-        src.systems.VLMEnsembleEvaluatingCallback(
-            wandb_config=wandb_config,
-        )
-    ]
+    callbacks = []
     if torch.cuda.is_available():
         accelerator = "gpu"
         devices = "auto"
@@ -141,7 +137,30 @@ def evaluate_vlm_adversarial_examples():
         wandb_config=wandb_config,
     )
 
+    # Subsample prompts to use for evaluation.
+    prompts_and_targets_dict = src.utils.load_prompts_and_targets(
+        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
+        split="eval",
+    )
+
+    subsampled_indices = np.random.choice(
+        prompts_and_targets_dict["indices"],
+        wandb_config["num_samples_to_eval"],
+        replace=False,
+    )
+    subsampled_prompts = [
+        prompt
+        for i, prompt in enumerate(prompts_and_targets_dict["prompts"])
+        if i in subsampled_indices
+    ]
+    subsampled_targets = [
+        target
+        for i, target in enumerate(prompts_and_targets_dict["targets"])
+        if i in subsampled_indices
+    ]
+
     model_name_str = list(wandb_config["model_to_eval"])[0]
+    model_generations_dict_list = []
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -154,17 +173,49 @@ def evaluate_vlm_adversarial_examples():
 
         # Bind data to the evaluation system for W&B logging on epoch end.
         vlm_ensemble_system.tensor_image.data = adv_image
-        vlm_ensemble_system.wandb_additional_data = {
+
+        trainer.test(
+            model=vlm_ensemble_system,
+            datamodule=text_datamodule,
+        )
+
+        subsampled_model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+            model_name_str
+        ].generate(
+            image=adv_image,
+            prompts=subsampled_prompts,
+        )
+
+        wandb_additional_information = {
             "eval_model_str": model_name_str,
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
             "attack_models_str": run_jailbreak_dict["attack_models_str"],
         }
 
-        trainer.test(
-            model=vlm_ensemble_system,
-            datamodule=text_datamodule,
-        )
+        model_evaluation_results = {
+            f"generations_{model_name_str}_optimizer_step={run_jailbreak_dict['optimizer_step_counter']}": wandb.Table(
+                columns=[
+                    "prompt",
+                    "generated",
+                    "target",
+                ],
+                data=[
+                    [
+                        prompt,
+                        model_generation,
+                        target,
+                    ]
+                    for prompt, model_generation, target in zip(
+                        subsampled_prompts,
+                        subsampled_model_generations,
+                        subsampled_targets,
+                    )
+                ],
+            ),
+        }
+        model_evaluation_results.update(wandb_additional_information)
+        wandb.log(model_evaluation_results)
 
         print(
             f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['optimizer_step_counter']}"
