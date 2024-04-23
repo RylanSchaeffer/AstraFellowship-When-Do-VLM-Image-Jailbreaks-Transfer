@@ -153,7 +153,7 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             str, torch.Tensor
         ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
             prompts=prompts,
-            targets=prompts,
+            targets=targets,
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
