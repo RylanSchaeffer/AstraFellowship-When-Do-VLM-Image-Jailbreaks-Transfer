@@ -145,6 +145,9 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             prompt_text = prompt_builder.get_prompt()
             prompt_texts.append(prompt_text)
 
+        first_prompt_text = prompt_texts[0]
+        print("first_prompt_text:", first_prompt_text)
+
         batch_encoding = self.model.llm_backbone.tokenizer(
             prompt_texts, padding=True, return_tensors="pt"
         )
