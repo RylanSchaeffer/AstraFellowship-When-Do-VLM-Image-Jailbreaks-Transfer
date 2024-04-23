@@ -102,7 +102,12 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 ```
 
 ## Hugginface setup
-These models use llama-2 eventually somewhere, so you need to request  access here https://huggingface.co/meta-llama/Llama-2-7b-hf. 
+ these models use llama-2 / llama guard eventually somewhere, 
+i had to request  access by filling up meta's form with the same email as your huggingface , according to https://huggingface.co/meta-llama/LlamaGuard-7b/discussions/6
+then request for llamas / llama-guard's 
+https://huggingface.co/meta-llama/Llama-2-7b-hf. 
+https://huggingface.co/meta-llama/Meta-Llama-Guard-2-8B
+
 OSError: You are trying to access a gated repo.
 Make sure to request access at https://huggingface.co/meta-llama/Llama-2-7b-hf and pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`.
 
