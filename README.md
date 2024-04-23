@@ -87,12 +87,26 @@ cat ~/.ssh/id_ed25519.pub
 ```
 
 Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
+We'll clone the repo into the /workspace folder so that runpod doesn't delete it whenever our pod restarts.
+```bash
+cd /workspace
+git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
+```
 
-`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
 
 Then modify your `.bashrc` to add:
 
 ```
 conda activate universal_vlm_jailbreak_env
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
+```
+
+## Hugginface setup
+These models use llama-2 eventually somewhere, so you need to request  access here https://huggingface.co/meta-llama/Llama-2-7b-hf. 
+OSError: You are trying to access a gated repo.
+Make sure to request access at https://huggingface.co/meta-llama/Llama-2-7b-hf and pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`.
+
+## Do something like symlink
+```
+Your token has been saved to /root/.cache/huggingface/token
 ```
