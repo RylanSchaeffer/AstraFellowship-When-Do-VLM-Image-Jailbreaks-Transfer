@@ -141,7 +141,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         for prompt, target in zip(prompts, targets):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
-            prompt_builder.add_turn(role="gpt", message=target)
+            if target is not None:
+                prompt_builder.add_turn(role="gpt", message=target)
             prompt_text = prompt_builder.get_prompt()
             prompt_texts.append(prompt_text)
 
