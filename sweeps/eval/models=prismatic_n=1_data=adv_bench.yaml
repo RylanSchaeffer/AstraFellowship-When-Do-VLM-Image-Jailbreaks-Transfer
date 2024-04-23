@@ -30,7 +30,10 @@ parameters:
     parameters:
       dataset_eval:
         values:
-          ["rylan_anthropic_hhh"]
+          [
+            "adv_bench",
+            "rylan_anthropic_hhh",
+          ]
   seed:
     values:
       [0]
