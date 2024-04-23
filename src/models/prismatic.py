@@ -49,18 +49,18 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         self.model_str = model_str
         self.generation_kwargs = generation_kwargs
 
-        hf_token = (
-            Path(os.path.expandvars("$LFS_HOME/.cache/huggingface/token"))
-            .read_text()
-            .strip()
-        )
+        # hf_token = (
+        #     Path(os.path.expandvars("$LFS_HOME/.cache/huggingface/token"))
+        #     .read_text()
+        #     .strip()
+        # )
 
         # This incorrectly uses the data structure returned by available_model_names.
         if model_str not in available_models():
             pprint(available_models())
             raise ValueError(f"Invalid model_str: {model_str}")
 
-        self.model = load(model_id_or_path=model_str, hf_token=hf_token)
+        self.model = load(model_id_or_path=model_str)
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
