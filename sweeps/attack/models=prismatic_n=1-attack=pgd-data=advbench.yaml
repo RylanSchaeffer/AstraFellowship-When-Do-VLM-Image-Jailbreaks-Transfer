@@ -34,10 +34,10 @@ parameters:
           [1.0]
       log_loss_every_n_steps:
         values:
-          [25]
+          [1]
       log_image_every_n_steps:
         values:
-          [1000]
+          [100]
       precision:
         values:
           ["bf16-mixed"]
@@ -54,15 +54,12 @@ parameters:
       ]
   n_grad_steps:
     values:
-      [50000]
+      [10000]
   prompt_and_targets_kwargs:
     parameters:
       dataset_train:
         values:
           ["advbench"]
-      n_unique_prompts_and_targets:
-        values:
-          [189]
   optimization:
     parameters:
       eps:
@@ -70,7 +67,7 @@ parameters:
           [0.0001]
       learning_rate:
         values:
-            [0.001]
+          [0.001]
       momentum:
         values:
           [0.9]

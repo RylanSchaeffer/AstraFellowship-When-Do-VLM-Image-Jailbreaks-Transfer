@@ -13,7 +13,7 @@ default_attack_config = {
         "accumulate_grad_batches": 1,
         "gradient_clip_val": 10.0,
         "limit_train_batches": 1.0,
-        "log_loss_every_n_steps": 25,
+        "log_loss_every_n_steps": 1,
         "log_image_every_n_steps": 1000,
         "precision": "bf16-mixed",
     },
@@ -33,7 +33,7 @@ default_attack_config = {
         # "dataset_train": "rylan_anthropic_hhh",
         "dataset_train": "advbench",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-        "n_unique_prompts_and_targets": 189,  # -1 means use all prompts and targets.
+        # "n_unique_prompts_and_targets": 189,  # -1 means use all prompts and targets.
     },
     "optimization": {
         "eps": 1e-4,

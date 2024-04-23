@@ -106,6 +106,25 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
         return datum_per_vlm
 
 
+def get_dataset_length(
+    dataset: str,
+    prompts_and_targets_dir: str = "prompts_and_targets",
+    **kwargs,
+) -> int:
+    if dataset == "advbench":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+        )
+    elif dataset == "rylan_anthropic_hhh":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+        )
+    else:
+        raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+    df = pd.read_csv(prompts_and_targets_path)
+    return len(df)
+
+
 def tokenize_prompts_and_targets_using_vlm_ensemble(
     vlm_ensemble,
     prompts_and_targets_kwargs: Dict[str, Any],
@@ -113,15 +132,15 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     split: str = "train",
     **kwargs,
 ) -> str:
-    prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
-    if prompts_and_targets_str == "advbench":
+    dataset = prompts_and_targets_kwargs[f"dataset_{split}"]
+    if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "advbench", "tokenized"
         )
-    elif prompts_and_targets_str == "rylan_anthropic_hhh":
+    elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
         )
@@ -129,9 +148,7 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
     else:
-        raise ValueError(
-            "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
-        )
+        raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
     # If we're attacking, we want the targets to be included. If we are evaluating, we do not.
     tokenized_dir_path = os.path.join(tokenized_dir_path, split)
     os.makedirs(tokenized_dir_path, exist_ok=True)

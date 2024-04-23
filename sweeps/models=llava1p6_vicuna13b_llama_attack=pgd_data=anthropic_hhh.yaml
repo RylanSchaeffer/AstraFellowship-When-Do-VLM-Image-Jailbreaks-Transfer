@@ -31,9 +31,6 @@ parameters:
       dataset_test:
         values:
           ["advbench"]
-      n_unique_prompts_and_targets:
-        values:
-          [ 32, 100, -1 ]
   seed:
     values:
       [0]

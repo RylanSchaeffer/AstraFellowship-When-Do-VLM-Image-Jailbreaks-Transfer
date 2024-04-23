@@ -46,7 +46,7 @@ def optimize_vlm_adversarial_examples():
     # Log the effective batch size.
     wandb.config.update(
         {
-            "effective_batch_size": wandb_config["data"]["batch_size"]
+            "batch_size_effective": wandb_config["data"]["batch_size"]
             * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
         }
     )
@@ -72,13 +72,17 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
 
-    # Compute how many epochs we need, based on accumulate gradient steps and total steps.
+    # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
+    dataset_len = src.data.get_dataset_length(
+        dataset=wandb_config["prompts_and_targets_kwargs"]["dataset_train"],
+    )
     n_train_epochs = math.ceil(
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
-        / wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
         / wandb_config["lightning_kwargs"]["limit_train_batches"]
+        / dataset_len
     )
+    print("Number of Train Epochs: ", n_train_epochs)
 
     callbacks = []
     if torch.cuda.is_available():
