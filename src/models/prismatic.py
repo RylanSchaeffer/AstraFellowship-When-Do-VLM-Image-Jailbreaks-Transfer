@@ -164,7 +164,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             pad_token
         )
 
-        if targets[0] is not None:
+        if targets is not None:
             print("targets[0]:", targets[0])
             labels = input_ids.clone()
             last_nonpadding_indices = torch.argmin(
@@ -177,15 +177,17 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             # before and before the targets (plus two).
             tokenized_labels = self.model.llm_backbone.tokenizer(targets).input_ids
             for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
-                zip(last_nonpadding_indices, tokenized_labels)
+                zip(last_nonpadding_indices, tokenized_labels),
             ):
+                print(f"{tokenized_label=} for target {targets[batch_idx]}")
                 target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
                 # print out the first label
-                print("labels[0]:", labels[0])
+                
 
             # Also mask out the padding tokens.
             labels[labels == pad_token_input_id] = IGNORE_INDEX
+            print("labels[0]:", labels[0])
             results["labels"] = labels
 
         return results
