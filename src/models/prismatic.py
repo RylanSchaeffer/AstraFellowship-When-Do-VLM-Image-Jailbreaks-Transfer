@@ -181,6 +181,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             ):
                 target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
+                # print out the first label
+                print("labels[0]:", labels[0])
 
             # Also mask out the padding tokens.
             labels[labels == pad_token_input_id] = IGNORE_INDEX
