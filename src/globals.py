@@ -94,6 +94,6 @@ default_eval_config = {
         # },
     },
     "seed": 0,
-    "wandb_run_id": "vyo7ikx0",
+    "wandb_run_id": "m4s17qlw",
     # "wandb_sweep_id": "yvqszl4d",
 }
