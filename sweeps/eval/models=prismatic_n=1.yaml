@@ -7,7 +7,7 @@ parameters:
       batch_size:
         values: [1]
       dataset:
-        values: ["adv_bench", "rylan_anthropic_hhh"]
+        values: ["advbench", "rylan_anthropic_hhh"]
       num_workers:
         values: [ 1 ]
       split:
