@@ -61,7 +61,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             )
         elif optimization_kwargs["optimizer"] == "rmsprop":
             optimizer = torch.optim.RMSprop(
-                [self.parameters()],
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
                 momentum=optimization_kwargs["momentum"],

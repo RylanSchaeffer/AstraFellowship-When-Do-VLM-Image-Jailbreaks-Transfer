@@ -36,6 +36,8 @@
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
+Note: You might need to subsequently run `conda install conda-forge::charset-normalizer`
+
 ### Additional Modifications
 
 - Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 is necessary to optimize attacks.
@@ -51,7 +53,7 @@ Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. 
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=7
+export CUDA_VISIBLE_DEVICES=9
 wandb agent rylan/universal-vlm-jailbreak/mebx0h61
 ```
 
@@ -63,7 +65,7 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
 export CUDA_VISIBLE_DEVICES=6
-wandb agent rylan/universal-vlm-jailbreak-eval/44imgm60
+wandb agent rylan/universal-vlm-jailbreak-eval/1vhxy3dk
 ```
 
 

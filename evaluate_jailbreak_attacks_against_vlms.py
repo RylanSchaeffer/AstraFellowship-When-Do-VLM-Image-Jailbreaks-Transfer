@@ -94,6 +94,7 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
 
+    # I use this for debugging.
     # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
@@ -247,7 +248,9 @@ def evaluate_vlm_adversarial_examples():
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
             "attack_models_str": run_jailbreak_dict["attack_models_str"],
-            "loss/score_model=LlamaGuard2": run_jailbreak_dict["score_model=LlamaGuard2"],
+            "loss/score_model=LlamaGuard2": run_jailbreak_dict[
+                "score_model=LlamaGuard2"
+            ],
             "loss/score_model=HarmBench": run_jailbreak_dict["score_model=HarmBench"],
         }
         wandb.log(wandb_log_data)
