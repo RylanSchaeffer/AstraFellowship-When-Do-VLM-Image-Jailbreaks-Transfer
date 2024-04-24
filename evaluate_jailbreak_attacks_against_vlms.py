@@ -162,33 +162,33 @@ def evaluate_vlm_adversarial_examples():
             datamodule=text_datamodule,
         )
 
-        model_generations_dict = {
-            "generations": [],
-            "prompts": [],
-            "targets": [],
-        }
-        # Move to the CPU for faster sampling.
-        # Will explicitly placing on CPU cause issues?
-        vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
-        for prompt_idx, (prompt, target) in enumerate(
-            zip(
-                prompts_and_targets_dict["prompts"][: wandb_config["num_generations"]],
-                prompts_and_targets_dict["targets"][: wandb_config["num_generations"]],
-            )
-        ):
-            start_time = time.time()
-            model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                model_name_str
-            ].generate(image=adv_image, prompts=[prompt])
-            model_generations_dict["generations"].extend(model_generations)
-            model_generations_dict["prompts"].extend([prompt])
-            model_generations_dict["targets"].extend([target])
-            end_time = time.time()
-            print(
-                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-            )
-
-        run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+        # model_generations_dict = {
+        #     "generations": [],
+        #     "prompts": [],
+        #     "targets": [],
+        # }
+        # # Move to the CPU for faster sampling.
+        # # Will explicitly placing on CPU cause issues?
+        # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
+        # for prompt_idx, (prompt, target) in enumerate(
+        #     zip(
+        #         prompts_and_targets_dict["prompts"][: wandb_config["num_generations"]],
+        #         prompts_and_targets_dict["targets"][: wandb_config["num_generations"]],
+        #     )
+        # ):
+        #     start_time = time.time()
+        #     model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+        #         model_name_str
+        #     ].generate(image=adv_image, prompts=[prompt])
+        #     model_generations_dict["generations"].extend(model_generations)
+        #     model_generations_dict["prompts"].extend([prompt])
+        #     model_generations_dict["targets"].extend([target])
+        #     end_time = time.time()
+        #     print(
+        #         f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+        #     )
+        #
+        # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
 
     # # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # # the evaluation VLM.
