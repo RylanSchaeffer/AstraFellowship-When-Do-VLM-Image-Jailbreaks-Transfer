@@ -59,7 +59,7 @@ class HarmBenchEvaluator(torch.nn.Module):
             Answer: [/INST]""",
         }
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_id, torch_dtype=self.dtype, device_map=self.device
+            self.model_id, torch_dtype=torch.float16, device_map=self.device
         )
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -105,7 +105,7 @@ class LlamaGuardEvaluator(torch.nn.Module):
         self.model_id = "meta-llama/Meta-Llama-Guard-2-8B"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_id, torch_dtype=self.dtype, device_map=self.device
+            self.model_id, torch_dtype=torch.float16, device_map=self.device
         )
         # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.device = "cpu"
