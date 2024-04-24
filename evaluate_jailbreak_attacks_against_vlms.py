@@ -205,8 +205,8 @@ def evaluate_vlm_adversarial_examples():
                 )
             ]
             run_jailbreak_dict[f"score_model={eval_llm_name}"] = eval_llm.compute_score(
-                generations=run_jailbreak_dict["generations_prompts_targets_evals"][
-                    "generations"
+                judgements=run_jailbreak_dict["generations_prompts_targets_evals"][
+                    f"model_eval_{eval_llm_name}"
                 ],
             )
 
