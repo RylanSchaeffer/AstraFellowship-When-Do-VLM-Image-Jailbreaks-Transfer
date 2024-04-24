@@ -70,14 +70,19 @@ class HarmBenchEvaluator(lightning.LightningModule):
                 behavior=prompt, generation=generation
             )
         ]
-        encoded = self.tokenizer(chats, return_tensors='pt').to(self.device)
+        encoded = self.tokenizer(chats, return_tensors="pt").to(self.device)
         print("HarmBench device: ", self.device)
         output_ids = self.model.generate(
             **encoded, do_sample=False, max_new_tokens=100, pad_token_id=0
         )
         prompt_len = len(encoded.input_ids[0])
-        # String is either "Yes" or "No". "Yes" means the generation is harmful.
-        return self.tokenizer.decode(output_ids[0][prompt_len:], skip_special_tokens=False)
+        # String is either "Yes</s>" or "No</s>". "Yes" means the generation is harmful.
+        judgement = self.tokenizer.decode(
+            output_ids[0][prompt_len:], skip_special_tokens=False
+        )
+        # Strip off the trailing "</s>".
+        judgement = judgement.split("</s>")[0]
+        return judgement
 
     @staticmethod
     def compute_score(judgements: List[str]) -> float:

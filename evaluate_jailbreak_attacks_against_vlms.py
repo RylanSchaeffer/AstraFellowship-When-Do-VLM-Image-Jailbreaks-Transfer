@@ -64,7 +64,7 @@ def evaluate_vlm_adversarial_examples():
         )
     else:
         accelerator = "cpu"
-        devices = None
+        devices = "auto"
         callbacks.extend([])
         print("No GPU available.")
 
@@ -133,7 +133,6 @@ def evaluate_vlm_adversarial_examples():
     )
 
     model_name_str = list(wandb_config["model_to_eval"])[0]
-    model_generations_dict_list = []
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -187,14 +186,14 @@ def evaluate_vlm_adversarial_examples():
     # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # the evaluation VLM.
     del vlm_ensemble_system
-    for eval_llm_name, eval_llm_constr in [
+    for evaluator_model_name_str, eval_llm_constr in [
         ("LlamaGuard2", LlamaGuardEvaluator),
         ("HarmBench", HarmBenchEvaluator),
     ]:
         eval_llm = eval_llm_constr()
         for run_jailbreak_dict in runs_jailbreak_dict_list:
             run_jailbreak_dict["generations_prompts_targets_evals"][
-                f"model_eval_{eval_llm_name}"
+                f"model_eval_{evaluator_model_name_str}"
             ] = [
                 eval_llm.evaluate(prompt=prompt, generation=generation)
                 for prompt, generation in zip(
@@ -204,9 +203,11 @@ def evaluate_vlm_adversarial_examples():
                     ],
                 )
             ]
-            run_jailbreak_dict[f"score_model={eval_llm_name}"] = eval_llm.compute_score(
+            run_jailbreak_dict[
+                f"score_model={evaluator_model_name_str}"
+            ] = eval_llm.compute_score(
                 judgements=run_jailbreak_dict["generations_prompts_targets_evals"][
-                    f"model_eval_{eval_llm_name}"
+                    f"model_eval_{evaluator_model_name_str}"
                 ],
             )
 
@@ -220,7 +221,8 @@ def evaluate_vlm_adversarial_examples():
                     "prompt",
                     "generated",
                     "target",
-                    "LlamaGuard2" "HarmBench",
+                    "LlamaGuard2",
+                    "HarmBench",
                 ],
                 data=[
                     [

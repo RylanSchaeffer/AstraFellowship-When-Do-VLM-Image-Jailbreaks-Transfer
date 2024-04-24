@@ -8,7 +8,7 @@
 
 2. Create a conda environment:
 
-`conda create -n universal_vlm_jailbreak_env python=3.11`
+`conda create -n universal_vlm_jailbreak_env python=3.11 -y`
 
 3. Activate the environment:
 
@@ -34,9 +34,7 @@
 
 11. Install more stuff `pip install sentencepiece`
 
-- Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 should work.
-- Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
-  - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
+Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
 ### Additional Modifications
 
