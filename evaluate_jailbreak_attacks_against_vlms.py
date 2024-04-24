@@ -86,7 +86,7 @@ def evaluate_vlm_adversarial_examples():
         precision=wandb_config["lightning_kwargs"]["precision"],
     )
 
-    # Load jailbreak images, their paths.
+    # Load jailbreak images' paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_run_id=wandb_config["wandb_run_id"],
         wandb_sweep_id=None,
@@ -94,10 +94,7 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
 
-    # runs_jailbreak_dict_list = [
-    #     ele for ele in runs_jailbreak_dict_list if ele["wandb_run_id"] == "8attseox"
-    # ]
-    # runs_jailbreak_dict_list = [runs_jailbreak_dict_list[-1]]
+    runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -129,7 +126,7 @@ def evaluate_vlm_adversarial_examples():
         wandb_config=wandb_config,
     )
 
-    # Also load the raw prompts to use for generate.
+    # Load the raw prompts to use for generate.
     prompts_and_targets_dict = src.data.load_prompts_and_targets(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
@@ -147,7 +144,7 @@ def evaluate_vlm_adversarial_examples():
             / 255.0
         )
 
-        wandb_additional_information = {
+        wandb_additional_data = {
             "eval_model_str": model_name_str,
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
@@ -156,7 +153,7 @@ def evaluate_vlm_adversarial_examples():
 
         # Bind data to the evaluation system for W&B logging on epoch end.
         vlm_ensemble_system.tensor_image.data = adv_image
-        vlm_ensemble_system.wandb_additional_data = wandb_additional_information
+        vlm_ensemble_system.wandb_additional_data = wandb_additional_data
 
         # Compute the loss.
         trainer.test(
@@ -164,40 +161,94 @@ def evaluate_vlm_adversarial_examples():
             datamodule=text_datamodule,
         )
 
-        subsampled_model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-            model_name_str
-        ].generate(
-            image=adv_image,
-            prompts=prompts_and_targets_dict["prompts"],
-        )
+        model_generations_dict = {
+            "generations": [],
+            "prompts": [],
+            "targets": [],
+        }
+        for prompt_idx, (prompt, target) in enumerate(
+            zip(
+                prompts_and_targets_dict["prompts"][:2],
+                prompts_and_targets_dict["targets"][:2],
+            )
+        ):
+            model_generation = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+                model_name_str
+            ].generate(image=adv_image, prompts=[prompt],)[0]
+            print(
+                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generation}\n"
+            )
+            model_generations_dict["generations"].append(model_generation)
+            model_generations_dict["prompts"].append(prompt)
+            model_generations_dict["targets"].append(target)
 
-        model_evaluation_results = {
+        run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+
+    # Delete the VLM because we no longer need it and we want to reclaim the memory for
+    # the evaluation VLM.
+    del vlm_ensemble_system
+    for eval_llm_name, eval_llm_constr in [
+        ("LlamaGuard2", LlamaGuardEvaluator),
+        ("HarmBench", HarmBenchEvaluator),
+    ]:
+        eval_llm = eval_llm_constr()
+        for run_jailbreak_dict in runs_jailbreak_dict_list:
+            run_jailbreak_dict["generations_prompts_targets_evals"][
+                f"model_eval_{eval_llm_name}"
+            ] = [
+                eval_llm.evaluate(prompt=prompt, generation=generation)
+                for prompt, generation in zip(
+                    run_jailbreak_dict["generations_prompts_targets_evals"]["prompts"],
+                    run_jailbreak_dict["generations_prompts_targets_evals"][
+                        "generations"
+                    ],
+                )
+            ]
+            run_jailbreak_dict[f"score_model={eval_llm_name}"] = eval_llm.compute_score(
+                generations=run_jailbreak_dict["generations_prompts_targets_evals"][
+                    "generations"
+                ],
+            )
+
+    for run_jailbreak_dict in runs_jailbreak_dict_list:
+        generations_prompts_targets_evals_dict = run_jailbreak_dict[
+            "generations_prompts_targets_evals"
+        ]
+        wandb_log_data = {
             f"generations_{model_name_str}_optimizer_step={run_jailbreak_dict['optimizer_step_counter']}": wandb.Table(
                 columns=[
                     "prompt",
                     "generated",
                     "target",
+                    "LlamaGuard2" "HarmBench",
                 ],
                 data=[
                     [
                         prompt,
                         model_generation,
                         target,
+                        llama_guard2_eval,
+                        harmbench_eval,
                     ]
-                    for prompt, model_generation, target in zip(
-                        subsampled_prompts,
-                        subsampled_model_generations,
-                        subsampled_targets,
+                    for prompt, model_generation, target, llama_guard2_eval, harmbench_eval in zip(
+                        generations_prompts_targets_evals_dict["prompts"],
+                        generations_prompts_targets_evals_dict["generations"],
+                        generations_prompts_targets_evals_dict["targets"],
+                        generations_prompts_targets_evals_dict[
+                            f"model_eval_LlamaGuard2"
+                        ],
+                        generations_prompts_targets_evals_dict[f"model_eval_HarmBench"],
                     )
                 ],
             ),
+            "eval_model_str": model_name_str,
+            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
+            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            "score_model=LlamaGuard2": run_jailbreak_dict["score_model=LlamaGuard2"],
+            "score_model=HarmBench": run_jailbreak_dict["score_model=HarmBench"],
         }
-        model_evaluation_results.update(wandb_additional_information)
-        wandb.log(model_evaluation_results)
-
-        print(
-            f"Evaluated {model_name_str} on {run_jailbreak_dict['wandb_run_id']} at step {run_jailbreak_dict['optimizer_step_counter']}"
-        )
+        wandb.log(wandb_log_data)
 
 
 if __name__ == "__main__":
