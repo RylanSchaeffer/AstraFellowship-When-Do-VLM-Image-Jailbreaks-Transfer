@@ -172,8 +172,8 @@ def evaluate_vlm_adversarial_examples():
         vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
         for prompt_idx, (prompt, target) in enumerate(
             zip(
-                prompts_and_targets_dict["prompts"][wandb_config["num_generations"]],
-                prompts_and_targets_dict["targets"][wandb_config["num_generations"]],
+                prompts_and_targets_dict["prompts"][: wandb_config["num_generations"]],
+                prompts_and_targets_dict["targets"][: wandb_config["num_generations"]],
             )
         ):
             start_time = time.time()
