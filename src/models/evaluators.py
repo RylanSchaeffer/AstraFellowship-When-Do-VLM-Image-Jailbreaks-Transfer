@@ -64,14 +64,20 @@ class HarmBenchEvaluator(lightning.LightningModule):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
 
     def evaluate(self, prompt: str, generation: str) -> str:
-        inputs = [
+        # https://github.com/centerforaisafety/HarmBench/blob/main/notebooks/run_classifier.ipynb
+        chats = [
             copy.copy(self.template["prompt"]).format(
                 behavior=prompt, generation=generation
             )
         ]
+        encoded = self.tokenizer(chats, return_tensors='pt').to(self.device)
+        print("HarmBench device: ", self.device)
+        output_ids = self.model.generate(
+            **encoded, do_sample=False, max_new_tokens=100, pad_token_id=0
+        )
+        prompt_len = len(encoded.input_ids[0])
         # String is either "Yes" or "No". "Yes" means the generation is harmful.
-        output = self.model.generate(inputs)
-        return output
+        return self.tokenizer.decode(output_ids[0][prompt_len:], skip_special_tokens=False)
 
     @staticmethod
     def compute_score(judgements: List[str]) -> float:
@@ -91,7 +97,7 @@ class LlamaGuardEvaluator(lightning.LightningModule):
         )
 
     def evaluate(self, prompt: str, generation: str) -> str:
-        chat = [
+        chats = [
             {"role": "user", "content": prompt},
             {
                 "role": "assistant",
@@ -99,9 +105,10 @@ class LlamaGuardEvaluator(lightning.LightningModule):
             },
         ]
 
-        input_ids = self.tokenizer.apply_chat_template(chat, return_tensors="pt").to(
+        input_ids = self.tokenizer.apply_chat_template(chats, return_tensors="pt").to(
             self.device
         )
+        print("LlamaGuard device: ", self.device)
         output = self.model.generate(
             input_ids=input_ids, max_new_tokens=100, pad_token_id=0
         )

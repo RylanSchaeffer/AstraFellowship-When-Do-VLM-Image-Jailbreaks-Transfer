@@ -94,7 +94,7 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
 
-    runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
+    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -168,13 +168,13 @@ def evaluate_vlm_adversarial_examples():
         }
         for prompt_idx, (prompt, target) in enumerate(
             zip(
-                prompts_and_targets_dict["prompts"][:2],
-                prompts_and_targets_dict["targets"][:2],
+                prompts_and_targets_dict["prompts"],
+                prompts_and_targets_dict["targets"],
             )
         ):
             model_generation = vlm_ensemble_system.vlm_ensemble.vlms_dict[
                 model_name_str
-            ].generate(image=adv_image, prompts=[prompt],)[0]
+            ].generate(image=adv_image, prompts=[prompt])[0]
             print(
                 f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generation}\n"
             )
