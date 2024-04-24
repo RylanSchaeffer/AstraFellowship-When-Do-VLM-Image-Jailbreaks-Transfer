@@ -106,12 +106,12 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
         return datum_per_vlm
 
 
-def get_dataset_length(
+def load_prompts_and_targets(
     dataset: str,
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
-) -> int:
+) -> Dict[str, List[str]]:
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -122,8 +122,33 @@ def get_dataset_length(
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+
     df = pd.read_csv(prompts_and_targets_path)
-    return len(df)
+    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+
+    assert len(prompts) == len(targets)
+    assert len(prompts) > 0
+
+    prompts_and_targets_dict = {
+        "prompts": prompts,
+        "targets": targets,
+    }
+    return prompts_and_targets_dict
+
+
+def get_dataset_length(
+    dataset: str,
+    prompts_and_targets_dir: str = "prompts_and_targets",
+    split: str = "train",
+    **kwargs,
+) -> int:
+    prompts_and_targets_dict = load_prompts_and_targets(
+        dataset=dataset,
+        prompts_and_targets_dir=prompts_and_targets_dir,
+        split=split,
+        **kwargs,
+    )
+    return len(prompts_and_targets_dict["prompts"])
 
 
 def tokenize_prompts_and_targets_using_vlm_ensemble(

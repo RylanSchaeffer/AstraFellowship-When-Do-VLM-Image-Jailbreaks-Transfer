@@ -53,8 +53,8 @@ Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. 
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=2,3
-wandb agent rylan/universal-vlm-jailbreak/<sweep id>
+export CUDA_VISIBLE_DEVICES=7
+wandb agent rylan/universal-vlm-jailbreak/mebx0h61
 ```
 
 

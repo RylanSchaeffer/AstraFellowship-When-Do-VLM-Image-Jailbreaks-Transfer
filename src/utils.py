@@ -25,51 +25,6 @@ def calc_rank():
     return torch.distributed.get_rank()
 
 
-def create_text_dataloader(
-    vlm_ensemble: VLMEnsemble,
-    prompt_and_targets_kwargs: Dict[str, Any],
-    wandb_config: Dict[str, Any],
-    split: str = "train",
-    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
-) -> Tuple[Dict[str, List[str]], torch.utils.data.DataLoader]:
-    prompts_and_targets_dict: Dict[str, List[str]] = load_prompts_and_targets(
-        prompts_and_targets_kwargs=prompt_and_targets_kwargs,
-        split=split,
-        **load_prompts_and_targets_kwargs,
-    )
-
-    dataset = VLMEnsembleTextDataset(
-        vlm_ensemble=vlm_ensemble,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-    )
-
-    dataloader = torch.utils.data.DataLoader(
-        dataset=dataset,
-        batch_size=wandb_config["attack_kwargs"]["batch_size"],
-        shuffle=True if split == "train" else False,
-        num_workers=wandb_config["data"]["num_workers"],
-        drop_last=True if split == "train" else False,
-    )
-
-    return prompts_and_targets_dict, dataloader
-
-
-def create_text_datamodule(
-    vlm_ensemble: VLMEnsemble,
-    prompt_and_targets_kwargs: Dict[str, Any],
-    wandb_config: Dict[str, Any],
-    split: str = "train",
-    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
-    prompts_and_targets_dir: str = "prompts_and_targets",
-) -> VLMEnsembleTextDataModule:
-    text_datamodule = VLMEnsembleTextDataModule(
-        vlm_ensemble=vlm_ensemble,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-        wandb_config=wandb_config,
-    )
-    return text_datamodule
-
-
 def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
         image = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
@@ -192,68 +147,6 @@ def load_jailbreak_dicts_list(
         print("Loaded runs_jailbreak_dict_list from: ", runs_jailbreak_dict_list_path)
 
     return runs_jailbreak_dict_list
-
-
-def load_prompts_and_targets(
-    prompts_and_targets_kwargs: Dict[str, Any],
-    prompts_and_targets_dir: str = "prompts_and_targets",
-    split: str = "train",
-    **kwargs,
-) -> Dict[str, List[str]]:
-    prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
-
-    if prompts_and_targets_str == "advbench":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
-        )
-    elif prompts_and_targets_str == "rylan_anthropic_hhh":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
-        )
-    elif prompts_and_targets_str == "robust_bard":
-        raise NotImplementedError
-    else:
-        raise ValueError(
-            "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
-        )
-
-    df = pd.read_csv(prompts_and_targets_path)
-    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
-
-    if split == "train":
-        n_unique_prompts_and_targets = prompts_and_targets_kwargs[
-            "n_unique_prompts_and_targets"
-        ]
-
-        if n_unique_prompts_and_targets != -1:
-            unique_indices = np.random.choice(
-                len(prompts), n_unique_prompts_and_targets, replace=False
-            )
-        else:
-            unique_indices = np.arange(len(prompts))
-            wandb.config.update({"n_unique_prompts_and_targets": len(prompts)})
-    elif split == "eval":
-        # TODO: Fix this in the future.
-        # assert "train_indices" in kwargs
-        # train_indices = kwargs["train_indices"]
-        # unique_indices = np.setdiff1d(np.arange(len(prompts)), train_indices)
-        unique_indices = np.arange(len(prompts))
-    else:
-        raise ValueError(f"Invalid split: {split}")
-
-    prompts = [prompts[idx] for idx in unique_indices]
-    targets = [targets[idx] for idx in unique_indices]
-
-    assert len(prompts) == len(targets)
-    assert len(prompts) > 0
-
-    prompts_and_targets_dict = {
-        "prompts": prompts,
-        "targets": targets,
-        "split": split,
-        "indices": unique_indices,
-    }
-    return prompts_and_targets_dict
 
 
 def retrieve_wandb_username() -> str:

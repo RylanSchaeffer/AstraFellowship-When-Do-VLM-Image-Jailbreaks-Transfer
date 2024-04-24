@@ -22,16 +22,16 @@ from typing import Any, Dict, List
 
 import src.data
 import src.globals
+from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
 import src.systems
 import src.utils
 
 
 def evaluate_vlm_adversarial_examples():
-    wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
         config=src.globals.default_eval_config,
-        entity=wandb_username,
+        entity=src.utils.retrieve_wandb_username(),
     )
     wandb_config: Dict[str, Any] = dict(wandb.config)
 
@@ -45,10 +45,7 @@ def evaluate_vlm_adversarial_examples():
     pp = pprint.PrettyPrinter(indent=4)
     print("W&B Config:")
     pp.pprint(wandb_config)
-
     print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
-    cuda_visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-    # assert len(cuda_visible_devices) == 3
 
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
@@ -65,15 +62,11 @@ def evaluate_vlm_adversarial_examples():
                 # DeviceStatsMonitor()
             ]
         )
-        # os.environ["RANK"] = "0"
-        # os.environ["WORLD_SIZE"] = str(torch.cuda.device_count())
     else:
         accelerator = "cpu"
         devices = None
         callbacks.extend([])
         print("No GPU available.")
-
-    print("devices: ", devices)
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
@@ -123,41 +116,24 @@ def evaluate_vlm_adversarial_examples():
             tensor_image=placeholder_adv_image,
         )
 
+    # Ensure that the tokenized dataset exists.
     tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        data_kwargs=wandb_config["prompts_and_targets_kwargs"],
-        prompts_and_targets_dir="prompts_and_targets",
-        split="eval",
+        data_kwargs=wandb_config["data"],
+        split=wandb_config["data"]["split"],
     )
 
-    # We need to load the VLMs ensemble in order to tokenize the dataset.
     text_datamodule = src.data.VLMEnsembleTextDataModule(
         vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
         tokenized_dir_path=tokenized_dir_path,
         wandb_config=wandb_config,
     )
 
-    # Subsample prompts to use for evaluation.
-    prompts_and_targets_dict = src.utils.load_prompts_and_targets(
-        prompts_and_targets_kwargs=wandb_config["prompts_and_targets_kwargs"],
-        split="eval",
+    # Also load the raw prompts to use for generate.
+    prompts_and_targets_dict = src.data.load_prompts_and_targets(
+        dataset=wandb_config["data"]["dataset"],
+        split=wandb_config["data"]["split"],
     )
-
-    subsampled_indices = np.random.choice(
-        prompts_and_targets_dict["indices"],
-        wandb_config["num_samples_to_eval"],
-        replace=False,
-    )
-    subsampled_prompts = [
-        prompt
-        for i, prompt in enumerate(prompts_and_targets_dict["prompts"])
-        if i in subsampled_indices
-    ]
-    subsampled_targets = [
-        target
-        for i, target in enumerate(prompts_and_targets_dict["targets"])
-        if i in subsampled_indices
-    ]
 
     model_name_str = list(wandb_config["model_to_eval"])[0]
     model_generations_dict_list = []
@@ -171,9 +147,18 @@ def evaluate_vlm_adversarial_examples():
             / 255.0
         )
 
+        wandb_additional_information = {
+            "eval_model_str": model_name_str,
+            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
+            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+        }
+
         # Bind data to the evaluation system for W&B logging on epoch end.
         vlm_ensemble_system.tensor_image.data = adv_image
+        vlm_ensemble_system.wandb_additional_data = wandb_additional_information
 
+        # Compute the loss.
         trainer.test(
             model=vlm_ensemble_system,
             datamodule=text_datamodule,
@@ -183,15 +168,8 @@ def evaluate_vlm_adversarial_examples():
             model_name_str
         ].generate(
             image=adv_image,
-            prompts=subsampled_prompts,
+            prompts=prompts_and_targets_dict["prompts"],
         )
-
-        wandb_additional_information = {
-            "eval_model_str": model_name_str,
-            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
-            "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
-        }
 
         model_evaluation_results = {
             f"generations_{model_name_str}_optimizer_step={run_jailbreak_dict['optimizer_step_counter']}": wandb.Table(

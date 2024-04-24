@@ -10,6 +10,9 @@ parameters:
       batch_size:
         values:
           [3]
+      dataset:
+        values:
+          ["advbench", "rylan_anthropic_hhh"]
       num_workers:
         values:
           [1]
@@ -34,10 +37,10 @@ parameters:
           [1.0]
       log_loss_every_n_steps:
         values:
-          [1]
+          [10]
       log_image_every_n_steps:
         values:
-          [100]
+          [250]
       precision:
         values:
           ["bf16-mixed"]
@@ -54,7 +57,7 @@ parameters:
       ]
   n_grad_steps:
     values:
-      [10000]
+      [25000]
   prompt_and_targets_kwargs:
     parameters:
       dataset_train:

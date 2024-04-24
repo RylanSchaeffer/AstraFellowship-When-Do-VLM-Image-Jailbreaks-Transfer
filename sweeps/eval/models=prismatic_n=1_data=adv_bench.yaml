@@ -4,10 +4,14 @@ method: grid
 parameters:
   data:
     parameters:
-      num_workers:
-        values: [1]
       batch_size:
         values: [1]
+      dataset:
+        values: ["adv_bench", "rylan_anthropic_hhh"]
+      num_workers:
+        values: [ 1 ]
+      split:
+        values: [ "train", "eval" ]
   model_to_eval:
     values:
       [
@@ -26,14 +30,6 @@ parameters:
         "{'prism-dinosiglip-controlled+13b'}",
         "{'prism-dinosiglip+13b'}",
       ]
-  prompt_and_targets_kwargs:
-    parameters:
-      dataset_eval:
-        values:
-          [
-            "adv_bench",
-            "rylan_anthropic_hhh",
-          ]
   seed:
     values:
       [0]

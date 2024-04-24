@@ -29,11 +29,10 @@ import src.utils
 
 
 def optimize_vlm_adversarial_examples():
-    wandb_username = src.utils.retrieve_wandb_username()
     run = wandb.init(
         project="universal-vlm-jailbreak",
         config=default_attack_config,
-        entity=wandb_username,
+        entity=src.utils.retrieve_wandb_username(),
     )
     wandb_config = dict(wandb.config)
 
@@ -61,7 +60,6 @@ def optimize_vlm_adversarial_examples():
     pp = pprint.PrettyPrinter(indent=4)
     print("W&B Config:")
     pp.pprint(wandb_config)
-
     print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
 
     # Convert these strings to sets of strings.
@@ -135,7 +133,6 @@ def optimize_vlm_adversarial_examples():
     tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
         vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
         data_kwargs=wandb_config["data"],
-        prompts_and_targets_dir="prompts_and_targets",
         split="train",
     )
 

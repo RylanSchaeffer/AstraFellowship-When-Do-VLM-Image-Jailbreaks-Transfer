@@ -2,10 +2,9 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "num_workers": 1,
-        "batch_size": 4,
         "dataset": "advbench",
-        # "dataset": "rylan_anthropic_hhh",
+        "batch_size": 4,
+        "num_workers": 1,
     },
     "image_kwargs": {
         "image_size": 512,
@@ -30,7 +29,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 10000,
+    "n_grad_steps": 25000,
     "optimization": {
         "eps": 1e-4,
         "learning_rate": 0.001,
@@ -46,6 +45,8 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
+        "dataset": "rylan_anthropic_hhh",
+        "split": "eval",
     },
     "lightning_kwargs": {
         "log_loss_every_n_steps": 1,
@@ -91,10 +92,6 @@ default_eval_config = {
         #     "max_new_tokens": 100,
         #     "min_new_tokens": 5,
         # },
-    },
-    "num_samples_to_eval": 16,
-    "prompts_and_targets_kwargs": {
-        "dataset_eval": "rylan_anthropic_hhh",
     },
     "seed": 0,
     "wandb_run_id": "vyo7ikx0",
