@@ -95,8 +95,8 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
 
-    # I use this for debugging.
-    runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
+    # # Rylan uses this for debugging.
+    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).

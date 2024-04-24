@@ -65,7 +65,7 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
 export CUDA_VISIBLE_DEVICES=6
-wandb agent rylan/universal-vlm-jailbreak-eval/rsag4b77
+wandb agent rylan/universal-vlm-jailbreak-eval/7nlwri29
 ```
 
 
