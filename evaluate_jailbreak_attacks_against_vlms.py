@@ -1,4 +1,5 @@
 import os
+import time
 
 # Rok asked us to include the following specifications in our code to prevent CPUs from spinning idly:
 n_threads_str = "4"
@@ -95,7 +96,7 @@ def evaluate_vlm_adversarial_examples():
     )
 
     # I use this for debugging.
-    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
+    runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -166,26 +167,32 @@ def evaluate_vlm_adversarial_examples():
             "prompts": [],
             "targets": [],
         }
+        # Move to the CPU for faster sampling.
+        # Will explicitly placing on CPU cause issues?
+        vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
         for prompt_idx, (prompt, target) in enumerate(
             zip(
-                prompts_and_targets_dict["prompts"],
-                prompts_and_targets_dict["targets"],
+                prompts_and_targets_dict["prompts"][wandb_config["num_generations"]],
+                prompts_and_targets_dict["targets"][wandb_config["num_generations"]],
             )
         ):
-            model_generation = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+            start_time = time.time()
+            model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
                 model_name_str
-            ].generate(image=adv_image, prompts=[prompt])[0]
+            ].generate(image=adv_image, prompts=[prompt])
+            model_generations_dict["generations"].extend(model_generations)
+            model_generations_dict["prompts"].extend([prompt])
+            model_generations_dict["targets"].extend([target])
+            end_time = time.time()
             print(
-                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generation}\n"
+                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
             )
-            model_generations_dict["generations"].append(model_generation)
-            model_generations_dict["prompts"].append(prompt)
-            model_generations_dict["targets"].append(target)
 
         run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
 
     # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # the evaluation VLM.
+    del vlm_ensemble_system.vlm_ensemble
     del vlm_ensemble_system
     for evaluator_model_name_str, eval_llm_constr in [
         ("LlamaGuard2", LlamaGuardEvaluator),

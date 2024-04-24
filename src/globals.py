@@ -93,6 +93,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
+    "num_generations": 5,
     "seed": 0,
     "wandb_run_id": "m4s17qlw",
     # "wandb_sweep_id": "yvqszl4d",

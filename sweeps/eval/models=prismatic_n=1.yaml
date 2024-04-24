@@ -30,6 +30,9 @@ parameters:
         "{'prism-dinosiglip-controlled+13b'}",
         "{'prism-dinosiglip+13b'}",
       ]
+  num_generations:
+    values:
+      [5]
   seed:
     values:
       [0]
