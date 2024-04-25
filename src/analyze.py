@@ -62,7 +62,7 @@ def download_wandb_project_runs_configs(
     # Keep only finished runs
     finished_runs = runs_configs_df["State"] == "finished"
     print(
-        f"% of successfully finished runs: {finished_runs.mean()} ({finished_runs.sum()} / {len(finished_runs)})"
+        f"% of successfully finished runs: {100.0 * finished_runs.mean()} ({finished_runs.sum()} / {len(finished_runs)})"
     )
 
     if finished_only:
