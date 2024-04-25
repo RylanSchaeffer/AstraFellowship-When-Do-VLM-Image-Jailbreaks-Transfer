@@ -12,7 +12,10 @@ parameters:
           [3]
       dataset:
         values:
-          ["advbench", "rylan_anthropic_hhh"]
+          [
+            "advbench",
+            "rylan_anthropic_hhh",
+          ]
       num_workers:
         values:
           [1]
@@ -57,12 +60,7 @@ parameters:
       ]
   n_grad_steps:
     values:
-      [25000]
-  prompt_and_targets_kwargs:
-    parameters:
-      dataset_train:
-        values:
-          ["advbench"]
+      [50000]
   optimization:
     parameters:
       eps:
