@@ -11,7 +11,7 @@ parameters:
       num_workers:
         values: [ 1 ]
       split:
-        values: [ "eval", "train" ]
+        values: [ "eval" ]
   model_to_eval:
     values:
       [

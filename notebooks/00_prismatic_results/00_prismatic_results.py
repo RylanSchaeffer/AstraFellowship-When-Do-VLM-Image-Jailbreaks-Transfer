@@ -21,7 +21,8 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "omurwifa",  # Prismatic with N-Choose-1 Jailbreaks
+    "omurwifa",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench
+    "poe9qs91",  # Prismatic with N-Choose-1 Jailbreaks, Rylan Anthropic HHH
     # "",  # Prismatic with N-Choose-2 Jailbreaks
 ]
 
@@ -98,13 +99,24 @@ eval_runs_histories_df = eval_runs_histories_df.merge(
     right_on="run_id",
 )
 
-# TODO: Get run_configs of each attack run to have those hyperparameters.
-# vlm_metadata_df = pd.read_csv(
-#     os.path.join("configs", "vlm_metadata.csv"),
-# )
+
 unique_and_ordered_eval_model_strs = np.sort(
     eval_runs_histories_df["model_to_eval"].unique()
 )
+
+# Modify columns names and values.
+eval_runs_histories_df.rename(
+    columns={
+        "model_to_eval": "Evaluated Model",
+        "dataset": "Dataset",
+        "attack_dataset": "Attack Dataset",
+    },
+    inplace=True,
+)
+# vlm_metadata_df = pd.read_csv(
+#     os.path.join("configs", "vlm_metadata.csv"),
+# )
+
 
 plt.close()
 g = sns.relplot(
@@ -112,11 +124,12 @@ g = sns.relplot(
     kind="line",
     x="optimizer_step_counter_epoch",
     y="loss/avg_epoch",
-    hue="model_to_eval",
+    hue="Evaluated Model",
     hue_order=unique_and_ordered_eval_model_strs,
-    style="attack_dataset",
+    style="Attack Dataset",
+    style_order=["advbench", "rylan_anthropic_hhh"],
     col="models_to_attack",
-    row="dataset",
+    row="Dataset",
     facet_kws={"margin_titles": True},
 )
 # plt.show()
@@ -125,8 +138,6 @@ g.set_axis_labels(
 )
 g.fig.suptitle("Attacked Model(s)", y=1.0)
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
-# Set legend title to "Evaluated Model".
-g._legend.set_title("Evaluated Model")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
 g.set(ylim=(-0.05, None))
 src.plot.save_plot_with_multiple_extensions(
@@ -157,11 +168,12 @@ for (
         kind="line",
         x="optimizer_step_counter_epoch",
         y="loss/avg_epoch",
-        hue="model_to_eval",
+        hue="Evaluated Model",
         hue_order=unique_and_ordered_eval_model_strs,
-        style="attack_dataset",
+        style="Attack Dataset",
+        style_order=["advbench", "rylan_anthropic_hhh"],
         col="models_to_attack",
-        row="dataset",
+        row="Dataset",
         facet_kws={"margin_titles": True},
     )
     g.set_axis_labels(
@@ -169,7 +181,7 @@ for (
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
-    g._legend.set_title("Evaluated Model")
+    # g._legend.set_title("Evaluated Model")
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
     g.set(ylim=(-0.05, None))
     src.plot.save_plot_with_multiple_extensions(
