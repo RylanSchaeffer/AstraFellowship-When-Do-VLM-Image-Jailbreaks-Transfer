@@ -5,6 +5,7 @@ default_attack_config = {
         "dataset": "advbench",
         "batch_size": 3,
         "num_workers": 1,
+        "split": "train",
     },
     "image_kwargs": {
         "image_size": 512,
@@ -13,7 +14,8 @@ default_attack_config = {
     "lightning_kwargs": {
         "accumulate_grad_batches": 6,
         "gradient_clip_val": 10.0,
-        "limit_train_batches": 1.0,
+        # "limit_train_batches": 1.0,
+        "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "log_image_every_n_steps": 1000,
         "precision": "bf16-mixed",
@@ -32,6 +34,7 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
     "n_grad_steps": 2500,
+    "n_generations": 10,
     "optimization": {
         "eps": 1e-4,
         "learning_rate": 0.001,
@@ -97,7 +100,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "num_generations": 5,
+    "n_generations": 5,
     "seed": 0,
     "wandb_run_id": "m4s17qlw",
     # "wandb_sweep_id": "yvqszl4d",
