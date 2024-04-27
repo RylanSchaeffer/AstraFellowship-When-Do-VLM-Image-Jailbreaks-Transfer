@@ -86,7 +86,6 @@ def optimize_vlm_adversarial_examples():
         )
     )
     print("Number of Train Epochs: ", n_train_epochs)
-    n_train_epochs = 1
 
     callbacks = []
     if torch.cuda.is_available():
