@@ -20,6 +20,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
         self.vlm_ensemble = VLMEnsemble(
             model_strs=wandb_config["models_to_attack"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
+            precision=wandb_config["lightning_kwargs"]["precision"],
         )
         # Load initial image plus prompt and target data.
         tensor_image: torch.Tensor = create_initial_image(

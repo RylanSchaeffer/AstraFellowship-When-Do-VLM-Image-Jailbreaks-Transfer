@@ -29,6 +29,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         self,
         model_str: str = "prism-dinosiglip+7b",
         generation_kwargs: Dict[str, Any] = None,
+        precision: str = "bf16-mixed",
     ):
         super(PrismaticVisionLanguageModel, self).__init__()
 
@@ -61,15 +62,29 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
+        self.precision_str = precision
+        if self.precision_str in {"bf16-mixed", "bf16-true"}:
+            self.precision_dtype = torch.bfloat16
+        elif self.precision_str == "16-true":
+            self.precision_dtype = torch.float16
+        elif self.precision_str in {"32", "32-true"}:
+            self.precision_dtype = torch.float32
+        elif self.precision_str in {"64", "64-true"}:
+            self.precision_dtype = torch.float64
+        else:
+            raise ValueError(f"Invalid precision: {self.precision_str}")
+
         # The llm_backbone.llm has dtype float32. Switch to bfloat16.
-        self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(torch.bfloat16)
+        self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(
+            self.precision_dtype
+        )
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
             dino_transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.dino_image_transform.transforms
@@ -78,7 +93,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             )
 
             siglip_transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.siglip_image_transform.transforms
@@ -97,7 +112,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
             # TODO: Decide what to do about that LetterboxPadding.
             transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.transforms
@@ -123,12 +138,11 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         transformed_images: Union[
             torch.Tensor, Dict[str, torch.Tensor]
         ] = self.images_transform_fn(images)
-        # TODO: Check whether attention mask is correct?
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            pixel_values=transformed_images.to(images.dtype),
+            pixel_values=transformed_images,
         )
         return outputs.loss
 
