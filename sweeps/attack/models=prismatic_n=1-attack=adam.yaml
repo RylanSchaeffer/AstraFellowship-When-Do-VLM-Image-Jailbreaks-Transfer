@@ -68,6 +68,9 @@ parameters:
         "{'prism-dinosiglip-controlled+7b'}",
         "{'prism-dinosiglip-controlled+13b'}",
       ]
+  n_generations:
+    values:
+      [10]
   n_grad_steps:
     values:
       [25000]

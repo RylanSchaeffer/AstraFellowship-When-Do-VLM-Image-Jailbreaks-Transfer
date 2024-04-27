@@ -93,6 +93,9 @@ parameters:
         "{'prism-clip-controlled+13b', 'prism-dinosiglip-controlled+13b'}",
         "{'prism-reproduction-llava-v15+13b', 'prism-dinosiglip-controlled+13b'}",
       ]
+  n_generations:
+    values:
+      [ 10 ]
   n_grad_steps:
     values:
       [2500]
