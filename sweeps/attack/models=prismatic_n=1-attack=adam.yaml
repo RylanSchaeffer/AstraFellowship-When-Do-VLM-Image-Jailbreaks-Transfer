@@ -31,7 +31,7 @@ parameters:
     parameters:
       accumulate_grad_batches:
         values:
-          [2]
+          [4]
       gradient_clip_val:
         values:
           [10.0]
@@ -67,7 +67,7 @@ parameters:
       ]
   n_grad_steps:
     values:
-      [2000]
+      [2500]
   optimization:
     parameters:
       eps:
