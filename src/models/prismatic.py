@@ -121,11 +121,12 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         transformed_images: Union[
             torch.Tensor, Dict[str, torch.Tensor]
         ] = self.images_transform_fn(images)
+        # TODO: Check whether attention mask is correct?
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            pixel_values=transformed_images,
+            pixel_values=transformed_images.to(images.dtype),
         )
         return outputs.loss
 

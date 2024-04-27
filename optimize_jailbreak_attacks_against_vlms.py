@@ -121,6 +121,7 @@ def optimize_vlm_adversarial_examples():
         # profiler="simple",  # Simplest profiler
         # profiler="advanced",  # More advanced profiler
         precision=wandb_config["lightning_kwargs"]["precision"],
+        # strategy="fsdp",  # Fully Sharded Data Parallelism.
     )
 
     # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html

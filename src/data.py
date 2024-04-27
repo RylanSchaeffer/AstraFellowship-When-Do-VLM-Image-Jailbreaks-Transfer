@@ -99,7 +99,7 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
             datum_npz = np.load(datum_file_path)
             datum_per_vlm[vlm_name] = {
                 "input_ids": datum_npz["input_ids"],
-                "attention_mask": datum_npz["input_ids"],
+                "attention_mask": datum_npz["attention_mask"],
                 "labels": datum_npz["labels"],
             }
             datum_npz.close()
