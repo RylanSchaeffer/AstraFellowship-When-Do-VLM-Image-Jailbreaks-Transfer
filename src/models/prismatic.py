@@ -1,5 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
-from accelerate import Accelerator
+import lightning
 import os.path
 from pathlib import Path
 from pprint import pprint
@@ -24,7 +24,7 @@ from src.models.base import VisionLanguageModel
 IGNORE_INDEX = -100
 
 
-class PrismaticVisionLanguageModel(VisionLanguageModel):
+class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
     def __init__(
         self,
         model_str: str = "prism-dinosiglip+7b",
@@ -61,6 +61,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
+        # The llm_backbone.llm has dtype float32. Switch to bfloat16.
+        self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(torch.bfloat16)
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:

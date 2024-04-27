@@ -40,10 +40,10 @@ parameters:
           [1.0]
       log_loss_every_n_steps:
         values:
-          [10]
+          [1]
       log_image_every_n_steps:
         values:
-          [250]
+          [50]
       precision:
         values:
           ["bf16-mixed"]
@@ -67,7 +67,7 @@ parameters:
       ]
   n_grad_steps:
     values:
-      [50000]
+      [2000]
   optimization:
     parameters:
       eps:
