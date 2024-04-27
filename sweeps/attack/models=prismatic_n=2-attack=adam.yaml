@@ -9,7 +9,7 @@ parameters:
     parameters:
       batch_size:
         values:
-          [3]
+          [2]
       dataset:
         values:
           [
