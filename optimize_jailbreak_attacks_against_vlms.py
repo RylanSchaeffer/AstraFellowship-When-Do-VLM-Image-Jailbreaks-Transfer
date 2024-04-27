@@ -79,7 +79,7 @@ def optimize_vlm_adversarial_examples():
         wandb_config["n_grad_steps"]
         * wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
         / wandb_config["lightning_kwargs"]["limit_train_batches"]
-        / train_dataset_len
+        / (train_dataset_len / wandb_config["data"]["batch_size"])
     )
     print("Number of Train Epochs: ", n_train_epochs)
 
