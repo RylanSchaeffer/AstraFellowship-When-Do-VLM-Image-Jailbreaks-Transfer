@@ -6,31 +6,39 @@
 
 `conda update -n base -c defaults conda`
 
-2. Create a conda environment:
+2. Create and activate the conda environment:
 
-`conda create -n universal_vlm_jailbreak_env python=3.11 -y`
-
-3. Activate the environment:
-
-`conda activate universal_vlm_jailbreak_env`
+`conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
 
 4. Update pip in preparation of the next step.
 
 `pip install --upgrade pip`
 
-5. Manually install a few additional packages:
+5. Install Pytorch:
 
-`pip install joblib pandas matplotlib seaborn nvidia-htop black wandb`
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
 
-6. Make sure to log in to W&B by running `wandb login`.
+6. Install Lightning:
+
+`conda install lightning -c conda-forge`
 
 7. Grab the git submodules: `git submodule update --init --recursive`
-8. `cd submodules/prismatic-vlms && pip install -e .`.
+
+8. Install Prismatic `cd submodules/prismatic-vlms && pip install -e . && cd ../..`.
 9. Then follow their instructions:
 
 `pip install packaging ninja`
 
 `pip install flash-attn --no-build-isolation`
+
+
+10. Manually install a few additional packages:
+
+`conda install joblib pandas matplotlib seaborn nvidia-htop black wandb`
+
+11Make sure to log in to W&B by running `wandb login`.
+
+
 
 11. Install more stuff `pip install sentencepiece`
 
@@ -53,8 +61,8 @@ Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. 
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=1
-wandb agent rylan/universal-vlm-jailbreak/79jk9tu1
+export CUDA_VISIBLE_DEVICES=3
+wandb agent rylan/universal-vlm-jailbreak/681o8dt6
 ```
 
 
@@ -70,7 +78,6 @@ wandb agent rylan/universal-vlm-jailbreak-eval/poe9qs91
 
 
 ## Runpod IO Setup
-
 
 
 ```bash
