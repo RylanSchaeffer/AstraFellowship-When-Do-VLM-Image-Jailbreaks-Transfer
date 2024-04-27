@@ -10,6 +10,12 @@ parameters:
       batch_size:
         values:
           [3]
+      dataset:
+        values:
+          [
+            "advbench",
+            "rylan_anthropic_hhh",
+          ]
       num_workers:
         values:
           [1]
@@ -25,7 +31,7 @@ parameters:
     parameters:
       accumulate_grad_batches:
         values:
-          [2]
+          [4]
       gradient_clip_val:
         values:
           [10.0]
@@ -34,10 +40,10 @@ parameters:
           [1.0]
       log_loss_every_n_steps:
         values:
-          [10]
+          [1]
       log_image_every_n_steps:
         values:
-          [250]
+          [50]
       precision:
         values:
           ["bf16-mixed"]
@@ -65,10 +71,31 @@ parameters:
         "{'prism-reproduction-llava-v15+7b', 'prism-siglip-controlled+7b'}",
         "{'prism-clip-controlled+7b', 'prism-dinosiglip-controlled+7b'}",
         "{'prism-reproduction-llava-v15+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-clip+13b'}",
+        "{'prism-clip+13b', 'prism-siglip+13b'}",
+        "{'prism-siglip+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-clip-controlled+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip-controlled+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-siglip+13b'}",
+        "{'prism-clip+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-clip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-clip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-clip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-clip-controlled+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-dinosiglip-controlled+13b'}",
       ]
   n_grad_steps:
     values:
-      [50000]
+      [2500]
   optimization:
     parameters:
       eps:
@@ -76,7 +103,7 @@ parameters:
           [0.0001]
       learning_rate:
         values:
-            [0.001]
+          [0.001]
       momentum:
         values:
           [0.9]
