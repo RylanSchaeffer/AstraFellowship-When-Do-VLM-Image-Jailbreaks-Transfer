@@ -108,7 +108,7 @@ class VLMEnsemble(lightning.LightningModule):
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
 
-        
+        ensemble_device = self.device
 
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
             input_ids = text_data_by_model[model_name]["input_ids"]
@@ -116,14 +116,15 @@ class VLMEnsemble(lightning.LightningModule):
             input_ids_shape = input_ids.shape
             # print(f"input_ids_shape: {input_ids_shape}")
             # Compute the loss for each model
+            model_wrapper_device = model_wrapper.device
             loss = model_wrapper.compute_loss(
-                image=image,
-                input_ids=text_data_by_model[model_name]["input_ids"],
-                attention_mask=text_data_by_model[model_name]["attention_mask"],
-                labels=text_data_by_model[model_name]["labels"],
+                image=image.to(model_wrapper_device),
+                input_ids=text_data_by_model[model_name]["input_ids"].to(model_wrapper_device),
+                attention_mask=text_data_by_model[model_name]["attention_mask"].to(model_wrapper_device),
+                labels=text_data_by_model[model_name]["labels"].to(model_wrapper_device),
             )
             # Because the models may be on different devices, we need to move the loss back
-            losses_per_model[model_name] = loss.to(self.device)
+            losses_per_model[model_name] = loss.to(ensemble_device)
 
         # avg_loss = torch.zeros(1, requires_grad=True)[0]
         # for model_name, loss in losses_per_model.items():
