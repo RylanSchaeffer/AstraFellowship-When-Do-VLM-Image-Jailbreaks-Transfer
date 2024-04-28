@@ -155,27 +155,39 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         targets: Optional[List[str]] = None,
     ) -> Dict[str, torch.Tensor]:
         if targets is None:
-            targets = [None for _ in range(len(prompts))]
+            targets = ["" for _ in range(len(prompts))]
 
         prompt_texts = []
         for prompt, target in zip(prompts, targets):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
             if target is not None:
-                prompt_builder.add_turn(role="gpt", message=target)
+                prompt_builder.add_turn(role="gpt", message="")
             prompt_text = prompt_builder.get_prompt()
+            # annoyingly the prompt builder adds the </s> token which we don't want
+            prompt_text = prompt_text.replace("</s>", "")
+            # there is also a whitespace at the end of the prompt
+            prompt_text = prompt_text.rstrip()
             prompt_texts.append(prompt_text)
 
         first_prompt_text = prompt_texts[0]
         if not self.has_logged_before:
-            print("first_prompt_text:", first_prompt_text)
+            print("first_prompt_text without label:", first_prompt_text)
+
 
         batch_encoding = self.model.llm_backbone.tokenizer(
             prompt_texts, padding=True, return_tensors="pt",
         )
-        # remove the eos
-        input_ids = batch_encoding["input_ids"][..., :-1]
-        attention_mask = batch_encoding["attention_mask"][..., :-1]
+
+        # Tokenize the labels separately, to avoid tokenization issues with merging whitespace
+        batch_labels_encoding = self.model.llm_backbone.tokenizer(
+            targets, padding=True, return_tensors="pt",
+        )
+
+        # (batch_size, seq_len)
+        input_ids = torch.cat([batch_encoding["input_ids"], batch_labels_encoding["input_ids"]], dim=-1)
+        attention_mask = torch.cat([batch_encoding["attention_mask"], batch_labels_encoding["attention_mask"]], dim=-1)
+
 
         results = {
             "input_ids": input_ids,
@@ -233,6 +245,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
             prompt_text = prompt_builder.get_prompt()
+            print(f"prompt_text: {prompt_text}")
             # prompt_text = self.accelerator.prepare(prompt_text)
             generated_text = self.model.generate(
                 prompt_text=prompt_text,
