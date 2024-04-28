@@ -76,15 +76,7 @@ def optimize_vlm_adversarial_examples():
         dataset=wandb_config["data"]["dataset"],
         split="train",  # Hard-code this.
     )
-    n_train_epochs = math.ceil(
-        wandb_config["n_grad_steps"]
-        / wandb_config["lightning_kwargs"]["limit_train_batches"]
-        / (
-            train_dataset_len
-            / wandb_config["data"]["batch_size"]
-            / wandb_config["lightning_kwargs"]["accumulate_grad_batches"]
-        )
-    )
+    n_train_epochs = 1
     print("Number of Train Epochs: ", n_train_epochs)
 
     callbacks = []

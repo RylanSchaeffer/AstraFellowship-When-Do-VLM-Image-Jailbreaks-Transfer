@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "mmlu",
-        "batch_size": 3,
+        "batch_size": 2,
         "num_workers": 1,
         "split": "train",
     },
@@ -15,8 +15,8 @@ default_attack_config = {
     "lightning_kwargs": {
         "accumulate_grad_batches": 6,
         "gradient_clip_val": 10.0,
-        # "limit_train_batches": 1.0,
-        "limit_train_batches": 0.05,  # Fast debugging.
+        "limit_train_batches": 1.0,
+        # "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "log_image_every_n_steps": 1000,
         "precision": "bf16-mixed",
