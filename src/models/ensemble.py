@@ -16,6 +16,7 @@ class VLMEnsemble(lightning.LightningModule):
         model_device: Mapping[str, torch.device]  = {},
     ):
         super().__init__()
+        # not a ModuleDict otherwise pytorch lightning will move it to another device??
         self.vlms_dict: dict[str, VisionLanguageModel] = dict()
         for model_device_int_str, model_str in enumerate(model_strs):
             # Enable overwriting default generation kwargs.
