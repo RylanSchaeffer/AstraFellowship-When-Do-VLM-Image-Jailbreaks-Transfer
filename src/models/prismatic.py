@@ -81,6 +81,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         )
         
         self.images_transform_fn = self.create_images_transform_fn(model_str)
+        self.has_logged_before = False
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
@@ -185,7 +186,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         )
 
         if targets is not None:
-            print("targets[0]:", targets[0])
+            if not self.has_logged_before:
+                print("targets[0]:", targets[0])
             labels = input_ids.clone()
             last_nonpadding_indices = torch.argmin(
                 (labels != pad_token_input_id).float(), axis=1
@@ -207,7 +209,9 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
 
             # Also mask out the padding tokens.
             labels[labels == pad_token_input_id] = IGNORE_INDEX
-            print("labels[0]:", labels[0])
+            if not self.has_logged_before:
+                print("labels[0]:", labels[0])
+                self.has_logged_before = True
             results["labels"] = labels
 
         return results
