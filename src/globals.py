@@ -33,12 +33,12 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 10_000,
+    "n_grad_steps": 5000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
         # "dataset_train": "truthfulqa",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-        "n_unique_prompts_and_targets": 10_000,  # -1 means use all prompts and targets.
+        "n_unique_prompts_and_targets": 5000,  # -1 means use all prompts and targets.
     },
     "optimization": {
         "eps": 1e-4,
