@@ -204,7 +204,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
                 zip(last_nonpadding_indices, tokenized_labels),
             ):
                 # print(f"{tokenized_label=} for target {targets[batch_idx]}")
-                target_start_idx = last_nonpadding_idx - len(tokenized_label)
+                target_start_idx = last_nonpadding_idx - len(tokenized_label) + 1
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
                 # print out the first label
                 
