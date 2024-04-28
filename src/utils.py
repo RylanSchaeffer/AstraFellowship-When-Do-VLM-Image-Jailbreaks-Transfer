@@ -1,4 +1,3 @@
-# Note: Some of this code came from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/minigpt4/common/dist_utils.py.
 from accelerate import Accelerator
 import ast
 import getpass
@@ -6,11 +5,12 @@ import joblib
 import numpy as np
 import os
 import pandas as pd
+from PIL import Image
 import random
 import torch
 import torch.distributed
 import torch.utils.data
-from torchvision import transforms
+import torchvision.transforms.v2
 from typing import Any, Dict, List, Tuple
 import wandb
 
@@ -25,7 +25,7 @@ def calc_rank():
     return torch.distributed.get_rank()
 
 
-def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
+def create_initial_image(image_kwargs: Dict[str, Any], seed: int = 0) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
         image = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         # resizer = transforms.Resize((224, 224))
@@ -38,6 +38,25 @@ def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
         image: torch.Tensor = torch.rand((1, 3, image_size, image_size))
+    elif image_kwargs["image_initialization"] == "trina":
+        image_path = f"images/trina/{str(seed).zfill(3)}.jpg"
+        pil_image = Image.open(image_path, mode="r")
+        width, height = pil_image.size
+        max_dim = max(width, height)
+        pad_width = (max_dim - width) // 2
+        pad_height = (max_dim - height) // 2
+        transform_pil_image = torchvision.transforms.v2.Compose(
+            [
+                torchvision.transforms.v2.Pad(
+                    (pad_width, pad_height, pad_width, pad_height), fill=0
+                ),
+                torchvision.transforms.v2.Resize(
+                    (image_kwargs["image_size"], image_kwargs["image_size"])
+                ),
+                torchvision.transforms.v2.ToTensor(),  # This divides by 255.
+            ]
+        )
+        image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
     else:
         raise ValueError(
             "Invalid image_initialization: {}".format(

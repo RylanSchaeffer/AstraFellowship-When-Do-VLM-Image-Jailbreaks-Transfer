@@ -25,6 +25,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
         # Load initial image plus prompt and target data.
         tensor_image: torch.Tensor = create_initial_image(
             image_kwargs=wandb_config["image_kwargs"],
+            seed=wandb_config["seed"],
         )
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=True)
         self.convert_tensor_to_pil_image = torchvision.transforms.ToPILImage()

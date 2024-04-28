@@ -9,7 +9,8 @@ default_attack_config = {
     },
     "image_kwargs": {
         "image_size": 512,
-        "image_initialization": "random",
+        # "image_initialization": "random",
+        "image_initialization": "trina",
     },
     "lightning_kwargs": {
         "accumulate_grad_batches": 6,
