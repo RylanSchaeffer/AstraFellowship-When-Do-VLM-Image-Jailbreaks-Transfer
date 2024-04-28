@@ -123,6 +123,6 @@ default_eval_config = {
         # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    "wandb_run_id": "iju5m47d",
+    "wandb_run_id": "g4sexq8g",
     # "wandb_sweep_id": "yvqszl4d",
 }
