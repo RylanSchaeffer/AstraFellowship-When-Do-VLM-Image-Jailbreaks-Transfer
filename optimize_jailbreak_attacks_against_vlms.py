@@ -113,7 +113,7 @@ def optimize_vlm_adversarial_examples():
         accumulate_grad_batches=wandb_config["lightning_kwargs"][
             "accumulate_grad_batches"
         ],
-        devices=1, # One master GPU to compute the loss and the first model, the other GPUs will load the other models.
+        devices=devices,
         callbacks=callbacks,
         check_val_every_n_epoch=0,
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
