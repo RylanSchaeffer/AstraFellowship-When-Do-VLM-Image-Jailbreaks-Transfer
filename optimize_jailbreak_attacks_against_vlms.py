@@ -133,10 +133,15 @@ def optimize_vlm_adversarial_examples():
         split="train",  # Hard-code this.
     )
 
+    prompts_and_targets = src.data.load_prompts_and_targets_v2(
+        dataset=wandb_config["data"]["dataset"],
+        split="train",  # Hard-code this.
+    )
+
     # We need to load the VLMs ensemble in order to tokenize the dataset.
-    text_datamodule = src.data.VLMEnsembleTextDataModule(
-        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
-        tokenized_dir_path=tokenized_dir_path,
+    text_datamodule = src.data.TextDataModule(
+        ensemble=vlm_ensemble_system.vlm_ensemble,
+        prompts_and_targets=prompts_and_targets,
         wandb_config=wandb_config,
     )
 

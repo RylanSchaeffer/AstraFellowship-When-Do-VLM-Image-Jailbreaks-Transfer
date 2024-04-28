@@ -4,6 +4,8 @@ import lightning
 import torch.nn
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.models.base import VisionLanguageModel
+
 
 class VLMEnsemble(lightning.LightningModule):
     def __init__(
@@ -13,7 +15,7 @@ class VLMEnsemble(lightning.LightningModule):
         precision: str = "bf16-mixed",
     ):
         super().__init__()
-        self.vlms_dict = torch.nn.ModuleDict()
+        self.vlms_dict: dict[str, VisionLanguageModel] = torch.nn.ModuleDict() # type: ignore
         for model_device_int_str, model_str in enumerate(model_strs):
             # Enable overwriting default generation kwargs.
             if model_str in model_generation_kwargs:
