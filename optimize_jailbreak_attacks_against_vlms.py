@@ -113,7 +113,7 @@ def optimize_vlm_adversarial_examples():
         accumulate_grad_batches=wandb_config["lightning_kwargs"][
             "accumulate_grad_batches"
         ],
-        devices=devices,
+        devices=1,
         callbacks=callbacks,
         check_val_every_n_epoch=0,
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
