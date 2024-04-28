@@ -61,7 +61,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             pprint(available_models())
             raise ValueError(f"Invalid model_str: {model_str}")
 
-        self.model = load(model_id_or_path=model_str, hf_token=hf_token)
+        self.model = load(model_id_or_path=model_str)
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
