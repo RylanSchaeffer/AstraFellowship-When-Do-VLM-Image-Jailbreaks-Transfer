@@ -22,7 +22,7 @@ from src.models.base import VisionLanguageModel
 
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
 IGNORE_INDEX = -100
-
+torch.set_printoptions(threshold=10_000)
 
 class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
     def __init__(

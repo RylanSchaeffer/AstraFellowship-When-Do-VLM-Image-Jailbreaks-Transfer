@@ -106,7 +106,7 @@ class VLMEnsemble(lightning.LightningModule):
             input_ids = text_data_by_model[model_name]["input_ids"]
             # get the batch size
             input_ids_shape = input_ids.shape
-            print(f"input_ids_shape: {input_ids_shape}")
+            # print(f"input_ids_shape: {input_ids_shape}")
             # Compute the loss for each model
             loss = model_wrapper.compute_loss(
                 image=image,
