@@ -100,7 +100,13 @@ class VLMEnsemble(lightning.LightningModule):
         # Always calculate loss per model and use for updating the adversarial example.
         losses_per_model: Dict[str, torch.Tensor] = {}
 
+        
+
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
+            input_ids = text_data_by_model[model_name]["input_ids"]
+            # get the batch size
+            input_ids_shape = input_ids.shape
+            print(f"input_ids_shape: {input_ids_shape}")
             # Compute the loss for each model
             loss = model_wrapper.compute_loss(
                 image=image,
