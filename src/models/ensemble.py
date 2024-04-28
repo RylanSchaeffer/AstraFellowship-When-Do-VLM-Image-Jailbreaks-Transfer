@@ -2,7 +2,7 @@ import numpy as np
 import os
 import lightning
 import torch.nn
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from src.models.base import VisionLanguageModel
 
@@ -13,6 +13,7 @@ class VLMEnsemble(lightning.LightningModule):
         model_strs: List[str],
         model_generation_kwargs: Dict[str, Dict[str, Any]],
         precision: str = "bf16-mixed",
+        model_device: Mapping[str, torch.device]  = {},
     ):
         super().__init__()
         self.vlms_dict: dict[str, VisionLanguageModel] = torch.nn.ModuleDict() # type: ignore
@@ -83,6 +84,11 @@ class VLMEnsemble(lightning.LightningModule):
 
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
+            
+            device = model_device.get(model_str, None)
+            if device is not None:
+                print(f"Setting device for {model_str} to {device}")
+                vlm.to(device)
 
             self.vlms_dict[model_str] = vlm
 
@@ -116,7 +122,8 @@ class VLMEnsemble(lightning.LightningModule):
                 attention_mask=text_data_by_model[model_name]["attention_mask"],
                 labels=text_data_by_model[model_name]["labels"],
             )
-            losses_per_model[model_name] = loss
+            # Because the models may be on different devices, we need to move the loss back
+            losses_per_model[model_name] = loss.to(self.device)
 
         # avg_loss = torch.zeros(1, requires_grad=True)[0]
         # for model_name, loss in losses_per_model.items():

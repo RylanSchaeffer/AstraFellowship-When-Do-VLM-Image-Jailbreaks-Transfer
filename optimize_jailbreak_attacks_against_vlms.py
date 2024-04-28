@@ -88,6 +88,16 @@ def optimize_vlm_adversarial_examples():
         ]
     )
     print("GPUs available: ", devices)
+    models_to_attack: set[str] = wandb_config["models_to_attack"]
+    num_attacking = len(wandb_config["models_to_attack"])
+    available_devices = torch.cuda.device_count()
+    assert devices >= num_attacking
+    # Make a map of each model to a device.
+    model_device = {
+        model_name: torch.device(f"cuda:{i}")
+        # not sure if there is a better way to do this
+        for i, model_name in enumerate(models_to_attack)
+    }
     # if torch.cuda.is_available():
         
     # else:
@@ -107,7 +117,7 @@ def optimize_vlm_adversarial_examples():
         check_val_every_n_epoch=0,
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
         # deterministic=True,
-        devices=devices,
+        # devices=devices,
         limit_train_batches=wandb_config["lightning_kwargs"]["limit_train_batches"],
         logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
         log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
@@ -119,7 +129,7 @@ def optimize_vlm_adversarial_examples():
         # profiler="simple",  # Simplest profiler
         # profiler="advanced",  # More advanced profiler
         precision=wandb_config["lightning_kwargs"]["precision"],
-        strategy="fsdp" if devices > 1 else "auto", # prismatic vlms need fsdp, not ddp
+        # strategy="fsdp" if devices > 1 else "auto", # prismatic vlms need fsdp, not ddp
     )
 
     # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
@@ -127,6 +137,7 @@ def optimize_vlm_adversarial_examples():
     with trainer.init_module():
         vlm_ensemble_system = src.systems.VLMEnsembleAttackingSystem(
             wandb_config=wandb_config,
+            model_device=model_device,
         )
 
     limit = wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]

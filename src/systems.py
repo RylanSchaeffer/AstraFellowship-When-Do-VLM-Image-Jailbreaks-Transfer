@@ -3,7 +3,7 @@ import lightning
 import torch
 import torch.optim
 import torchvision.transforms
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
@@ -14,6 +14,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
     def __init__(
         self,
         wandb_config: Dict[str, Any],
+        model_device: Mapping[str, torch.device]  = {},
     ):
         super().__init__()
         self.wandb_config = wandb_config
@@ -21,6 +22,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             model_strs=wandb_config["models_to_attack"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
             precision=wandb_config["lightning_kwargs"]["precision"],
+            model_device=model_device,
         )
         # Load initial image plus prompt and target data.
         tensor_image: torch.Tensor = create_initial_image(
