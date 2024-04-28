@@ -157,7 +157,7 @@ def evaluate_vlm_adversarial_examples():
             )
 
             wandb_additional_data = {
-                "eval_model_str": model_name_str,
+                "eval_model_str": model,
                 "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
                 "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
                 "attack_models_str": run_jailbreak_dict["attack_models_str"],
@@ -201,7 +201,6 @@ def evaluate_vlm_adversarial_examples():
                 )
 
             merged_dict = {**wandb_additional_data, **model_generations_dict}
-            merged_dict["eval_model"] = model
             # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
 
             to_log.append(merged_dict)
