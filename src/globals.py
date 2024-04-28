@@ -67,7 +67,8 @@ default_eval_config = {
     # "model_to_eval": "{'prism-dinosiglip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'prism-clip+7b'}",
+    # "model_to_eval": "{'prism-clip+7b'}",
+    "model_to_eval": "{'prism-siglip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
         # "prism-reproduction-llava-v15+7b": {
