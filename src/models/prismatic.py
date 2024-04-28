@@ -181,8 +181,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
 
         # Tokenize the labels separately, to avoid tokenization issues with merging whitespace
         batch_labels_encoding = self.model.llm_backbone.tokenizer(
-            # Add space infront of the targets so that it will decode with the token that has a space
-            [" " + p for p in targets], padding=True, return_tensors="pt",
+            [p for p in targets], padding=True, return_tensors="pt",
         )
 
         # (batch_size, seq_len)
