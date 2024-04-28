@@ -94,8 +94,7 @@ class TextDataModule(lightning.LightningDataModule):
         super(TextDataModule, self).__init__()
         self.wandb_config = wandb_config
         self.train_dataset = None
-        
-        assert isinstance(self.batch_size, int)
+        self.batch_size= batch_size
         self.num_workers=self.wandb_config["data"]["num_workers"]
         assert isinstance(self.num_workers, int)
         self.prompts_and_targets = prompts_and_targets
