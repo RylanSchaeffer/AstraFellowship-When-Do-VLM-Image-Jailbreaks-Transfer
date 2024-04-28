@@ -19,7 +19,7 @@ import pprint
 import torch
 import wandb
 from typing import Any, Dict, List
-
+import pandas as pd
 
 import src.data
 import src.globals
@@ -99,6 +99,7 @@ def evaluate_vlm_adversarial_examples():
         # refresh=True,
         refresh=False,
     )
+    # print("Number of Jailbreak Images: ", len(runs_jailbreak_dict_list)
 
     # # Rylan uses this for debugging.
     # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
@@ -139,64 +140,77 @@ def evaluate_vlm_adversarial_examples():
         split=wandb_config["data"]["split"],
     )
 
-    
-    model_name_str = list(wandb_config["model_to_eval"])[0]
-    print(f"Eval Model: {model_name_str}")
-    for run_jailbreak_dict in runs_jailbreak_dict_list:
-        # Read image from disk. This image data should match the uint8 images.
-        # Shape: Batch-Channel-Height-Width
-        adv_image = (
-            torchvision.transforms.v2.functional.pil_to_tensor(
-                Image.open(run_jailbreak_dict["file_path"], mode="r")
-            ).unsqueeze(0)
-            / 255.0
-        )
+    models_to_eval= list(wandb_config["model_to_eval"])
 
-        wandb_additional_data = {
-            "eval_model_str": model_name_str,
-            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
-            "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
-        }
-
-        # Bind data to the evaluation system for W&B logging on epoch end.
-        vlm_ensemble_system.tensor_image.data = adv_image
-        vlm_ensemble_system.wandb_additional_data = wandb_additional_data
-
-        # Compute the loss.
-        # trainer.test(
-        #     model=vlm_ensemble_system,
-        #     datamodule=text_datamodule,
-        # )
-        # generate one token 
-
-        model_generations_dict = {
-            "generations": [],
-            "prompts": [],
-            "targets": [],
-        }
-        # # Move to the CPU for faster sampling.
-        # # Will explicitly placing on CPU cause issues?
-        # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
-        for prompt_idx, (prompt, target) in enumerate(
-            zip(
-                prompts_and_targets_dict["prompts"][: wandb_config["n_generations"]],
-                prompts_and_targets_dict["targets"][: wandb_config["n_generations"]],
+    # model: str, 
+    to_log: list[dict] =[]
+    for model in models_to_eval:
+        print(f"Eval Model: {model}")
+        for run_jailbreak_dict in runs_jailbreak_dict_list:
+            # Read image from disk. This image data should match the uint8 images.
+            # Shape: Batch-Channel-Height-Width
+            adv_image = (
+                torchvision.transforms.v2.functional.pil_to_tensor(
+                    Image.open(run_jailbreak_dict["file_path"], mode="r")
+                ).unsqueeze(0)
+                / 255.0
             )
-        ):
-            start_time = time.time()
-            model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                model_name_str
-            ].generate(image=adv_image, prompts=[prompt])
-            model_generations_dict["generations"].extend(model_generations)
-            model_generations_dict["prompts"].extend([prompt])
-            model_generations_dict["targets"].extend([target])
-            end_time = time.time()
-            print(
-                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-            )
-        
-        run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+
+            wandb_additional_data = {
+                "eval_model_str": model_name_str,
+                "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+                "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
+                "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            }
+
+            # Bind data to the evaluation system for W&B logging on epoch end.
+            vlm_ensemble_system.tensor_image.data = adv_image
+            vlm_ensemble_system.wandb_additional_data = wandb_additional_data
+
+            # Compute the loss.
+            # trainer.test(
+            #     model=vlm_ensemble_system,
+            #     datamodule=text_datamodule,
+            # )
+            # generate one token 
+
+            model_generations_dict = {
+                "generations": [],
+                "prompts": [],
+                "targets": [],
+            }
+            # # Move to the CPU for faster sampling.
+            # # Will explicitly placing on CPU cause issues?
+            # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
+            for prompt_idx, (prompt, target) in enumerate(
+                zip(
+                    prompts_and_targets_dict["prompts"][: wandb_config["n_generations"]],
+                    prompts_and_targets_dict["targets"][: wandb_config["n_generations"]],
+                )
+            ):
+                start_time = time.time()
+                model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+                    model_name_str
+                ].generate(image=adv_image, prompts=[prompt])
+                model_generations_dict["generations"].extend(model_generations)
+                model_generations_dict["prompts"].extend([prompt])
+                model_generations_dict["targets"].extend([target])
+                end_time = time.time()
+                print(
+                    f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+                )
+
+            merged_dict = {**wandb_additional_data, **model_generations_dict}
+            merged_dict["eval_model"] = model
+            # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+
+            to_log.append(merged_dict)
+            wandb.log(merged_dict)
+    # make a pd dataframe
+    df = pd.DataFrame(to_log)
+    wandb.log({"evaluations": wandb.Table(dataframe=df)})
+    # for data in to_log:
+
 
     # # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # # the evaluation VLM.
