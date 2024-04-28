@@ -16,7 +16,7 @@ class VLMEnsemble(lightning.LightningModule):
         model_device: Mapping[str, torch.device]  = {},
     ):
         super().__init__()
-        self.vlms_dict: dict[str, VisionLanguageModel] = torch.nn.ModuleDict() # type: ignore
+        self.vlms_dict: dict[str, VisionLanguageModel] = dict()
         for model_device_int_str, model_str in enumerate(model_strs):
             # Enable overwriting default generation kwargs.
             if model_str in model_generation_kwargs:
