@@ -68,12 +68,11 @@ default_eval_config = {
     # "model_to_eval": "{'prism-clip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
-        # "prism-reproduction-llava-v15+7b": {
-        #     "temperature": 0.1,
-        #     "top_p": 0.9,
-        #     "max_new_tokens": 100,
-        #     "min_new_tokens": 5,
-        # },
+        "prism-reproduction-llava-v15+7b": {
+            "temperature": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         # "prism-reproduction-llava-v15+13b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,

@@ -23,7 +23,6 @@ from typing import Any, Dict, List
 
 import src.data
 import src.globals
-from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
 import src.systems
 import src.utils
 
@@ -33,7 +32,8 @@ def evaluate_vlm_adversarial_examples():
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
         config=src.globals.default_eval_config,
-        entity=src.utils.retrieve_wandb_username(),
+        # entity=src.utils.retrieve_wandb_username(),
+        entity="wandb_username",
     )
     wandb_config: Dict[str, Any] = dict(wandb.config)
 
@@ -139,9 +139,8 @@ def evaluate_vlm_adversarial_examples():
         split=wandb_config["data"]["split"],
     )
 
-    
     model_name_str = list(wandb_config["model_to_eval"])[0]
-    print(f"Eval Model: {model_name_str}")
+
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -164,39 +163,38 @@ def evaluate_vlm_adversarial_examples():
         vlm_ensemble_system.wandb_additional_data = wandb_additional_data
 
         # Compute the loss.
-        # trainer.test(
-        #     model=vlm_ensemble_system,
-        #     datamodule=text_datamodule,
-        # )
-        # generate one token 
+        trainer.test(
+            model=vlm_ensemble_system,
+            datamodule=text_datamodule,
+        )
 
-        model_generations_dict = {
-            "generations": [],
-            "prompts": [],
-            "targets": [],
-        }
+        # model_generations_dict = {
+        #     "generations": [],
+        #     "prompts": [],
+        #     "targets": [],
+        # }
         # # Move to the CPU for faster sampling.
         # # Will explicitly placing on CPU cause issues?
         # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
-        for prompt_idx, (prompt, target) in enumerate(
-            zip(
-                prompts_and_targets_dict["prompts"][: wandb_config["n_generations"]],
-                prompts_and_targets_dict["targets"][: wandb_config["n_generations"]],
-            )
-        ):
-            start_time = time.time()
-            model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                model_name_str
-            ].generate(image=adv_image, prompts=[prompt])
-            model_generations_dict["generations"].extend(model_generations)
-            model_generations_dict["prompts"].extend([prompt])
-            model_generations_dict["targets"].extend([target])
-            end_time = time.time()
-            print(
-                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-            )
-        
-        run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+        # for prompt_idx, (prompt, target) in enumerate(
+        #     zip(
+        #         prompts_and_targets_dict["prompts"][: wandb_config["n_generations"]],
+        #         prompts_and_targets_dict["targets"][: wandb_config["n_generations"]],
+        #     )
+        # ):
+        #     start_time = time.time()
+        #     model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+        #         model_name_str
+        #     ].generate(image=adv_image, prompts=[prompt])
+        #     model_generations_dict["generations"].extend(model_generations)
+        #     model_generations_dict["prompts"].extend([prompt])
+        #     model_generations_dict["targets"].extend([target])
+        #     end_time = time.time()
+        #     print(
+        #         f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+        #     )
+        #
+        # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
 
     # # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # # the evaluation VLM.
