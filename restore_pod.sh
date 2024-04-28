@@ -7,3 +7,7 @@ source ~/.bashrc
 cd /workspace/PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate vlm
 cp -r /workspace/.cache/huggingface /root/.cache/huggingface
+cp -r /workspace/.config/wandb /root/.config/wandb
+apt-get update && apt-get install -y vim
+
+
