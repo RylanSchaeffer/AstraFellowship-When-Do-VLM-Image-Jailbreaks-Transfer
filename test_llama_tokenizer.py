@@ -8,7 +8,7 @@ def main():
     tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
     token = "A"
     print(tokenizer.encode(token))
-    decode_this = torch.Tensor([319, 2])
+    decode_this = torch.Tensor([360, 2])
     print(tokenizer.decode(decode_this))
     # print(tokenizer.decode([319]))
 

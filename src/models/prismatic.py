@@ -171,11 +171,11 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             print("first_prompt_text:", first_prompt_text)
 
         batch_encoding = self.model.llm_backbone.tokenizer(
-            # don't add eos
-            prompt_texts, padding=True, return_tensors="pt", add_special_tokens=False
+            prompt_texts, padding=True, return_tensors="pt",
         )
-        input_ids = batch_encoding["input_ids"]
-        attention_mask = batch_encoding["attention_mask"]
+        # remove the eos
+        input_ids = batch_encoding["input_ids"][..., :-1]
+        attention_mask = batch_encoding["attention_mask"][..., :-1]
 
         results = {
             "input_ids": input_ids,
