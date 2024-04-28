@@ -63,6 +63,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
 
         self.model = load(model_id_or_path=model_str)
         self.images_transform_fn = self.create_images_transform_fn(model_str)
+        # use precision to set
+        self.precision_dtype : torch.dtype = torch.bfloat16 if precision == "bf16-mixed" else torch.float32
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:

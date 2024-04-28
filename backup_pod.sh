@@ -1,0 +1,1 @@
+cp -r /root/.cache/huggingface /workspace/.cache/huggingface

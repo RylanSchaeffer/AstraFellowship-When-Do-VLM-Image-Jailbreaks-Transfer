@@ -6,3 +6,4 @@ ssh-add /root/.ssh/id_ed25519
 source ~/.bashrc
 cd /workspace/PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate vlm
+cp -r /workspace/.cache/huggingface /root/.cache/huggingface
