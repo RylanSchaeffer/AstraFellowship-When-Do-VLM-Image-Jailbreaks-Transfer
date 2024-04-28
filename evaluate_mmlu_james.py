@@ -122,17 +122,17 @@ def evaluate_vlm_adversarial_examples():
         )
 
     # Ensure that the tokenized dataset exists.
-    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
-        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        data_kwargs=wandb_config["data"],
-        split=wandb_config["data"]["split"],
-    )
+    # tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
+    #     vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
+    #     data_kwargs=wandb_config["data"],
+    #     split=wandb_config["data"]["split"],
+    # )
 
-    text_datamodule = src.data.VLMEnsembleTextDataModule(
-        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
-        tokenized_dir_path=tokenized_dir_path,
-        wandb_config=wandb_config,
-    )
+    # text_datamodule = src.data.VLMEnsembleTextDataModule(
+    #     vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
+    #     tokenized_dir_path=tokenized_dir_path,
+    #     wandb_config=wandb_config,
+    # )
 
     # Load the raw prompts to use for generate.
     prompts_and_targets_dict = src.data.load_prompts_and_targets(

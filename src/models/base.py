@@ -19,7 +19,7 @@ class VisionLanguageModel(abc.ABC, lightning.LightningModule):
         pass
 
     @abc.abstractmethod
-    def generate(self, images, prompts):
+    def generate(self, image, prompts) -> list[str]:
         pass
 
     # @abc.abstractmethod
