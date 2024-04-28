@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "advbench",
+        "dataset": "truthfulqa",
         "batch_size": 3,
         "num_workers": 1,
         "split": "train",
@@ -36,7 +36,7 @@ default_attack_config = {
     "n_grad_steps": 10_000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
-        "dataset_train": "james_truthfulqa",
+        # "dataset_train": "truthfulqa",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
         "n_unique_prompts_and_targets": 500,  # -1 means use all prompts and targets.
     },
@@ -56,7 +56,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "rylan_anthropic_hhh",
+        "dataset": "truthfulqa",
         "split": "eval",
     },
     "lightning_kwargs": {

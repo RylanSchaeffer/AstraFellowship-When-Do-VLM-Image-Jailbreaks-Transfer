@@ -120,6 +120,10 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
+    elif dataset == "james_truthfulqa":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "truthfulqa", f"{split}.csv"
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
