@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "mmlu",
-        "batch_size": 2,
+        "batch_size": 1,
         "num_workers": 1,
         "split": "train",
     },
