@@ -89,28 +89,45 @@ class TextDataModule(lightning.LightningDataModule):
         ensemble: VLMEnsemble,
         prompts_and_targets: Sequence[PromptAndTarget],
         wandb_config: Dict[str, Any],
+        batch_size: int,
     ):
         super(TextDataModule, self).__init__()
         self.wandb_config = wandb_config
         self.train_dataset = None
-        self.batch_size=self.wandb_config["data"]["batch_size"]
+        
         assert isinstance(self.batch_size, int)
         self.num_workers=self.wandb_config["data"]["num_workers"]
         assert isinstance(self.num_workers, int)
+        self.prompts_and_targets = prompts_and_targets
+        self.ensemble = ensemble
 
-
-
-        self.dataloader = torch.utils.data.DataLoader[PromptAndTarget](
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader[PromptAndTarget](
             # self.train_dataset,
-            PromptTargetsDataset(prompts_and_targets),
+            PromptTargetsDataset(self.prompts_and_targets),
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             drop_last=True,
             pin_memory=torch.cuda.is_available(),
             # Pass the ensemble to the collate_fn so that we can tokenize in a batched manner.
-            collate_fn=lambda batch: collate_fn(batch, ensemble),
+            collate_fn=lambda batch: collate_fn(batch, self.ensemble),
         )
+
+    
+    def test_dataloader(self):
+            self.dataloader = torch.utils.data.DataLoader[PromptAndTarget](
+            # self.train_dataset,
+            PromptTargetsDataset(self.prompts_and_targets),
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=torch.cuda.is_available(),
+            # Pass the ensemble to the collate_fn so that we can tokenize in a batched manner.
+            collate_fn=lambda batch: collate_fn(batch, self.ensemble),
+        )
+
 
     # def test_dataloader(self) -> EVAL_DATALOADERS:
     #     return torch.utils.data.DataLoader(
