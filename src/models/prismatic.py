@@ -60,10 +60,26 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         if model_str not in available_models():
             pprint(available_models())
             raise ValueError(f"Invalid model_str: {model_str}")
+        
 
         self.model = load(model_id_or_path=model_str)
-        # use precision to set
-        self.precision_dtype : torch.dtype = torch.bfloat16 if precision == "bf16-mixed" else torch.float32
+        self.precision_str = precision
+        if self.precision_str in {"bf16-mixed", "bf16-true"}:
+            self.precision_dtype = torch.bfloat16
+        elif self.precision_str == "16-true":
+            self.precision_dtype = torch.float16
+        elif self.precision_str in {"32", "32-true"}:
+            self.precision_dtype = torch.float32
+        elif self.precision_str in {"64", "64-true"}:
+            self.precision_dtype = torch.float64
+        else:
+            raise ValueError(f"Invalid precision: {self.precision_str}")
+
+        # The llm_backbone.llm has dtype float32. Switch to bfloat16.
+        self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(
+            self.precision_dtype
+        )
+        
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
