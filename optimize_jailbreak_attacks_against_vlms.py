@@ -169,7 +169,7 @@ def optimize_vlm_adversarial_examples():
                         # 0 removes the size-1 batch dimension.
                         # The transformation doesn't accept bfloat16.
                         data_or_path=vlm_ensemble_system.convert_tensor_to_pil_image(
-                            vlm_ensemble_system.tensor_image
+                            vlm_ensemble_system.tensor_image[0]
                         ),
                         # caption="Adversarial Image",
                     ),
