@@ -82,6 +82,12 @@ default_eval_config = {
         #     "max_new_tokens": 100,
         #     "min_new_tokens": 5,
         # },
+        "prism-clip-controlled+7b": {
+            "temperature": 0.0,
+            # "top_p": 0.9,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "prism-clip+7b": {
             "temperature": 0.0,
             # "top_p": 0.9,
