@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Sequence, TypedDict
 from lightning.pytorch.utilities.types import EVAL_DATALOADERS
 
 from src.models.ensemble import VLMEnsemble
-from src.data import PromptAndTarget
-
+from src.prompts_and_targets import PromptAndTarget
 
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
     def __init__(
@@ -236,10 +235,6 @@ def get_dataset_length(
     return len(prompts_and_targets_dict["prompts"])
 
 
-@dataclass
-class PromptAndTarget:
-    prompt: str
-    target: str
 
 def load_prompts_and_targets_v2(
     dataset: str,
