@@ -181,7 +181,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
 
         # Tokenize the labels separately, to avoid tokenization issues with merging whitespace
         batch_labels_encoding = self.model.llm_backbone.tokenizer(
-            [p for p in targets], padding=True, return_tensors="pt",
+            # add_special_tokens=False, because we don't want a <s> token at the beginning.
+            [p for p in targets], padding=True, return_tensors="pt", add_special_tokens=False,
         )
 
         # (batch_size, seq_len)
@@ -202,6 +203,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         if targets is not None:
             if not self.has_logged_before:
                 print("targets[0]:", targets[0])
+                print("input_ids[0]:", input_ids[0])
             labels = input_ids.clone()
             last_nonpadding_indices = torch.argmin(
                 (labels != pad_token_input_id).float(), axis=1
