@@ -42,8 +42,8 @@ default_attack_config = {
     },
     "optimization": {
         "eps": 1e-4,
-        # "learning_rate": 0.001,
-        "learning_rate": 0.02,
+        "learning_rate": 0.001,
+        # "learning_rate": 0.01,
         "momentum": 0.9,
         "optimizer": "adam",
         "weight_decay": 0.00001,
