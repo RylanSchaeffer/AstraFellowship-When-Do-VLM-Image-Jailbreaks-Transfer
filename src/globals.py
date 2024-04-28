@@ -93,12 +93,12 @@ default_eval_config = {
         #     "max_new_tokens": 100,
         #     "min_new_tokens": 5,
         # },
-        # "prism-dinosiglip+7b": {
-        #     "temperature": 0.1,
-        #     "top_p": 0.9,
-        #     "max_new_tokens": 100,
-        #     "min_new_tokens": 5,
-        # },
+        "prism-dinosiglip+7b": {
+            "temperature": 0.0,
+            # "top_p": 0.9,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         # "llava-lvis4v-lrv+7b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,

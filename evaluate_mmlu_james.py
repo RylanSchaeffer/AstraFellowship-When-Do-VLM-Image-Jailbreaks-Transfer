@@ -75,22 +75,22 @@ def evaluate_vlm_adversarial_examples():
         print("No GPU available.")
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
-    trainer = lightning.pytorch.Trainer(
-        accelerator=accelerator,
-        callbacks=callbacks,
-        check_val_every_n_epoch=0,
-        default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
-        # deterministic=True,
-        devices=devices,
-        logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
-        log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
-        # overfit_batches=1,  # useful for debugging
-        max_epochs=1,
-        min_epochs=1,
-        # profiler="simple",  # Simplest profiler
-        # profiler="advanced",  # More advanced profiler
-        precision=wandb_config["lightning_kwargs"]["precision"],
-    )
+    # trainer = lightning.pytorch.Trainer(
+    #     accelerator=accelerator,
+    #     callbacks=callbacks,
+    #     check_val_every_n_epoch=0,
+    #     default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
+    #     # deterministic=True,
+    #     devices=devices,
+    #     logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
+    #     log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
+    #     # overfit_batches=1,  # useful for debugging
+    #     max_epochs=1,
+    #     min_epochs=1,
+    #     # profiler="simple",  # Simplest profiler
+    #     # profiler="advanced",  # More advanced profiler
+    #     precision=wandb_config["lightning_kwargs"]["precision"],
+    # )
 
     # Load jailbreak images' paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
@@ -112,6 +112,7 @@ def evaluate_vlm_adversarial_examples():
         ).unsqueeze(0)
         / 255.0
     )
+    
 
     # https://lightning.ai/docs/pytorch/stable/common/precision_intermediate.html
     # "Tip: For faster initialization, you can create model parameters with the desired dtype directly on the device:"
