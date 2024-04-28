@@ -160,6 +160,21 @@ def optimize_vlm_adversarial_examples():
     vlm_ensemble_system.tensor_image = vlm_ensemble_system.tensor_image.to(
         torch.float32
     )
+    n_generations = 100
+
+    wandb.log(
+                {
+                    f"jailbreak_image_step={vlm_ensemble_system.optimizer_step_counter}": wandb.Image(
+                        # https://docs.wandb.ai/ref/python/data-types/image
+                        # 0 removes the size-1 batch dimension.
+                        # The transformation doesn't accept bfloat16.
+                        data_or_path=vlm_ensemble_system.convert_tensor_to_pil_image(
+                            vlm_ensemble_system.tensor_image
+                        ),
+                        # caption="Adversarial Image",
+                    ),
+                },
+            )
     # Load prompts for generation spot-checking.
     for split in ["train", "eval"]:
         prompts_and_targets_dict = src.data.load_prompts_and_targets(
@@ -184,10 +199,10 @@ def optimize_vlm_adversarial_examples():
             for prompt_idx, (prompt, target) in enumerate(
                 zip(
                     prompts_and_targets_dict["prompts"][
-                        : wandb_config["n_generations"]
+                        : n_generations
                     ],
                     prompts_and_targets_dict["targets"][
-                        : wandb_config["n_generations"]
+                        : n_generations
                     ],
                 )
             ):
