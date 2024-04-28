@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 # Calculate the probability from the loss
-loss = 1.0
+loss = 0.9
 probability = np.exp(-loss)
 print(probability)
 
@@ -12,4 +12,4 @@ print(probability)
 # probas =torch.Tensor([0.1, 0.2, 0.7])
 # log_scale = probas.log()
 # print(log_scale)
-# print(log_scale.softmax(-1))
+# print(log_scale.softmax(-1))q
