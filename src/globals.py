@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "mmlu",
-        "batch_size": 1,
+        "batch_size": 2,
         "num_workers": 1,
         "split": "train",
     },
@@ -13,12 +13,12 @@ default_attack_config = {
         "image_initialization": "trina",
     },
     "lightning_kwargs": {
-        "accumulate_grad_batches": 6,
+        "accumulate_grad_batches": 8,
         "gradient_clip_val": 10.0,
         "limit_train_batches": 1.0,
         # "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
-        "log_image_every_n_steps": 1000,
+        "log_image_every_n_steps": 100,
         "precision": "bf16-mixed",
         # "precision": "bf16-true",
     },
@@ -42,7 +42,7 @@ default_attack_config = {
     },
     "optimization": {
         "eps": 1e-4,
-        "learning_rate": 0.001,
+        "learning_rate": 0.01,
         # "learning_rate": 0.01,
         "momentum": 0.9,
         "optimizer": "adam",
