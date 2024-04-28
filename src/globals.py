@@ -65,27 +65,27 @@ default_eval_config = {
     },
     "n_generations": 100,
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
+    # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-clip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     "model_generation_kwargs": {
-        "prism-reproduction-llava-v15+7b": {
-            "temperature": 0.0,
-            "max_new_tokens": 1,
-            "min_new_tokens": 1,
-        },
+        # "prism-reproduction-llava-v15+7b": {
+        #     "temperature": 0.0,
+        #     "max_new_tokens": 1,
+        #     "min_new_tokens": 1,
+        # },
         # "prism-reproduction-llava-v15+13b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,
         #     "max_new_tokens": 100,
         #     "min_new_tokens": 5,
         # },
-        # "prism-clip+7b": {
-        #     "temperature": 0.1,
-        #     "top_p": 0.9,
-        #     "max_new_tokens": 100,
-        #     "min_new_tokens": 5,
-        # },
+        "prism-clip+7b": {
+            "temperature": 0.10,
+            # "top_p": 0.9,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         # "prism-siglip+7b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,
@@ -106,9 +106,9 @@ default_eval_config = {
         # },
     },
     "prompts_and_targets_kwargs": {
-        "dataset_eval": "james_truthfulqa",
+        # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    "wandb_run_id": "lywump1t",
+    "wandb_run_id": "7hpkkfmc",
     # "wandb_sweep_id": "yvqszl4d",
 }
