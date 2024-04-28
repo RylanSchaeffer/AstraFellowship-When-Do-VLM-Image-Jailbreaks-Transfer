@@ -1,3 +1,4 @@
+import random
 from attr import dataclass
 import lightning
 import numpy as np
@@ -42,7 +43,8 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.wandb_config["data"]["batch_size"],
-            shuffle=True,
+            # we've already shuffled the data, and we want the first to be the longestest seq so we oom first
+            shuffle=False,
             num_workers=self.wandb_config["data"]["num_workers"],
             drop_last=True,
             pin_memory=torch.cuda.is_available(),
@@ -90,6 +92,7 @@ class TextDataModule(lightning.LightningDataModule):
         prompts_and_targets: Sequence[PromptAndTarget],
         wandb_config: Dict[str, Any],
         batch_size: int,
+        seed: int = 42,
     ):
         super(TextDataModule, self).__init__()
         self.wandb_config = wandb_config
@@ -97,7 +100,14 @@ class TextDataModule(lightning.LightningDataModule):
         self.batch_size= batch_size
         self.num_workers=self.wandb_config["data"]["num_workers"]
         assert isinstance(self.num_workers, int)
-        self.prompts_and_targets = prompts_and_targets
+        assert len(prompts_and_targets) > 0
+        # Put the longest prompt first, and shuffle the rest. So that we detect OOMs on the first batch.
+        sorted_by_longest = sorted(prompts_and_targets, key=lambda x: len(x.prompt), reverse=True)
+        longest, *rest = sorted_by_longest
+        random.Random(seed).shuffle(rest)
+        # shuffle the rest
+        new_prompts_and_targets = [longest] + rest
+        self.prompts_and_targets = new_prompts_and_targets
         self.ensemble = ensemble
 
     def train_dataloader(self):
