@@ -80,20 +80,22 @@ def optimize_vlm_adversarial_examples():
     print("Number of Train Epochs: ", n_train_epochs)
 
     callbacks = []
-    if torch.cuda.is_available():
-        accelerator = "gpu"
-        devices = torch.cuda.device_count()
-        callbacks.extend(
-            [
-                # DeviceStatsMonitor()
-            ]
-        )
-        print("GPUs available: ", devices)
-    else:
-        accelerator = "cpu"
-        devices = None
-        callbacks.extend([])
-        print("No GPU available.")
+    accelerator = "gpu"
+    devices = torch.cuda.device_count()
+    callbacks.extend(
+        [
+            # DeviceStatsMonitor()
+        ]
+    )
+    print("GPUs available: ", devices)
+    # if torch.cuda.is_available():
+        
+    # else:
+    #     accelerator = "cpu"
+    #     devices = None
+    #     callbacks.extend([])
+    #     print("No GPU available.")
+    #     raise ValueError("No GPU available.")
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
