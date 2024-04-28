@@ -190,7 +190,7 @@ def evaluate_vlm_adversarial_examples():
             ):
                 start_time = time.time()
                 model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                    model_name_str
+                    model
                 ].generate(image=adv_image, prompts=[prompt])
                 model_generations_dict["generations"].extend(model_generations)
                 model_generations_dict["prompts"].extend([prompt])
