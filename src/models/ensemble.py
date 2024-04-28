@@ -10,6 +10,7 @@ class VLMEnsemble(lightning.LightningModule):
         self,
         model_strs: List[str],
         model_generation_kwargs: Dict[str, Dict[str, Any]],
+        precision: str = "bf16-mixed",
     ):
         super().__init__()
         self.vlms_dict = torch.nn.ModuleDict()
@@ -75,6 +76,7 @@ class VLMEnsemble(lightning.LightningModule):
                 vlm = PrismaticVisionLanguageModel(
                     model_str=model_str,
                     generation_kwargs=generation_kwargs,
+                    precision=precision,
                 )
 
             else:

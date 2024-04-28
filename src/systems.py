@@ -7,8 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
-from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
-from src.utils import create_initial_image, load_prompts_and_targets
+from src.utils import create_initial_image
 
 
 class VLMEnsembleAttackingSystem(lightning.LightningModule):
@@ -21,10 +20,12 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
         self.vlm_ensemble = VLMEnsemble(
             model_strs=wandb_config["models_to_attack"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
+            precision=wandb_config["lightning_kwargs"]["precision"],
         )
         # Load initial image plus prompt and target data.
         tensor_image: torch.Tensor = create_initial_image(
             image_kwargs=wandb_config["image_kwargs"],
+            seed=wandb_config["seed"],
         )
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=True)
         self.convert_tensor_to_pil_image = torchvision.transforms.ToPILImage()
@@ -62,7 +63,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             )
         elif optimization_kwargs["optimizer"] == "rmsprop":
             optimizer = torch.optim.RMSprop(
-                [self.parameters()],
+                [self.tensor_image],
                 lr=optimization_kwargs["learning_rate"],
                 weight_decay=optimization_kwargs["weight_decay"],
                 momentum=optimization_kwargs["momentum"],
@@ -226,93 +227,3 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
             on_epoch=True,
             sync_dist=True,
         )
-
-
-class VLMEnsembleEvaluatingCallback(lightning.Callback):
-    # The normal Lightning validation step blocks gradients, even with respect to inputs.
-    # Consequently, we'll need to implement our own validation step.
-    def __init__(self, wandb_config: Dict[str, Any]):
-        super().__init__()
-        # self.wandb_config = wandb_config
-        # self.val_dataset = {}
-        # self.val_dataloader = None
-        #
-        # if "n_workers" not in self.wandb_config:
-        #     # n_workers = max(4, os.cpu_count() // 4)  # heuristic
-        #     self.n_workers = 1
-        # else:
-        #     self.n_workers = self.wandb_config["n_workers"]
-
-    def on_test_epoch_end(self, trainer, pl_module):
-        # Generate examples for each model.
-
-        prompts_and_targets_dict = load_prompts_and_targets(
-            prompts_and_targets_kwargs=pl_module.wandb_config[
-                "prompts_and_targets_kwargs"
-            ],
-            split="eval",
-        )
-
-        subsampled_indices = np.random.choice(
-            prompts_and_targets_dict["indices"], 10, replace=False
-        )
-        batch_prompts = [
-            prompt
-            for i, prompt in enumerate(prompts_and_targets_dict["prompts"])
-            if i in subsampled_indices
-        ]
-        batch_targets = [
-            target
-            for i, target in enumerate(prompts_and_targets_dict["targets"])
-            if i in subsampled_indices
-        ]
-
-        wandb_additional_data = pl_module.wandb_additional_data
-
-        for (
-            model_name,
-            model_wrapper,
-        ) in pl_module.vlm_ensemble.vlms_dict.items():
-            batch_model_generations = model_wrapper.generate(
-                image=pl_module.tensor_image,
-                prompts=batch_prompts,
-            )
-
-            llama_guard_evaluations = [
-                pl_module.llamaguard_evalutor.evaluate(
-                    prompt=prompt, generation=generation
-                )
-                for prompt, generation in zip(batch_prompts, batch_model_generations)
-            ]
-
-            model_adv_generation_begins_with_target = (
-                pl_module.vlm_ensemble.compute_whether_generation_begins_with_target(
-                    model_generations=batch_model_generations,
-                    targets=batch_targets,
-                )
-            )
-
-            model_evaluation_results = {
-                f"generations_{model_name}_optimizer_step={wandb_additional_data['optimizer_step_counter']}": wandb.Table(
-                    columns=[
-                        "prompt",
-                        "generated",
-                        "target",
-                    ],
-                    data=[
-                        [
-                            prompt,
-                            model_generation,
-                            target,
-                        ]
-                        for prompt, model_generation, target in zip(
-                            batch_prompts,
-                            batch_model_generations,
-                            batch_targets,
-                        )
-                    ],
-                ),
-                "eval/generation_begins_with_target": model_adv_generation_begins_with_target,
-            }
-            model_evaluation_results.update(pl_module.wandb_additional_data)
-            wandb.log(model_evaluation_results)

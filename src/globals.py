@@ -2,20 +2,25 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
+        "dataset": "advbench",
+        "batch_size": 3,
         "num_workers": 1,
-        "batch_size": 2,
+        "split": "train",
     },
     "image_kwargs": {
         "image_size": 512,
-        "image_initialization": "random",
+        # "image_initialization": "random",
+        "image_initialization": "trina",
     },
     "lightning_kwargs": {
-        "accumulate_grad_batches": 1,
+        "accumulate_grad_batches": 6,
         "gradient_clip_val": 10.0,
-        "limit_train_batches": 1.0,
-        "log_loss_every_n_steps": 25,
+        # "limit_train_batches": 1.0,
+        "limit_train_batches": 0.05,  # Fast debugging.
+        "log_loss_every_n_steps": 1,
         "log_image_every_n_steps": 1000,
         "precision": "bf16-mixed",
+        # "precision": "bf16-true",
     },
     # "models_to_attack": "{'llava-v1p5-vicuna7b'}",
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
@@ -51,6 +56,8 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
+        "dataset": "rylan_anthropic_hhh",
+        "split": "eval",
     },
     "lightning_kwargs": {
         "log_loss_every_n_steps": 1,

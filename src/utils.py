@@ -1,4 +1,3 @@
-# Note: Some of this code came from https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/blob/main/minigpt4/common/dist_utils.py.
 from accelerate import Accelerator
 import ast
 import getpass
@@ -6,11 +5,12 @@ import joblib
 import numpy as np
 import os
 import pandas as pd
+from PIL import Image
 import random
 import torch
 import torch.distributed
 import torch.utils.data
-from torchvision import transforms
+import torchvision.transforms.v2
 from typing import Any, Dict, List, Tuple
 import wandb
 
@@ -25,52 +25,7 @@ def calc_rank():
     return torch.distributed.get_rank()
 
 
-def create_text_dataloader(
-    vlm_ensemble: VLMEnsemble,
-    prompt_and_targets_kwargs: Dict[str, Any],
-    wandb_config: Dict[str, Any],
-    split: str = "train",
-    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
-) -> Tuple[Dict[str, List[str]], torch.utils.data.DataLoader]:
-    prompts_and_targets_dict: Dict[str, List[str]] = load_prompts_and_targets(
-        prompts_and_targets_kwargs=prompt_and_targets_kwargs,
-        split=split,
-        **load_prompts_and_targets_kwargs,
-    )
-
-    dataset = VLMEnsembleTextDataset(
-        vlm_ensemble=vlm_ensemble,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-    )
-
-    dataloader = torch.utils.data.DataLoader(
-        dataset=dataset,
-        batch_size=wandb_config["attack_kwargs"]["batch_size"],
-        shuffle=True if split == "train" else False,
-        num_workers=wandb_config["data"]["num_workers"],
-        drop_last=True if split == "train" else False,
-    )
-
-    return prompts_and_targets_dict, dataloader
-
-
-def create_text_datamodule(
-    vlm_ensemble: VLMEnsemble,
-    prompt_and_targets_kwargs: Dict[str, Any],
-    wandb_config: Dict[str, Any],
-    split: str = "train",
-    load_prompts_and_targets_kwargs: Dict[str, Any] = {},
-    prompts_and_targets_dir: str = "prompts_and_targets",
-) -> VLMEnsembleTextDataModule:
-    text_datamodule = VLMEnsembleTextDataModule(
-        vlm_ensemble=vlm_ensemble,
-        prompts_and_targets_dict=prompts_and_targets_dict,
-        wandb_config=wandb_config,
-    )
-    return text_datamodule
-
-
-def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
+def create_initial_image(image_kwargs: Dict[str, Any], seed: int = 0) -> torch.Tensor:
     if image_kwargs["image_initialization"] == "NIPS17":
         image = get_list_image("old/how_robust_is_bard/src/dataset/NIPS17")
         # resizer = transforms.Resize((224, 224))
@@ -83,6 +38,25 @@ def create_initial_image(image_kwargs: Dict[str, Any]) -> torch.Tensor:
     elif image_kwargs["image_initialization"] == "random":
         image_size = image_kwargs["image_size"]
         image: torch.Tensor = torch.rand((1, 3, image_size, image_size))
+    elif image_kwargs["image_initialization"] == "trina":
+        image_path = f"images/trina/{str(seed).zfill(3)}.jpg"
+        pil_image = Image.open(image_path, mode="r")
+        width, height = pil_image.size
+        max_dim = max(width, height)
+        pad_width = (max_dim - width) // 2
+        pad_height = (max_dim - height) // 2
+        transform_pil_image = torchvision.transforms.v2.Compose(
+            [
+                torchvision.transforms.v2.Pad(
+                    (pad_width, pad_height, pad_width, pad_height), fill=0
+                ),
+                torchvision.transforms.v2.Resize(
+                    (image_kwargs["image_size"], image_kwargs["image_size"])
+                ),
+                torchvision.transforms.v2.ToTensor(),  # This divides by 255.
+            ]
+        )
+        image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
     else:
         raise ValueError(
             "Invalid image_initialization: {}".format(

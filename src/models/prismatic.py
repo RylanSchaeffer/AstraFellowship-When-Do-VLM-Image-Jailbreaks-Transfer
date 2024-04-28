@@ -1,5 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
-from accelerate import Accelerator
+import lightning
 import os.path
 from pathlib import Path
 from pprint import pprint
@@ -24,11 +24,12 @@ from src.models.base import VisionLanguageModel
 IGNORE_INDEX = -100
 
 
-class PrismaticVisionLanguageModel(VisionLanguageModel):
+class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
     def __init__(
         self,
         model_str: str = "prism-dinosiglip+7b",
         generation_kwargs: Dict[str, Any] = None,
+        precision: str = "bf16-mixed",
     ):
         super(PrismaticVisionLanguageModel, self).__init__()
 
@@ -60,14 +61,14 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             pprint(available_models())
             raise ValueError(f"Invalid model_str: {model_str}")
 
-        self.model = load(model_id_or_path=model_str)
+        self.model = load(model_id_or_path=model_str, hf_token=hf_token)
         self.images_transform_fn = self.create_images_transform_fn(model_str)
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
             dino_transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.dino_image_transform.transforms
@@ -76,7 +77,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             )
 
             siglip_transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.siglip_image_transform.transforms
@@ -95,7 +96,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
             # TODO: Decide what to do about that LetterboxPadding.
             transforms = torchvision.transforms.Compose(
-                [torchvision.transforms.ConvertImageDtype(torch.float32)]
+                [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.transforms
@@ -141,7 +142,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel):
         for prompt, target in zip(prompts, targets):
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
-            prompt_builder.add_turn(role="gpt", message=target)
+            if target is not None:
+                prompt_builder.add_turn(role="gpt", message=target)
             prompt_text = prompt_builder.get_prompt()
             prompt_texts.append(prompt_text)
 

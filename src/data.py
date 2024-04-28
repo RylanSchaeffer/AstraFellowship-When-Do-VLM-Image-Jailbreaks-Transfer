@@ -99,31 +99,76 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
             datum_npz = np.load(datum_file_path)
             datum_per_vlm[vlm_name] = {
                 "input_ids": datum_npz["input_ids"],
-                "attention_mask": datum_npz["input_ids"],
+                "attention_mask": datum_npz["attention_mask"],
                 "labels": datum_npz["labels"],
             }
             datum_npz.close()
         return datum_per_vlm
 
 
+def load_prompts_and_targets(
+    dataset: str,
+    prompts_and_targets_dir: str = "prompts_and_targets",
+    split: str = "train",
+    **kwargs,
+) -> Dict[str, List[str]]:
+    if dataset == "advbench":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "advbench", f"{split}.csv"
+        )
+    elif dataset == "rylan_anthropic_hhh":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
+        )
+    else:
+        raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+
+    df = pd.read_csv(prompts_and_targets_path)
+    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+
+    assert len(prompts) == len(targets)
+    assert len(prompts) > 0
+
+    prompts_and_targets_dict = {
+        "prompts": prompts,
+        "targets": targets,
+    }
+    return prompts_and_targets_dict
+
+
+def get_dataset_length(
+    dataset: str,
+    prompts_and_targets_dir: str = "prompts_and_targets",
+    split: str = "train",
+    **kwargs,
+) -> int:
+    prompts_and_targets_dict = load_prompts_and_targets(
+        dataset=dataset,
+        prompts_and_targets_dir=prompts_and_targets_dir,
+        split=split,
+        **kwargs,
+    )
+    return len(prompts_and_targets_dict["prompts"])
+
+
 def tokenize_prompts_and_targets_using_vlm_ensemble(
     vlm_ensemble,
-    prompts_and_targets_kwargs: Dict[str, Any],
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
 ) -> str:
-    prompts_and_targets_str = prompts_and_targets_kwargs[f"dataset_{split}"]
-    if prompts_and_targets_str == "advbench":
+    dataset = data_kwargs[f"dataset"]
+    if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "advbench", "harmful_behaviors.csv"
+            prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "advbench", "tokenized"
         )
-    elif prompts_and_targets_str == "rylan_anthropic_hhh":
+    elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "anthropic_hhh", "red_team_attempts.csv"
+            prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
@@ -136,9 +181,9 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             prompts_and_targets_dir, "truthfulqa", "tokenized"
         )
     else:
-        raise ValueError(
-            "Invalid prompts_and_targets_str: {}".format(prompts_and_targets_str)
-        )
+        raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+    # If we're attacking, we want the targets to be included. If we are evaluating, we do not.
+    tokenized_dir_path = os.path.join(tokenized_dir_path, split)
     os.makedirs(tokenized_dir_path, exist_ok=True)
 
     df = pd.read_csv(prompts_and_targets_path)

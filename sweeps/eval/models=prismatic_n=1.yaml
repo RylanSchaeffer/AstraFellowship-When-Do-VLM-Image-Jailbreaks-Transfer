@@ -1,0 +1,56 @@
+program: evaluate_jailbreak_attacks_against_vlms.py
+project: universal-vlm-jailbreak-eval
+method: grid
+parameters:
+  data:
+    parameters:
+      batch_size:
+        values: [1]
+      dataset:
+        values: ["advbench", "rylan_anthropic_hhh"]
+      num_workers:
+        values: [ 1 ]
+      split:
+        values: [ "eval" ]
+  model_to_eval:
+    values:
+      [
+        "{'prism-reproduction-llava-v15+7b'}",
+        "{'prism-clip-controlled+7b'}",
+        "{'prism-clip+7b'}",
+        "{'prism-siglip-controlled+7b'}",
+        "{'prism-siglip+7b'}",
+        "{'prism-dinosiglip-controlled+7b'}",
+        "{'prism-dinosiglip+7b'}",
+        "{'prism-reproduction-llava-v15+13b'}",
+        "{'prism-clip-controlled+13b'}",
+        "{'prism-clip+13b'}",
+        "{'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+13b'}",
+        "{'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+13b'}",
+      ]
+  n_generations:
+    values:
+      [5]
+  seed:
+    values:
+      [0]
+  wandb_run_id:
+    values:
+      [
+        "10z2nzp8",
+        "sibh8kfd",
+        "zboyasyj",
+        "m4s17qlw",
+        "7voo2yhy",
+        "ootnzitx",
+        "tly5lcjb",
+        "e6onwv7x",
+        "ctitglou",
+        "bhafjjgm",
+        "a814kpjm",
+        "iavanm96",
+        "dx5r4oef",
+        "fn6685yq",
+      ]

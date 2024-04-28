@@ -6,37 +6,45 @@
 
 `conda update -n base -c defaults conda`
 
-2. Create a conda environment:
+2. Create and activate the conda environment:
 
-`conda create -n universal_vlm_jailbreak_env python=3.11`
-
-3. Activate the environment:
-
-`conda activate universal_vlm_jailbreak_env`
+`conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
 
 4. Update pip in preparation of the next step.
 
 `pip install --upgrade pip`
 
-5. Manually install a few additional packages:
+5. Install Pytorch:
 
-`pip install joblib pandas matplotlib seaborn nvidia-htop black wandb`
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
 
-6. Make sure to log in to W&B by running `wandb login`.
+6. Install Lightning:
+
+`conda install lightning -c conda-forge`
 
 7. Grab the git submodules: `git submodule update --init --recursive`
-8. `cd submodules/prismatic-vlms && pip install -e .`.
+
+8. Install Prismatic `cd submodules/prismatic-vlms && pip install -e . && cd ../..`.
 9. Then follow their instructions:
 
 `pip install packaging ninja`
 
 `pip install flash-attn --no-build-isolation`
 
+
+10. Manually install a few additional packages:
+
+`conda install joblib pandas matplotlib seaborn nvidia-htop black wandb`
+
+11Make sure to log in to W&B by running `wandb login`.
+
+
+
 11. Install more stuff `pip install sentencepiece`
 
-- Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 should work.
-- Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
-  - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
+Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
+
+Note: You might need to subsequently run `conda install conda-forge::charset-normalizer`
 
 ### Additional Modifications
 
@@ -53,8 +61,8 @@ Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. 
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=2,3
-wandb agent rylan/universal-vlm-jailbreak/<sweep id>
+export CUDA_VISIBLE_DEVICES=3
+wandb agent rylan/universal-vlm-jailbreak/681o8dt6
 ```
 
 
@@ -64,13 +72,12 @@ wandb agent rylan/universal-vlm-jailbreak/<sweep id>
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=2
-wandb agent rylan/universal-vlm-jailbreak/yvqszl4d
+export CUDA_VISIBLE_DEVICES=6
+wandb agent rylan/universal-vlm-jailbreak-eval/poe9qs91
 ```
 
 
 ## Runpod IO Setup
-
 
 
 ```bash
