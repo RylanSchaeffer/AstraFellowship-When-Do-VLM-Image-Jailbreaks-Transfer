@@ -72,11 +72,14 @@ def optimize_vlm_adversarial_examples():
     src.utils.set_seed(seed=wandb_config["seed"])
 
     # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
-    train_dataset_len = src.data.get_dataset_length(
+    limit = wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
+    prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split="train",  # Hard-code this.
-    )
-    n_train_epochs = 1
+    )[:limit]
+
+    n_gradient_steps = wandb_config["n_grad_steps"]
+    n_train_epochs = int(n_gradient_steps / limit)
     print("Number of Train Epochs: ", n_train_epochs)
 
     callbacks = []
@@ -99,7 +102,7 @@ def optimize_vlm_adversarial_examples():
         for i, model_name in enumerate(models_to_attack)
     }
     # if torch.cuda.is_available():
-        
+
     # else:
     #     accelerator = "cpu"
     #     devices = None
@@ -141,12 +144,8 @@ def optimize_vlm_adversarial_examples():
             model_device=model_device,
         )
 
-    limit = wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
-    prompts_and_targets = src.data.load_prompts_and_targets_v2(
-        dataset=wandb_config["data"]["dataset"],
-        split="train",  # Hard-code this.
-    )[:limit]
-    batch_size= wandb_config["data"]["batch_size"]
+    
+    batch_size = wandb_config["data"]["batch_size"]
     print("Batch Size: ", batch_size)
     # We need to load the VLMs ensemble in order to tokenize the dataset.
     text_datamodule = src.data.TextDataModule(
@@ -177,84 +176,84 @@ def optimize_vlm_adversarial_examples():
     n_generations = 100
 
     wandb.log(
-                {
-                    f"jailbreak_image_step={vlm_ensemble_system.optimizer_step_counter}": wandb.Image(
-                        # https://docs.wandb.ai/ref/python/data-types/image
-                        # 0 removes the size-1 batch dimension.
-                        # The transformation doesn't accept bfloat16.
-                        data_or_path=vlm_ensemble_system.convert_tensor_to_pil_image(
-                            vlm_ensemble_system.tensor_image[0]
-                        ),
-                        # caption="Adversarial Image",
-                    ),
-                },
-            )
-    # Load prompts for generation spot-checking.
-    for split in ["train", "eval"]:
-        prompts_and_targets_dict = src.data.load_prompts_and_targets(
-            dataset=wandb_config["data"]["dataset"],
-            split=split,
-        )
-
-        for model_name_str in vlm_ensemble_system.vlm_ensemble.vlms_dict:
-            # We need the tensor dtypes to agree.
-            vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                model_name_str
-            ].model.llm_backbone.llm = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                model_name_str
-            ].model.llm_backbone.llm.to(
-                torch.float32
-            )
-            model_generations_dict = {
-                "generations": [],
-                "prompts": [],
-                "targets": [],
-            }
-            for prompt_idx, (prompt, target) in enumerate(
-                zip(
-                    prompts_and_targets_dict["prompts"][
-                        : n_generations
-                    ],
-                    prompts_and_targets_dict["targets"][
-                        : n_generations
-                    ],
-                )
-            ):
-                start_time = time.time()
-                model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-                    model_name_str
-                ].generate(image=vlm_ensemble_system.tensor_image, prompts=[prompt])
-                model_generations_dict["generations"].extend(model_generations)
-                model_generations_dict["prompts"].extend([prompt])
-                model_generations_dict["targets"].extend([target])
-                end_time = time.time()
-                print(
-                    f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-                )
-
-            wandb_log_data = {
-                f"generations_model={model_name_str}_split={split}_optimizer_step_counter={vlm_ensemble_system.optimizer_step_counter}": wandb.Table(
-                    columns=[
-                        "prompt",
-                        "generated",
-                        "target",
-                    ],
-                    data=[
-                        [
-                            prompt,
-                            model_generation,
-                            target,
-                        ]
-                        for prompt, model_generation, target in zip(
-                            model_generations_dict["prompts"],
-                            model_generations_dict["generations"],
-                            model_generations_dict["targets"],
-                        )
-                    ],
+        {
+            f"jailbreak_image_step={vlm_ensemble_system.optimizer_step_counter}": wandb.Image(
+                # https://docs.wandb.ai/ref/python/data-types/image
+                # 0 removes the size-1 batch dimension.
+                # The transformation doesn't accept bfloat16.
+                data_or_path=vlm_ensemble_system.convert_tensor_to_pil_image(
+                    vlm_ensemble_system.tensor_image[0]
                 ),
-                "optimizer_step_counter": vlm_ensemble_system.optimizer_step_counter,
-            }
-            wandb.log(wandb_log_data)
+                # caption="Adversarial Image",
+            ),
+        },
+    )
+    # # Load prompts for generation spot-checking.
+    # for split in ["train", "eval"]:
+    #     prompts_and_targets_dict = src.data.load_prompts_and_targets(
+    #         dataset=wandb_config["data"]["dataset"],
+    #         split=split,
+    #     )
+
+    #     for model_name_str in vlm_ensemble_system.vlm_ensemble.vlms_dict:
+    #         # We need the tensor dtypes to agree.
+    #         vlm_ensemble_system.vlm_ensemble.vlms_dict[
+    #             model_name_str
+    #         ].model.llm_backbone.llm = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+    #             model_name_str
+    #         ].model.llm_backbone.llm.to(
+    #             torch.float32
+    #         )
+    #         model_generations_dict = {
+    #             "generations": [],
+    #             "prompts": [],
+    #             "targets": [],
+    #         }
+    #         for prompt_idx, (prompt, target) in enumerate(
+    #             zip(
+    #                 prompts_and_targets_dict["prompts"][
+    #                     : n_generations
+    #                 ],
+    #                 prompts_and_targets_dict["targets"][
+    #                     : n_generations
+    #                 ],
+    #             )
+    #         ):
+    #             start_time = time.time()
+    #             model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
+    #                 model_name_str
+    #             ].generate(image=vlm_ensemble_system.tensor_image, prompts=[prompt])
+    #             model_generations_dict["generations"].extend(model_generations)
+    #             model_generations_dict["prompts"].extend([prompt])
+    #             model_generations_dict["targets"].extend([target])
+    #             end_time = time.time()
+    #             print(
+    #                 f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+    #             )
+
+    #         wandb_log_data = {
+    #             f"generations_model={model_name_str}_split={split}_optimizer_step_counter={vlm_ensemble_system.optimizer_step_counter}": wandb.Table(
+    #                 columns=[
+    #                     "prompt",
+    #                     "generated",
+    #                     "target",
+    #                 ],
+    #                 data=[
+    #                     [
+    #                         prompt,
+    #                         model_generation,
+    #                         target,
+    #                     ]
+    #                     for prompt, model_generation, target in zip(
+    #                         model_generations_dict["prompts"],
+    #                         model_generations_dict["generations"],
+    #                         model_generations_dict["targets"],
+    #                     )
+    #                 ],
+    #             ),
+    #             "optimizer_step_counter": vlm_ensemble_system.optimizer_step_counter,
+    #         }
+    #         wandb.log(wandb_log_data)
 
 
 if __name__ == "__main__":
