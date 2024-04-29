@@ -90,7 +90,8 @@ def optimize_vlm_adversarial_examples():
     callbacks = []
     if torch.cuda.is_available():
         accelerator = "gpu"
-        devices = torch.cuda.device_count()
+        # Need to set this to 1 otherwise Lightning will try DDP or FSDP and fuck things up.
+        devices = 1  # torch.cuda.device_count()
         callbacks.extend(
             [
                 # DeviceStatsMonitor()

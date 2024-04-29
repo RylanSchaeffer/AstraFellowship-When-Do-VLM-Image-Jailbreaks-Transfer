@@ -5,6 +5,9 @@ import torch.nn
 from typing import Any, Dict, List, Optional, Tuple
 
 
+from src.models.base import VisionLanguageModel
+
+
 class VLMEnsemble(lightning.LightningModule):
     def __init__(
         self,
@@ -13,7 +16,12 @@ class VLMEnsemble(lightning.LightningModule):
         precision: str = "bf16-mixed",
     ):
         super().__init__()
-        self.vlms_dict = torch.nn.ModuleDict()
+        self.vlms_dict: Dict[str, VisionLanguageModel] = {}
+
+        device_count = torch.cuda.device_count()
+        assert device_count > 0, "No CUDA devices available."
+        assert device_count >= len(model_strs), "Need at least one GPU per VLM."
+
         for model_device_int_str, model_str in enumerate(model_strs):
             # Enable overwriting default generation kwargs.
             if model_str in model_generation_kwargs:
@@ -58,7 +66,6 @@ class VLMEnsemble(lightning.LightningModule):
 
                 vlm = InstructBlipVisionLanguageModel(
                     huggingface_name=huggingface_name,
-                    accelerator=accelerator,
                 )
 
             elif model_str.startswith("llava"):
@@ -67,7 +74,6 @@ class VLMEnsemble(lightning.LightningModule):
                 vlm = LlavaVisionLanguageModel(
                     model_str=model_str,
                     generation_kwargs=generation_kwargs,
-                    accelerator=accelerator,
                 )
 
             elif model_str.startswith("prism"):
@@ -82,15 +88,15 @@ class VLMEnsemble(lightning.LightningModule):
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
+            if torch.cuda.is_available():
+                vlm = vlm.to(torch.device(f"cuda:{model_device_int_str}"))
+
             self.vlms_dict[model_str] = vlm
 
         self.disable_vlm_gradients()
 
     def __len__(self):
         return len(self.vlms_dict)
-
-    def forward(self, args):
-        raise NotImplementedError
 
     def compute_loss(
         self,
@@ -101,14 +107,21 @@ class VLMEnsemble(lightning.LightningModule):
         losses_per_model: Dict[str, torch.Tensor] = {}
 
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
+            model_wrapper_device = model_wrapper.device
             # Compute the loss for each model
             loss = model_wrapper.compute_loss(
-                image=image,
-                input_ids=text_data_by_model[model_name]["input_ids"],
-                attention_mask=text_data_by_model[model_name]["attention_mask"],
-                labels=text_data_by_model[model_name]["labels"],
+                image=image.to(model_wrapper_device),
+                input_ids=text_data_by_model[model_name]["input_ids"].to(
+                    model_wrapper_device
+                ),
+                attention_mask=text_data_by_model[model_name]["attention_mask"].to(
+                    model_wrapper_device
+                ),
+                labels=text_data_by_model[model_name]["labels"].to(
+                    model_wrapper_device
+                ),
             )
-            losses_per_model[model_name] = loss
+            losses_per_model[model_name] = loss.to(self.device)
 
         # avg_loss = torch.zeros(1, requires_grad=True)[0]
         # for model_name, loss in losses_per_model.items():
