@@ -56,7 +56,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "power_seeking",
+        "dataset": "all_model_generated_evals",
         "split": "eval",
     },
     "lightning_kwargs": {
@@ -123,6 +123,6 @@ default_eval_config = {
         # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    "wandb_run_id": "fxbzt4jd",
+    "wandb_run_id": "j4gbssx5",
     # "wandb_sweep_id": "yvqszl4d",
 }
