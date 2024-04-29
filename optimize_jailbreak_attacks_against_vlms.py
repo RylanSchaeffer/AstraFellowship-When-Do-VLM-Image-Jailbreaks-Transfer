@@ -70,16 +70,17 @@ def optimize_vlm_adversarial_examples():
     )
 
     src.utils.set_seed(seed=wandb_config["seed"])
-
+    n_gradient_steps = wandb_config["n_grad_steps"]
     # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
     limit = wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
+    
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split="train",  # Hard-code this.
-    )[:limit]
-
-    n_gradient_steps = wandb_config["n_grad_steps"]
-    n_train_epochs = int(n_gradient_steps / limit)
+    )
+    prompts_and_targets = prompts_and_targets[:limit] if limit != -1 else prompts_and_targets
+    n_train_epochs = max(int(n_gradient_steps / len(prompts_and_targets)), 1)
+    print(f"Number of unique prompts and targets: {len(prompts_and_targets)}")
     print("Number of Train Epochs: ", n_train_epochs)
 
     callbacks = []

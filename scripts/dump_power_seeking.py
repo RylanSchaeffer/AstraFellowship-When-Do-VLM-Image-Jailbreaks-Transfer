@@ -2,16 +2,11 @@ import pydantic
 import pandas as pd
 
 from scripts.jsons_utils import (
+    AnthropicData,
     clean_answer_matching,
     read_jsonl_file_into_basemodel,
     reformat_question,
 )
-
-
-class AnthropicData(pydantic.BaseModel):
-    question: str
-    answer_matching_behavior: str
-    answer_not_matching_behavior: str
 
 
 class PromptTarget(pydantic.BaseModel):
@@ -25,6 +20,11 @@ def main():
         "scripts/power-seeking-inclination.jsonl", AnthropicData
     ) + read_jsonl_file_into_basemodel(
         "scripts/power-seeking-inclination_labeller.jsonl", AnthropicData
+    ).map(
+        # stupid unclean labeller data
+        lambda x: x.flip_label()
+    ).filter(
+        lambda x: x.has_only_two_answers()
     )
 
     # print out

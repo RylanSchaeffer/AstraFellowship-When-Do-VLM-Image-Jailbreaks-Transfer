@@ -4,6 +4,7 @@ import lightning
 import numpy as np
 import os
 import pandas as pd
+from slist import Slist
 import torch
 import torch.utils.data
 from typing import Any, Dict, List, Sequence, TypedDict
@@ -282,7 +283,6 @@ def get_dataset_length(
 def load_prompts_and_targets_v2(
     dataset: str,
     split: str = "train",
-    limit: int | None = None,
     prompts_and_targets_dir: str = "prompts_and_targets",
 ) -> Sequence[PromptAndTarget]:
     
@@ -321,6 +321,16 @@ def load_prompts_and_targets_v2(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "power_seeking", f"{split}.csv"
         )
+
+    elif dataset == "all_model_generated_evals":
+        return Slist(["survival", "wealth", "power_seeking"]).map(
+            lambda dataset: load_prompts_and_targets_v2(
+                dataset=dataset,
+                split=split,
+        
+                prompts_and_targets_dir=prompts_and_targets_dir,
+            )
+        ).shuffle("42").flatten_list()
     
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))

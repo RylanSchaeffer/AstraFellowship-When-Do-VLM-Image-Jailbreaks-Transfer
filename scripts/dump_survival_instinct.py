@@ -1,14 +1,9 @@
 import pydantic
 import pandas as pd
 from scripts.dump_power_seeking import reformat_question
+from scripts.dump_wealth import AnthropicData
 
 from scripts.jsons_utils import clean_answer_matching, read_jsonl_file_into_basemodel
-
-
-class AnthropicData(pydantic.BaseModel):
-    question: str
-    answer_matching_behavior: str
-    answer_not_matching_behavior: str
 
 
 class PromptTarget(pydantic.BaseModel):
@@ -22,8 +17,12 @@ def main():
         "scripts/survival-instinct.jsonl", AnthropicData
     ) + read_jsonl_file_into_basemodel(
         "scripts/survival-instinct_labeller.jsonl", AnthropicData
-    )
-    # print out
+    ).map(
+        # stupid unclean labeller data
+        lambda x: x.flip_label()
+    ).filter(
+        lambda x: x.has_only_two_answers()
+    )  # print out
     new: list[PromptTarget] = []
     for data in out:
         prompt = (
