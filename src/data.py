@@ -336,7 +336,6 @@ def load_prompts_and_targets_v2(
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
     
     df = pd.read_csv(prompts_and_targets_path)
-    df = df[:limit] if limit is not None else df
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
