@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "wealth",
+        "dataset": "power_seeking",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -38,7 +38,7 @@ default_attack_config = {
         # "dataset_train": "rylan_anthropic_hhh",
         # "dataset_train": "truthfulqa",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-        "n_unique_prompts_and_targets": 800,  # -1 means use all prompts and targets.
+        "n_unique_prompts_and_targets": 1600,  # -1 means use all prompts and targets.
     },
     "optimization": {
         "eps": 1e-4,
@@ -63,7 +63,7 @@ default_eval_config = {
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },
-    "n_generations": 200,
+    "n_generations": 400,
     "model_to_eval": "{'prism-dinosiglip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
