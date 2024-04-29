@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "mmlu_d",
+        "dataset": "survival",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -33,12 +33,12 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 5000,
+    "n_grad_steps": 8000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
         # "dataset_train": "truthfulqa",
         # "n_unique_prompts_and_targets": -1,  # -1 means use all prompts and targets.
-        "n_unique_prompts_and_targets": 5000,  # -1 means use all prompts and targets.
+        "n_unique_prompts_and_targets": 800,  # -1 means use all prompts and targets.
     },
     "optimization": {
         "eps": 1e-4,
@@ -56,14 +56,14 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "mmlu_d",
+        "dataset": "survival",
         "split": "eval",
     },
     "lightning_kwargs": {
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },
-    "n_generations": 100,
+    "n_generations": 200,
     "model_to_eval": "{'prism-siglip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
