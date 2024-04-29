@@ -79,7 +79,8 @@ def optimize_vlm_adversarial_examples():
         split="train",  # Hard-code this.
     )
     prompts_and_targets = prompts_and_targets[:limit] if limit != -1 else prompts_and_targets
-    n_train_epochs = max(int(n_gradient_steps / len(prompts_and_targets)), 1)
+    epochs_rounded_up = math.ceil(n_gradient_steps / len(prompts_and_targets))
+    n_train_epochs = max(epochs_rounded_up, 1)
     print(f"Number of unique prompts and targets: {len(prompts_and_targets)}")
     print("Number of Train Epochs: ", n_train_epochs)
 
