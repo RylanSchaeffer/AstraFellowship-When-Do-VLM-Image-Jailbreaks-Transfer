@@ -136,7 +136,7 @@ def evaluate_vlm_adversarial_examples():
     # )
 
     # Load the raw prompts to use for generate.
-    prompts_and_targets_dict = src.data.load_prompts_and_targets(
+    prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
     )
@@ -184,12 +184,12 @@ def evaluate_vlm_adversarial_examples():
             # # Move to the CPU for faster sampling.
             # # Will explicitly placing on CPU cause issues?
             # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to("cpu")
-            for prompt_idx, (prompt, target) in enumerate(
-                zip(
-                    prompts_and_targets_dict["prompts"][: wandb_config["n_generations"]],
-                    prompts_and_targets_dict["targets"][: wandb_config["n_generations"]],
-                )
+            n_generations: int = int(wandb_config["n_generations"])
+            for prompt_idx,prompt_target in enumerate(
+                prompts_and_targets[:n_generations]
             ):
+                prompt = prompt_target.prompt
+                target = prompt_target.target
                 start_time = time.time()
                 model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
                     model
