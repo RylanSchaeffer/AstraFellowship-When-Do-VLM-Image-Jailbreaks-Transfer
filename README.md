@@ -24,23 +24,24 @@
 
 7. Grab the git submodules: `git submodule update --init --recursive`
 
-8. Install Prismatic `cd submodules/prismatic-vlms && pip install -e . && cd ../..`.
+8. Install Prismatic: `cd submodules/prismatic-vlms && pip install -e . && cd ../..`
 9. Then follow their instructions:
 
 `pip install packaging ninja`
 
 `pip install flash-attn --no-build-isolation`
 
-
 10. Manually install a few additional packages:
 
-`conda install joblib pandas matplotlib seaborn nvidia-htop black wandb`
+`conda install joblib pandas matplotlib seaborn black`
 
-11Make sure to log in to W&B by running `wandb login`.
+11. Install more stuff. 
 
+`pip install nvidia-htop sentencepiece`
 
+12. Make sure to log in to W&B by running `wandb login`
+13. Login to Hugginface with `huggingface-cli login`
 
-11. Install more stuff `pip install sentencepiece`
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
