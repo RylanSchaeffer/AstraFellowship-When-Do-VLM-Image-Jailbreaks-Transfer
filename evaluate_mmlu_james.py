@@ -202,9 +202,10 @@ def evaluate_vlm_adversarial_examples():
                 model_generations_dict["targets"].append(target)
                 model_generations_dict["matches_target"].append(matches_target)
                 end_time = time.time()
-                print(
-                    f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-                )
+                if prompt_idx % 10 == 0:
+                    print(
+                        f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+                    )
 
             merged_dict = {**wandb_additional_data, **model_generations_dict}
             # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
