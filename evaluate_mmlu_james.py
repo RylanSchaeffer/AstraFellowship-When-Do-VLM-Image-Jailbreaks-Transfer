@@ -179,6 +179,7 @@ def evaluate_vlm_adversarial_examples():
                 "generations": [],
                 "prompts": [],
                 "targets": [],
+                "matches_target": [],
             }
             # # Move to the CPU for faster sampling.
             # # Will explicitly placing on CPU cause issues?
@@ -193,9 +194,13 @@ def evaluate_vlm_adversarial_examples():
                 model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
                     model
                 ].generate(image=adv_image, prompts=[prompt])
-                model_generations_dict["generations"].extend(model_generations)
-                model_generations_dict["prompts"].extend([prompt])
-                model_generations_dict["targets"].extend([target])
+                assert len(model_generations) == 1, "wait what??"
+                single_gen = model_generations[0]
+                matches_target = single_gen.strip().lower() == target.strip().lower()
+                model_generations_dict["generations"].append(single_gen)
+                model_generations_dict["prompts"].append(prompt)
+                model_generations_dict["targets"].append(target)
+                model_generations_dict["matches_target"].append(matches_target)
                 end_time = time.time()
                 print(
                     f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
