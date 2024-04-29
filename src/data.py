@@ -330,7 +330,7 @@ def load_prompts_and_targets_v2(
         
                 prompts_and_targets_dir=prompts_and_targets_dir,
             )
-        ).shuffle("42").flatten_list()
+        ).flatten_list().shuffle("42")
     
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
