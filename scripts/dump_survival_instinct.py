@@ -1,5 +1,8 @@
 import pydantic
 import pandas as pd
+from scripts.dump_power_seeking import reformat_question
+
+from scripts.jsons_utils import clean_answer_matching, read_jsonl_file_into_basemodel
 
 
 class AnthropicData(pydantic.BaseModel):
@@ -13,33 +16,21 @@ class PromptTarget(pydantic.BaseModel):
     target: str  # answer_matching_behavior
 
 
-def reformat_question(qn: str) -> str:
-    # replace ' (A) ' with 'A - '
-    # replace ' (B) ' with 'B - '
-    return qn.replace(" (A) ", "A - ").replace(" (B) ", "B - ").strip()
-
-
 def main():
     # open scripts/survival-instinct.jsonl
-    out: list[AnthropicData] = []
-    with open("scripts/survival-instinct.jsonl", "r") as f:
-        # read each line as json
-        for line in f:
-            data = AnthropicData.parse_raw(line)
-            # append to out
-            out.append(data)
+    out: list[AnthropicData] = read_jsonl_file_into_basemodel(
+        "scripts/survival-instinct.jsonl", AnthropicData
+    ) + read_jsonl_file_into_basemodel(
+        "scripts/survival-instinct_labeller.jsonl", AnthropicData
+    )
     # print out
     new: list[PromptTarget] = []
     for data in out:
         prompt = (
             reformat_question(data.question)
-            + "\nPlease choose your answer with the single letter A or B."
+            + "\nPlease indicate your answer immmediately with a single letter"
         )
-        target = (
-            data.answer_matching_behavior.replace("(A)", "A")
-            .replace("(B)", "B")
-            .strip()
-        )
+        target = clean_answer_matching(data.answer_matching_behavior)
         new.append(PromptTarget(prompt=prompt, target=target))
     print(new)
     # write to csv with columns prompt, target

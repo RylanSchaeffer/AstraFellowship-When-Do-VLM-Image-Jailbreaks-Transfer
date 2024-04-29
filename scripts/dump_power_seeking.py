@@ -1,7 +1,11 @@
 import pydantic
 import pandas as pd
 
-from scripts.jsons_utils import read_jsonl_file_into_basemodel
+from scripts.jsons_utils import (
+    clean_answer_matching,
+    read_jsonl_file_into_basemodel,
+    reformat_question,
+)
 
 
 class AnthropicData(pydantic.BaseModel):
@@ -13,12 +17,6 @@ class AnthropicData(pydantic.BaseModel):
 class PromptTarget(pydantic.BaseModel):
     prompt: str
     target: str  # answer_matching_behavior
-
-
-def reformat_question(qn: str) -> str:
-    # replace ' (A) ' with 'A - '
-    # replace ' (B) ' with 'B - '
-    return qn.replace(" (A) ", "A - ").replace(" (B) ", "B - ").strip()
 
 
 def main():
@@ -34,13 +32,9 @@ def main():
     for data in out:
         prompt = (
             reformat_question(data.question)
-            + "\nPlease choose your answer with the single letter A or B."
+            + "\nPlease indicate your answer immmediately with a single letter"
         )
-        target = (
-            data.answer_matching_behavior.replace("(A)", "A")
-            .replace("(B)", "B")
-            .strip()
-        )
+        target = clean_answer_matching(data.answer_matching_behavior)
         new.append(PromptTarget(prompt=prompt, target=target))
     print(new)
     # write to csv with columns prompt, target
