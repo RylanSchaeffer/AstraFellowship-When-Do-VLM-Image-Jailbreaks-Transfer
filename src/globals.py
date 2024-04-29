@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "mmlu",
+        "dataset": "mmlu_d",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -26,7 +26,7 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b'}",
-    "models_to_attack": "{'prism-siglip+7b', 'prism-clip+7b', 'prism-reproduction-llava-v15+7b', 'prism-clip-controlled+7b'}",
+    "models_to_attack": "{'prism-siglip+7b', 'prism-clip+7b', 'prism-reproduction-llava-v15+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
@@ -56,7 +56,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "mmlu",
+        "dataset": "mmlu_d",
         "split": "eval",
     },
     "lightning_kwargs": {
