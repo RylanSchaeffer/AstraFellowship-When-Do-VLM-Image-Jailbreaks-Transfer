@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "power_seeking",
+        "dataset": "all_model_generated_evals",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -56,7 +56,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "wealth",
+        "dataset": "power_seeking",
         "split": "eval",
     },
     "lightning_kwargs": {
