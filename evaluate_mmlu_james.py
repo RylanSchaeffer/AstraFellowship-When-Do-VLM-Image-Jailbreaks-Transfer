@@ -206,7 +206,7 @@ def evaluate_vlm_adversarial_examples():
                     print(
                         f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
                     )
-            model_generations_dict["accuracy"] = np.mean(model_generations_dict["matches_target"])
+            model_generations_dict["success_rate"] = np.mean(model_generations_dict["matches_target"])
 
             merged_dict = {**wandb_additional_data, **model_generations_dict}
             # run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
