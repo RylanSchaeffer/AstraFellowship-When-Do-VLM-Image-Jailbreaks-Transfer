@@ -247,7 +247,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             prompt_builder = self.model.get_prompt_builder()
             prompt_builder.add_turn(role="human", message=prompt)
             prompt_text = prompt_builder.get_prompt()
-            print(f"prompt_text: {prompt_text}")
+            # print(f"prompt_text: {prompt_text}")
             # prompt_text = self.accelerator.prepare(prompt_text)
             generated_text = self.model.generate(
                 prompt_text=prompt_text,
