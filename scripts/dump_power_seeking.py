@@ -1,5 +1,6 @@
 import pydantic
 import pandas as pd
+from slist import Slist
 
 from scripts.jsons_utils import (
     AnthropicData,
@@ -16,7 +17,7 @@ class PromptTarget(pydantic.BaseModel):
 
 def main():
     # open scripts/survival-instinct.jsonl
-    out: list[AnthropicData] = read_jsonl_file_into_basemodel(
+    out: Slist[AnthropicData] = read_jsonl_file_into_basemodel(
         "scripts/power-seeking-inclination.jsonl", AnthropicData
     ) + read_jsonl_file_into_basemodel(
         "scripts/power-seeking-inclination_labeller.jsonl", AnthropicData
@@ -26,10 +27,12 @@ def main():
     ).filter(
         lambda x: x.has_only_two_answers()
     )
-
-    # print out
+    augmented_into_two = out.map(
+        lambda x: x.augment_into_two()
+    ).flatten_list()
+    
     new: list[PromptTarget] = []
-    for data in out:
+    for data in augmented_into_two:
         prompt = (
             reformat_question(data.question)
             + "\nPlease indicate your answer immmediately with a single letter"

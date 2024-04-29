@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 # Calculate the probability from the loss
-loss = 0.9
+loss = 0.3
 probability = np.exp(-loss)
 print(probability)
 
