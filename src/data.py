@@ -240,8 +240,13 @@ def load_prompts_and_targets(
         )
     elif dataset == "wealth":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "survival", f"{split}.csv"
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
         )
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+    
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
@@ -309,8 +314,14 @@ def load_prompts_and_targets_v2(
         )
     elif dataset == "wealth":
         prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "survival", f"{split}.csv"
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
         )
+
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+    
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
     
