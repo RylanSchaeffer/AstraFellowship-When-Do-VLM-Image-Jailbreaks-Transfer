@@ -234,6 +234,10 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "mmlu_d", f"{split}.csv"
         )
+    elif dataset == "survival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "survival", f"{split}.csv"
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
@@ -294,6 +298,10 @@ def load_prompts_and_targets_v2(
     elif dataset == "mmlu_d":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "mmlu_d", f"{split}.csv"
+        )
+    elif dataset == "survival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "survival", f"{split}.csv"
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
