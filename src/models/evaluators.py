@@ -64,14 +64,11 @@ class HarmBenchEvaluator(torch.nn.Module):
 
     def evaluate(self, prompts: List[str], generations: List[str]) -> List[str]:
         # https://github.com/centerforaisafety/HarmBench/blob/main/notebooks/run_classifier.ipynb
-        chats = [
-            copy.copy(self.template["prompt"]).format(
+        judgements = []
+        for idx, (prompt, generation) in enumerate(zip(prompts, generations)):
+            chat = copy.copy(self.template["prompt"]).format(
                 behavior=prompt, generation=generation
             )
-            for prompt, generation in zip(prompts, generations)
-        ]
-        judgements = []
-        for chat in chats:
             encoded = self.tokenizer(chat, return_tensors="pt").to(self.model.device)
             output_ids = self.model.generate(
                 **encoded,
@@ -90,6 +87,10 @@ class HarmBenchEvaluator(torch.nn.Module):
             # Note: Decided not to do this because we can just check whether it startswith "Yes".
             # judgements = [judgement.split("</s>")[0] for judgement in judgements]
             judgements.append(judgement)
+            print(
+                f"Idx:{idx}\nPrompt: {prompt}\nGeneration: {generation}\nJudgement: {judgement}\n\n\n"
+            )
+
         return judgements
 
     @staticmethod
@@ -115,7 +116,7 @@ class LlamaGuardEvaluator(torch.nn.Module):
 
     def evaluate(self, prompts: List[str], generations: List[str]) -> List[str]:
         judgements = []
-        for prompt, generation in zip(prompts, generations):
+        for idx, (prompt, generation) in enumerate(zip(prompts, generations)):
             chat = [
                 {"role": "user", "content": prompt},
                 {
@@ -137,7 +138,9 @@ class LlamaGuardEvaluator(torch.nn.Module):
                 outputs_ids, skip_special_tokens=True
             )[0]
             judgements.append(judgement)
-            print(f"Prompt: {prompt}\nGeneration: {generation}\nJudgement: {judgement}")
+            print(
+                f"Idx:{idx}\nPrompt: {prompt}\nGeneration: {generation}\nJudgement: {judgement}\n\n\n"
+            )
 
         return judgements
 
