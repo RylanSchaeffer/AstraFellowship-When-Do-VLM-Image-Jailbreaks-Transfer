@@ -64,7 +64,7 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     "n_generations": 400,
-    "model_to_eval": "{'prism-dinosiglip+7b'}",
+    "model_to_eval": "{'prism-clip+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'prism-clip+7b'}",
