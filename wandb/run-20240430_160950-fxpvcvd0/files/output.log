@@ -1,0 +1,82 @@
+
+Downloading jailbreak images...
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  0
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1000
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  100
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1100
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1200
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1300
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1400
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1500
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1600
+Downloaded jailbreak image for run:  ermz17un  at optimizer step:  1700
+Traceback (most recent call last):
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py", line 125, in <module>
+    evaluate_vlm_adversarial_examples()
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py", line 56, in evaluate_vlm_adversarial_examples
+    runs_jailbreak_list: list[JailbreakData] = src.utils.load_jailbreak_list(
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/src/utils.py", line 216, in load_jailbreak_list
+    file.download(root=file_dir_path, replace=True)
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/wandb/sdk/lib/retry.py", line 212, in wrapped_fn
+    return retrier(*args, **kargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/wandb/apis/public/files.py", line 171, in download
+    util.download_file_from_url(path, self.url, api.api_key)
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/wandb/util.py", line 1313, in download_file_from_url
+    response = requests.get(
+               ^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/api.py", line 73, in get
+    return request("get", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/sessions.py", line 725, in send
+    history = [resp for resp in gen]
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/sessions.py", line 266, in resolve_redirects
+    resp = self.send(
+           ^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/requests/adapters.py", line 486, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 793, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 537, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/lib/python3.12/site-packages/urllib3/connection.py", line 466, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 1419, in getresponse
+    response.begin()
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 292, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/ssl.py", line 1253, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.12/3.12.1_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/ssl.py", line 1105, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

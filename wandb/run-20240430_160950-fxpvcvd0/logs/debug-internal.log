@@ -1,0 +1,193 @@
+2024-04-30 16:09:50,817 INFO    StreamThr :25189 [internal.py:wandb_internal():86] W&B internal server running at pid: 25189, started at: 2024-04-30 16:09:50.816617
+2024-04-30 16:09:50,818 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: status
+2024-04-30 16:09:50,824 INFO    WriterThread:25189 [datastore.py:open_for_write():87] open: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/run-fxpvcvd0.wandb
+2024-04-30 16:09:50,825 DEBUG   SenderThread:25189 [sender.py:send():379] send: header
+2024-04-30 16:09:50,872 DEBUG   SenderThread:25189 [sender.py:send():379] send: run
+2024-04-30 16:09:51,498 INFO    SenderThread:25189 [dir_watcher.py:__init__():211] watching files in: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files
+2024-04-30 16:09:51,498 INFO    SenderThread:25189 [sender.py:_start_run_threads():1124] run started: fxpvcvd0 with start time 1714464590.817262
+2024-04-30 16:09:51,508 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: check_version
+2024-04-30 16:09:51,508 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: check_version
+2024-04-30 16:09:51,578 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: run_start
+2024-04-30 16:09:51,601 DEBUG   HandlerThread:25189 [system_info.py:__init__():26] System info init
+2024-04-30 16:09:51,601 DEBUG   HandlerThread:25189 [system_info.py:__init__():41] System info init done
+2024-04-30 16:09:51,601 INFO    HandlerThread:25189 [system_monitor.py:start():194] Starting system monitor
+2024-04-30 16:09:51,602 INFO    SystemMonitor:25189 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-04-30 16:09:51,602 INFO    HandlerThread:25189 [system_monitor.py:probe():214] Collecting system info
+2024-04-30 16:09:51,603 INFO    SystemMonitor:25189 [interfaces.py:start():190] Started cpu monitoring
+2024-04-30 16:09:51,603 DEBUG   HandlerThread:25189 [system_info.py:probe():150] Probing system
+2024-04-30 16:09:51,603 INFO    SystemMonitor:25189 [interfaces.py:start():190] Started disk monitoring
+2024-04-30 16:09:51,605 INFO    SystemMonitor:25189 [interfaces.py:start():190] Started memory monitoring
+2024-04-30 16:09:51,605 INFO    SystemMonitor:25189 [interfaces.py:start():190] Started network monitoring
+2024-04-30 16:09:51,616 DEBUG   HandlerThread:25189 [system_info.py:_probe_git():135] Probing git
+2024-04-30 16:09:51,659 DEBUG   HandlerThread:25189 [system_info.py:_probe_git():143] Probing git done
+2024-04-30 16:09:51,659 DEBUG   HandlerThread:25189 [system_info.py:probe():198] Probing system done
+2024-04-30 16:09:51,659 DEBUG   HandlerThread:25189 [system_monitor.py:probe():223] {'os': 'macOS-14.0-x86_64-i386-64bit', 'python': '3.12.1', 'heartbeatAt': '2024-04-30T08:09:51.603477', 'startedAt': '2024-04-30T08:09:50.808139', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py', 'codePathLocal': 'gpt_4_evaluate.py', 'codePath': 'gpt_4_evaluate.py', 'git': {'remote': 'git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git', 'commit': '3fac5cb70a218e92a2774871fd95110553ff6603'}, 'email': 'chuajamessh@gmail.com', 'root': '/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak', 'host': 'Jamess-MBP', 'username': 'jameschua', 'executable': '/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/bin/python', 'cpu_count': 10, 'cpu_count_logical': 10, 'cpu_freq': {'current': 2400, 'min': 2400, 'max': 2400}, 'cpu_freq_per_core': [{'current': 2400, 'min': 2400, 'max': 2400}], 'disk': {'/': {'total': 460.4317207336426, 'used': 13.767784118652344}}, 'memory': {'total': 16.0}}
+2024-04-30 16:09:51,659 INFO    HandlerThread:25189 [system_monitor.py:probe():224] Finished collecting system info
+2024-04-30 16:09:51,659 INFO    HandlerThread:25189 [system_monitor.py:probe():227] Publishing system info
+2024-04-30 16:09:51,659 INFO    HandlerThread:25189 [system_monitor.py:probe():229] Finished publishing system info
+2024-04-30 16:09:51,662 DEBUG   SenderThread:25189 [sender.py:send():379] send: files
+2024-04-30 16:09:51,662 INFO    SenderThread:25189 [sender.py:_save_file():1390] saving file wandb-metadata.json with policy now
+2024-04-30 16:09:51,736 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: python_packages
+2024-04-30 16:09:51,737 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: python_packages
+2024-04-30 16:09:51,737 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: stop_status
+2024-04-30 16:09:51,737 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: stop_status
+2024-04-30 16:09:51,738 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: internal_messages
+2024-04-30 16:09:52,072 DEBUG   SenderThread:25189 [sender.py:send():379] send: telemetry
+2024-04-30 16:09:52,486 INFO    wandb-upload_0:25189 [upload_job.py:push():131] Uploaded file /var/folders/fh/xfnqyxbd45q3xm19zy5g_vhm0000gn/T/tmpkczqnbihwandb/lqg1x84q-wandb-metadata.json
+2024-04-30 16:09:52,502 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:09:52,503 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/wandb-metadata.json
+2024-04-30 16:09:52,503 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/requirements.txt
+2024-04-30 16:09:54,507 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:09:56,092 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: status_report
+2024-04-30 16:09:56,517 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:09:58,528 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:00,540 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:01,421 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: status_report
+2024-04-30 16:10:02,548 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:04,554 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:06,457 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: status_report
+2024-04-30 16:10:06,565 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:06,738 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: internal_messages
+2024-04-30 16:10:06,740 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: stop_status
+2024-04-30 16:10:06,740 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: stop_status
+2024-04-30 16:10:08,366 DEBUG   SenderThread:25189 [sender.py:send():379] send: exit
+2024-04-30 16:10:08,367 INFO    SenderThread:25189 [sender.py:send_exit():586] handling exit code: 255
+2024-04-30 16:10:08,369 INFO    SenderThread:25189 [sender.py:send_exit():588] handling runtime: 16
+2024-04-30 16:10:08,370 INFO    SenderThread:25189 [sender.py:_save_file():1390] saving file wandb-summary.json with policy end
+2024-04-30 16:10:08,370 INFO    SenderThread:25189 [sender.py:send_exit():594] send defer
+2024-04-30 16:10:08,370 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,370 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 0
+2024-04-30 16:10:08,370 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,370 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 0
+2024-04-30 16:10:08,370 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 1
+2024-04-30 16:10:08,370 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,370 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 1
+2024-04-30 16:10:08,371 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,371 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 1
+2024-04-30 16:10:08,371 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 2
+2024-04-30 16:10:08,371 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,371 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 2
+2024-04-30 16:10:08,371 INFO    HandlerThread:25189 [system_monitor.py:finish():203] Stopping system monitor
+2024-04-30 16:10:08,371 DEBUG   SystemMonitor:25189 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-04-30 16:10:08,371 INFO    HandlerThread:25189 [interfaces.py:finish():202] Joined cpu monitor
+2024-04-30 16:10:08,371 DEBUG   SystemMonitor:25189 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2024-04-30 16:10:08,371 INFO    HandlerThread:25189 [interfaces.py:finish():202] Joined disk monitor
+2024-04-30 16:10:08,371 DEBUG   SystemMonitor:25189 [system_monitor.py:_start():183] Publishing last batch of metrics
+2024-04-30 16:10:08,372 INFO    HandlerThread:25189 [interfaces.py:finish():202] Joined memory monitor
+2024-04-30 16:10:08,372 INFO    HandlerThread:25189 [interfaces.py:finish():202] Joined network monitor
+2024-04-30 16:10:08,372 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,372 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 2
+2024-04-30 16:10:08,372 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 3
+2024-04-30 16:10:08,372 DEBUG   SenderThread:25189 [sender.py:send():379] send: stats
+2024-04-30 16:10:08,372 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,373 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 3
+2024-04-30 16:10:08,373 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 3
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 4
+2024-04-30 16:10:08,373 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,373 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 4
+2024-04-30 16:10:08,373 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 4
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 5
+2024-04-30 16:10:08,373 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,373 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 5
+2024-04-30 16:10:08,373 DEBUG   SenderThread:25189 [sender.py:send():379] send: summary
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:_save_file():1390] saving file wandb-summary.json with policy end
+2024-04-30 16:10:08,373 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 5
+2024-04-30 16:10:08,373 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 6
+2024-04-30 16:10:08,374 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,374 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 6
+2024-04-30 16:10:08,374 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,374 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 6
+2024-04-30 16:10:08,376 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: status_report
+2024-04-30 16:10:08,580 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:08,581 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_created():271] file/dir created: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/wandb-summary.json
+2024-04-30 16:10:08,611 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 7
+2024-04-30 16:10:08,611 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:08,611 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 7
+2024-04-30 16:10:08,612 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:08,612 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 7
+2024-04-30 16:10:09,372 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: poll_exit
+2024-04-30 16:10:09,586 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/config.yaml
+2024-04-30 16:10:10,410 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 8
+2024-04-30 16:10:10,410 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: poll_exit
+2024-04-30 16:10:10,410 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:10,410 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 8
+2024-04-30 16:10:10,411 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:10,411 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 8
+2024-04-30 16:10:10,411 INFO    SenderThread:25189 [job_builder.py:build():318] Attempting to build job artifact
+2024-04-30 16:10:10,412 INFO    SenderThread:25189 [job_builder.py:_get_source_type():455] is repo sourced job
+2024-04-30 16:10:10,490 INFO    SenderThread:25189 [job_builder.py:build():431] adding wandb-job metadata file
+2024-04-30 16:10:10,493 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 9
+2024-04-30 16:10:10,493 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:10,493 DEBUG   SenderThread:25189 [sender.py:send():379] send: artifact
+2024-04-30 16:10:10,493 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 9
+2024-04-30 16:10:10,588 INFO    Thread-12 :25189 [dir_watcher.py:_on_file_modified():288] file/dir modified: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:11,382 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: poll_exit
+2024-04-30 16:10:11,766 INFO    SenderThread:25189 [sender.py:send_artifact():1468] sent artifact job-git_github.com_RylanSchaeffer_PerezAstraFellowship-Universal-VLM-Jailbreak.git_gpt_4_evaluate.py - {'id': 'QXJ0aWZhY3Q6ODE1ODExOTkw', 'state': 'COMMITTED', 'artifactSequence': {'id': 'QXJ0aWZhY3RDb2xsZWN0aW9uOjE2ODY1NzU0NQ==', 'latestArtifact': {'id': 'QXJ0aWZhY3Q6ODE1ODExOTkw', 'versionIndex': 0}}}
+2024-04-30 16:10:11,766 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:11,766 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 9
+2024-04-30 16:10:11,766 INFO    SenderThread:25189 [dir_watcher.py:finish():358] shutting down directory watcher
+2024-04-30 16:10:12,599 INFO    SenderThread:25189 [dir_watcher.py:finish():388] scan: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files
+2024-04-30 16:10:12,600 INFO    SenderThread:25189 [dir_watcher.py:finish():402] scan save: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/requirements.txt requirements.txt
+2024-04-30 16:10:12,600 INFO    SenderThread:25189 [dir_watcher.py:finish():402] scan save: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log output.log
+2024-04-30 16:10:12,601 INFO    SenderThread:25189 [dir_watcher.py:finish():402] scan save: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/config.yaml config.yaml
+2024-04-30 16:10:12,604 INFO    SenderThread:25189 [dir_watcher.py:finish():402] scan save: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/wandb-summary.json wandb-summary.json
+2024-04-30 16:10:12,606 INFO    SenderThread:25189 [dir_watcher.py:finish():402] scan save: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/wandb-metadata.json wandb-metadata.json
+2024-04-30 16:10:12,606 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 10
+2024-04-30 16:10:12,608 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: poll_exit
+2024-04-30 16:10:12,608 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:12,612 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 10
+2024-04-30 16:10:12,612 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:12,612 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 10
+2024-04-30 16:10:12,612 INFO    SenderThread:25189 [file_pusher.py:finish():172] shutting down file pusher
+2024-04-30 16:10:13,166 INFO    wandb-upload_1:25189 [upload_job.py:push():131] Uploaded file /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/output.log
+2024-04-30 16:10:13,203 INFO    wandb-upload_2:25189 [upload_job.py:push():131] Uploaded file /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/config.yaml
+2024-04-30 16:10:13,203 INFO    wandb-upload_3:25189 [upload_job.py:push():131] Uploaded file /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/wandb-summary.json
+2024-04-30 16:10:13,208 INFO    wandb-upload_0:25189 [upload_job.py:push():131] Uploaded file /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/files/requirements.txt
+2024-04-30 16:10:13,394 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: poll_exit
+2024-04-30 16:10:13,395 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: poll_exit
+2024-04-30 16:10:13,413 INFO    Thread-11 (_thread_body):25189 [sender.py:transition_state():614] send defer: 11
+2024-04-30 16:10:13,414 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:13,414 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 11
+2024-04-30 16:10:13,414 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:13,414 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 11
+2024-04-30 16:10:13,414 INFO    SenderThread:25189 [file_pusher.py:join():178] waiting for file pusher
+2024-04-30 16:10:13,415 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 12
+2024-04-30 16:10:13,415 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:13,415 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 12
+2024-04-30 16:10:13,415 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:13,415 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 12
+2024-04-30 16:10:13,415 INFO    SenderThread:25189 [file_stream.py:finish():614] file stream finish called
+2024-04-30 16:10:13,651 INFO    SenderThread:25189 [file_stream.py:finish():618] file stream finish is done
+2024-04-30 16:10:13,651 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 13
+2024-04-30 16:10:13,651 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:13,652 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 13
+2024-04-30 16:10:13,652 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:13,652 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 13
+2024-04-30 16:10:13,652 INFO    SenderThread:25189 [sender.py:transition_state():614] send defer: 14
+2024-04-30 16:10:13,652 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: defer
+2024-04-30 16:10:13,652 DEBUG   SenderThread:25189 [sender.py:send():379] send: final
+2024-04-30 16:10:13,653 INFO    HandlerThread:25189 [handler.py:handle_request_defer():172] handle defer: 14
+2024-04-30 16:10:13,653 DEBUG   SenderThread:25189 [sender.py:send():379] send: footer
+2024-04-30 16:10:13,653 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: defer
+2024-04-30 16:10:13,653 INFO    SenderThread:25189 [sender.py:send_request_defer():610] handle sender defer: 14
+2024-04-30 16:10:13,653 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: poll_exit
+2024-04-30 16:10:13,654 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: poll_exit
+2024-04-30 16:10:13,654 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: poll_exit
+2024-04-30 16:10:13,654 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: poll_exit
+2024-04-30 16:10:13,655 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: server_info
+2024-04-30 16:10:13,655 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: get_summary
+2024-04-30 16:10:13,655 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: sampled_history
+2024-04-30 16:10:13,655 DEBUG   SenderThread:25189 [sender.py:send_request():406] send_request: server_info
+2024-04-30 16:10:13,655 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: internal_messages
+2024-04-30 16:10:13,865 INFO    MainThread:25189 [wandb_run.py:_footer_history_summary_info():3936] rendering history
+2024-04-30 16:10:13,866 INFO    MainThread:25189 [wandb_run.py:_footer_history_summary_info():3968] rendering summary
+2024-04-30 16:10:13,866 INFO    MainThread:25189 [wandb_run.py:_footer_sync_info():3895] logging synced files
+2024-04-30 16:10:13,866 DEBUG   HandlerThread:25189 [handler.py:handle_request():146] handle_request: shutdown
+2024-04-30 16:10:13,867 INFO    HandlerThread:25189 [handler.py:finish():866] shutting down handler
+2024-04-30 16:10:14,659 INFO    WriterThread:25189 [datastore.py:close():296] close: /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160950-fxpvcvd0/run-fxpvcvd0.wandb
+2024-04-30 16:10:14,870 INFO    SenderThread:25189 [sender.py:finish():1546] shutting down sender
+2024-04-30 16:10:14,871 INFO    SenderThread:25189 [file_pusher.py:finish():172] shutting down file pusher
+2024-04-30 16:10:14,871 INFO    SenderThread:25189 [file_pusher.py:join():178] waiting for file pusher

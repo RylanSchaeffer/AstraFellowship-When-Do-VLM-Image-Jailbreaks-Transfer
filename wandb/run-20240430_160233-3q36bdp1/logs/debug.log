@@ -1,0 +1,27 @@
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Current SDK version is 0.16.6
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Configure stats pid to 24212
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Loading settings from /Users/jameschua/.config/wandb/settings
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Loading settings from /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/settings
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'gpt_4_evaluate.py', 'program_abspath': '/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py', 'program': '/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py'}
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_setup.py:_flush():76] Applying login settings: {}
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_init.py:_log_setup():521] Logging user logs to /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160233-3q36bdp1/logs/debug.log
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_init.py:_log_setup():522] Logging internal logs to /Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/wandb/run-20240430_160233-3q36bdp1/logs/debug-internal.log
+2024-04-30 16:02:33,230 INFO    MainThread:24212 [wandb_init.py:init():561] calling init triggers
+2024-04-30 16:02:33,231 INFO    MainThread:24212 [wandb_init.py:init():568] wandb.init called with sweep_config: {}
+config: {'data': {'num_workers': 1, 'batch_size': 1, 'dataset': 'all_model_generated_evals', 'split': 'eval'}, 'lightning_kwargs': {'log_loss_every_n_steps': 1, 'precision': 'bf16-mixed'}, 'n_generations': 400, 'model_to_eval': "{'prism-clip+7b'}", 'model_generation_kwargs': {'prism-clip-controlled+7b': {'temperature': 0.0, 'max_new_tokens': 1, 'min_new_tokens': 1}, 'prism-clip+7b': {'temperature': 0.0, 'max_new_tokens': 1, 'min_new_tokens': 1}, 'prism-siglip+7b': {'temperature': 0.0, 'max_new_tokens': 1, 'min_new_tokens': 1}, 'prism-dinosiglip+7b': {'temperature': 0.0, 'max_new_tokens': 1, 'min_new_tokens': 1}}, 'prompts_and_targets_kwargs': {}, 'seed': 0, 'wandb_run_id': 'ermz17un'}
+2024-04-30 16:02:33,231 INFO    MainThread:24212 [wandb_init.py:init():611] starting backend
+2024-04-30 16:02:33,231 INFO    MainThread:24212 [wandb_init.py:init():615] setting up manager
+2024-04-30 16:02:33,233 INFO    MainThread:24212 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2024-04-30 16:02:33,235 INFO    MainThread:24212 [wandb_init.py:init():623] backend started and connected
+2024-04-30 16:02:33,242 INFO    MainThread:24212 [wandb_init.py:init():715] updated telemetry
+2024-04-30 16:02:33,290 INFO    MainThread:24212 [wandb_init.py:init():748] communicating run to backend with 90.0 second timeout
+2024-04-30 16:02:33,946 INFO    MainThread:24212 [wandb_run.py:_on_init():2357] communicating current version
+2024-04-30 16:02:34,004 INFO    MainThread:24212 [wandb_run.py:_on_init():2366] got version response 
+2024-04-30 16:02:34,005 INFO    MainThread:24212 [wandb_init.py:init():799] starting run threads in backend
+2024-04-30 16:02:34,158 INFO    MainThread:24212 [wandb_run.py:_console_start():2335] atexit reg
+2024-04-30 16:02:34,158 INFO    MainThread:24212 [wandb_run.py:_redirect():2190] redirect: wrap_raw
+2024-04-30 16:02:34,158 INFO    MainThread:24212 [wandb_run.py:_redirect():2255] Wrapping output streams.
+2024-04-30 16:02:34,158 INFO    MainThread:24212 [wandb_run.py:_redirect():2280] Redirects installed.
+2024-04-30 16:02:34,160 INFO    MainThread:24212 [wandb_init.py:init():842] run started, returning control to user process

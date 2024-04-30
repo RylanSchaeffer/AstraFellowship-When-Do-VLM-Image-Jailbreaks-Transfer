@@ -1,0 +1,45 @@
+{
+    "os": "macOS-14.0-x86_64-i386-64bit",
+    "python": "3.12.1",
+    "heartbeatAt": "2024-04-30T08:02:34.022278",
+    "startedAt": "2024-04-30T08:02:33.227695",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/gpt_4_evaluate.py",
+    "codePathLocal": "gpt_4_evaluate.py",
+    "codePath": "gpt_4_evaluate.py",
+    "git": {
+        "remote": "git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git",
+        "commit": "3fac5cb70a218e92a2774871fd95110553ff6603"
+    },
+    "email": "chuajamessh@gmail.com",
+    "root": "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak",
+    "host": "Jamess-MBP",
+    "username": "jameschua",
+    "executable": "/Users/jameschua/ml/PerezAstraFellowship-Universal-VLM-Jailbreak/.venv/bin/python",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "cpu_freq": {
+        "current": 2400,
+        "min": 2400,
+        "max": 2400
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2400,
+            "min": 2400,
+            "max": 2400
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 13.767784118652344
+        }
+    },
+    "memory": {
+        "total": 16.0
+    }
+}
