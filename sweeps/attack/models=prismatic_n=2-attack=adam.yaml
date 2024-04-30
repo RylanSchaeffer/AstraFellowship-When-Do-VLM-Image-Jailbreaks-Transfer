@@ -46,7 +46,7 @@ parameters:
           [1]
       log_image_every_n_steps:
         values:
-          [50]
+          [250]
       precision:
         values:
           ["bf16-mixed"]
