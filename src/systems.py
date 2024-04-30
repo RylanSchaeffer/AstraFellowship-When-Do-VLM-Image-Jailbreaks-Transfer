@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
+from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
 from src.utils import create_initial_image
 
 
@@ -195,6 +196,10 @@ class VLMEnsembleEvaluatingSystem(lightning.LightningModule):
             model_strs=wandb_config["model_to_eval"],
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
         )
+        self.eval_llms = {
+            "llama2guard": LlamaGuardEvaluator(),
+            "harmbench": HarmBenchEvaluator(),
+        }
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=False)
         self.wandb_additional_data = {}
 

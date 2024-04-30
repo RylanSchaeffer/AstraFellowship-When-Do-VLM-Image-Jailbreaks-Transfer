@@ -57,6 +57,7 @@ default_eval_config = {
         "split": "eval",
     },
     "lightning_kwargs": {
+        "limit_eval_batches": 0.25,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },
@@ -103,6 +104,6 @@ default_eval_config = {
     },
     "n_generations": 5,
     "seed": 0,
-    "wandb_run_id": "m4s17qlw",
+    "wandb_run_id": "llu4vrns",
     # "wandb_sweep_id": "yvqszl4d",
 }

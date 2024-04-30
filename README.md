@@ -16,24 +16,22 @@
 
 5. Install Pytorch:
 
-`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y`
 
 6. Install Lightning:
 
-`conda install lightning -c conda-forge`
+`conda install lightning -c conda-forge -y`
 
 7. Grab the git submodules: `git submodule update --init --recursive`
 
 8. Install Prismatic: `cd submodules/prismatic-vlms && pip install -e . && cd ../..`
 9. Then follow their instructions:
 
-`pip install packaging ninja`
-
-`pip install flash-attn --no-build-isolation`
+`pip install packaging ninja && pip install flash-attn --no-build-isolation`
 
 10. Manually install a few additional packages:
 
-`conda install joblib pandas matplotlib seaborn black`
+`conda install joblib pandas matplotlib seaborn black -y`
 
 11. Install more stuff. 
 

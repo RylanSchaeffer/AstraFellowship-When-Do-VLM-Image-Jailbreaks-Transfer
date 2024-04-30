@@ -12,6 +12,14 @@ parameters:
         values: [ 1 ]
       split:
         values: [ "eval" ]
+  lightning_kwargs:
+    parameters:
+      limit_eval_batches:
+        values: [1.0]
+      precision:
+        values: ["bf16-mixed"]
+      log_loss_every_n_steps:
+        values: [1]
   model_to_eval:
     values:
       [
@@ -32,25 +40,39 @@ parameters:
       ]
   n_generations:
     values:
-      [5]
+      ["None"]
   seed:
     values:
       [0]
   wandb_run_id:
     values:
       [
-        "10z2nzp8",
-        "sibh8kfd",
-        "zboyasyj",
-        "m4s17qlw",
-        "7voo2yhy",
-        "ootnzitx",
-        "tly5lcjb",
-        "e6onwv7x",
-        "ctitglou",
-        "bhafjjgm",
-        "a814kpjm",
-        "iavanm96",
-        "dx5r4oef",
-        "fn6685yq",
+        "llu4vrns",
+        "tuduyb00",
+        "4wgm6evj",
+        "7jv0nic2",
+        "jmxfys1k",
+        "9gwtnyuh",
+        "gx8aks5c",
+        "z9aow5wg",
+        "xppbyq9u",
+        "gjozoorr",
+        "wliredqn",
+        "gy42nxru",
+        "l08el0ck",
+        "ewxoa705",
+        "df2m95le",
+        "nr37fh2j",
+        "uo09koqf",
+        "3gr07k9g",
+        "51da88s0",
+        "8lma0605",
+        "k6ujilop",
+        "fnaxnmbw",
+        "7w6ld64k",
+        "rx7p2c71",
+        "nfa7ovvw",
+        "52n8m6ok",
+        "f60s5qmu",
+        "2tewzh0w",
       ]
