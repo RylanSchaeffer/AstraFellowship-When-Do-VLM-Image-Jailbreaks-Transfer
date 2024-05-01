@@ -102,6 +102,11 @@ def evaluate_vlm_adversarial_examples():
         # refresh=True,
         refresh=False,
     )
+    wandb.config.update(
+        {
+            "models_to_attack": runs_jailbreak_dict_list[0]["models_to_attack"],
+        }
+    )
 
     # # Rylan uses this for debugging.
     # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
@@ -162,7 +167,7 @@ def evaluate_vlm_adversarial_examples():
             "eval_model_str": model_name_str,
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            "models_to_attack": run_jailbreak_dict["models_to_attack"],
         }
 
         # Bind data to the evaluation system for W&B logging on epoch end.
@@ -174,6 +179,10 @@ def evaluate_vlm_adversarial_examples():
             model=vlm_ensemble_system,
             datamodule=text_datamodule,
         )
+
+        # Only generate every 1000 optimizer steps.
+        if (run_jailbreak_dict["optimizer_step_counter"] % 1000) != 0:
+            continue
 
         generations_prompts_targets_evals_dict = {
             "prompts": [],
@@ -245,7 +254,7 @@ def evaluate_vlm_adversarial_examples():
             "eval_model_str": model_name_str,
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            "models_to_attack": run_jailbreak_dict["models_to_attack"],
             "loss/score_model=llamaguard2": vlm_ensemble_system.eval_llms[
                 "llama2guard"
             ].compute_score(

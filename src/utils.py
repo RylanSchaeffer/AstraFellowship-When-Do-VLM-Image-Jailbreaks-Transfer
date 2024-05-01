@@ -136,7 +136,7 @@ def load_jailbreak_dicts_list(
                         "file_path": file_path,
                         "wandb_run_id": run.id,
                         "optimizer_step_counter": optimizer_step_counter,
-                        "attack_models_str": run.config["models_to_attack"],
+                        "models_to_attack": run.config["models_to_attack"],
                     }
                 )
 

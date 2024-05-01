@@ -40,7 +40,7 @@ parameters:
       ]
   n_generations:
     values:
-      ["None"]
+      [30]
   seed:
     values:
       [0]
