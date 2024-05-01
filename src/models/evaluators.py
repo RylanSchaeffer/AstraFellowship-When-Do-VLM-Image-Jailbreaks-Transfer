@@ -8,6 +8,7 @@ from typing import Dict, List
 class HarmBenchEvaluator(torch.nn.Module):
     def __init__(
         self,
+        device_int: int = 0,
     ):
         super().__init__()
         # See: https://huggingface.co/cais/HarmBench-Llama-2-13b-cls
@@ -58,7 +59,9 @@ class HarmBenchEvaluator(torch.nn.Module):
             Answer: [/INST]""",
         }
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_id, torch_dtype=torch.float16, device_map=torch.device(f"cuda:1")
+            self.model_id,
+            torch_dtype=torch.float16,
+            device_map=torch.device(f"cuda:{device_int}"),
         )
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
 
@@ -103,13 +106,16 @@ class HarmBenchEvaluator(torch.nn.Module):
 class LlamaGuardEvaluator(torch.nn.Module):
     def __init__(
         self,
+        device_int: int = 0,
     ):
         super().__init__()
         # See: https://huggingface.co/meta-llama/Meta-Llama-Guard-2-8B
         self.model_id = "meta-llama/Meta-Llama-Guard-2-8B"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_id, torch_dtype=torch.float16, device_map=torch.device(f"cuda:1")
+            self.model_id,
+            torch_dtype=torch.float16,
+            device_map=torch.device(f"cuda:{device_int}"),
         )
         self.device = self.model.device
         # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

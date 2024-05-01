@@ -176,7 +176,7 @@ def retrieve_wandb_username() -> str:
     #     raise ValueError(f"Unknown W&B username: {system_username}")
     import wandb
 
-    api = wandb.Api()
+    api = wandb.Api(timeout=30)
     wandb_username = api.viewer.username
     return wandb_username
 

@@ -1,3 +1,4 @@
+import copy
 import os
 
 # Rok asked us to include the following specifications in our code to prevent CPUs from spinning idly:
@@ -8,21 +9,23 @@ os.environ["MKL_NUM_THREADS"] = n_threads_str
 os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
 os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
-import torchvision.transforms.v2.functional
 import ast
 import json
+import gc
 import lightning
 import numpy as np
 from PIL import Image
 import pprint
 import time
 import torch
+import torchvision.transforms.v2.functional
 import wandb
 from typing import Any, Dict, List
 
 
 import src.data
 import src.globals
+import src.models.evaluators
 import src.systems
 import src.utils
 
@@ -52,7 +55,7 @@ def evaluate_vlm_adversarial_examples():
     print("W&B Config:")
     pp.pprint(wandb_config)
     print("CUDA VISIBLE DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
-    assert torch.cuda.device_count() == 2
+    assert torch.cuda.device_count() == 1
 
     # Convert these strings to sets of strings.
     # This needs to be done after writing JSON to disk because sets are not JSON serializable.
@@ -109,7 +112,7 @@ def evaluate_vlm_adversarial_examples():
     )
 
     # # Rylan uses this for debugging.
-    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-1:]
+    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -153,7 +156,7 @@ def evaluate_vlm_adversarial_examples():
 
     # There should only be one.
     model_name_str = list(wandb_config["model_to_eval"])[0]
-    for run_jailbreak_dict in runs_jailbreak_dict_list:
+    for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
         adv_image = (
@@ -188,8 +191,6 @@ def evaluate_vlm_adversarial_examples():
             "prompts": [],
             "generations": [],
             "targets": [],
-            "model_eval_llamaguard2": [],
-            "model_eval_harmbench": [],
         }
         for prompt_idx, (prompt, target) in enumerate(
             zip(
@@ -210,19 +211,51 @@ def evaluate_vlm_adversarial_examples():
                 f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {generation}\nGeneration Duration: {end_time - start_time} seconds\n\n"
             )
 
-        generations_prompts_targets_evals_dict[
-            "judgements_llamaguard2"
-        ] = vlm_ensemble_system.eval_llms["llama2guard"].evaluate(
-            prompts=generations_prompts_targets_evals_dict["prompts"],
-            generations=generations_prompts_targets_evals_dict["generations"],
-        )
-        generations_prompts_targets_evals_dict[
-            "judgements_harmbench"
-        ] = vlm_ensemble_system.eval_llms["harmbench"].evaluate(
-            prompts=generations_prompts_targets_evals_dict["prompts"],
-            generations=generations_prompts_targets_evals_dict["generations"],
-        )
+        run_jailbreak_dict[
+            "generations_prompts_targets_evals_dict"
+        ] = generations_prompts_targets_evals_dict
+        runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 
+    # Free up memory.
+    del vlm_ensemble_system
+    del text_datamodule
+    del trainer
+    gc.collect()
+
+    # Score generations using LlamaGuard2 and HarmBench.
+    for eval_model_name, eval_model_constr in [
+        ("llamaguard2", src.models.evaluators.LlamaGuardEvaluator),
+        ("harmbench", src.models.evaluators.HarmBenchEvaluator),
+    ]:
+        eval_model = eval_model_constr()
+        for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):
+            if "generations_prompts_targets_evals_dict" not in run_jailbreak_dict:
+                continue
+
+            run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                f"judgements_{eval_model_name}"
+            ] = eval_model.evaluate(
+                run_jailbreak_dict["generations_prompts_targets_evals_dict"]["prompts"],
+                run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                    "generations"
+                ],
+            )
+            run_jailbreak_dict[
+                f"loss/score_{eval_model_name}"
+            ] = eval_model.compute_score(
+                run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                    f"judgements_{eval_model_name}"
+                ]
+            )
+            runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
+
+    for run_jailbreak_dict in runs_jailbreak_dict_list:
+        if "generations_prompts_targets_evals_dict" not in run_jailbreak_dict:
+            continue
+
+        generations_prompts_targets_evals_dict = run_jailbreak_dict[
+            "generations_prompts_targets_evals_dict"
+        ]
         wandb_log_data = {
             f"generations_{model_name_str}_optimizer_step={run_jailbreak_dict['optimizer_step_counter']}": wandb.Table(
                 columns=[
@@ -255,16 +288,10 @@ def evaluate_vlm_adversarial_examples():
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
             "models_to_attack": run_jailbreak_dict["models_to_attack"],
-            "loss/score_model=llamaguard2": vlm_ensemble_system.eval_llms[
-                "llama2guard"
-            ].compute_score(
-                generations_prompts_targets_evals_dict["judgements_llamaguard2"]
-            ),
-            "loss/score_model=harmbench": vlm_ensemble_system.eval_llms[
-                "harmbench"
-            ].compute_score(
-                generations_prompts_targets_evals_dict["judgements_harmbench"]
-            ),
+            "loss/score_model=llamaguard2": run_jailbreak_dict[
+                "loss/score_llamaguard2"
+            ],
+            "loss/score_model=harmbench": run_jailbreak_dict["loss/score_harmbench"],
         }
         wandb.log(wandb_log_data)
 
