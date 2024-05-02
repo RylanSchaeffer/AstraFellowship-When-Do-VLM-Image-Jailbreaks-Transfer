@@ -163,7 +163,10 @@ eval_runs_histories_df.rename(
 #     os.path.join("configs", "vlm_metadata.csv"),
 # )
 
-
+learning_curves_by_attack_model_dir = os.path.join(
+    results_dir, "learning_curves_by_attack_model"
+)
+os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
 plt.close()
 g = sns.relplot(
     data=eval_runs_histories_df[eval_runs_histories_df["split"] == "eval"],
@@ -199,86 +202,53 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
 )
-plt.show()
+# plt.show()
 
 
 for (
     models_to_attack,
     eval_runs_histories_by_attack_df,
 ) in eval_runs_histories_df.groupby("models_to_attack"):
-    plt.close()
-    g = sns.relplot(
-        data=eval_runs_histories_by_attack_df[
-            eval_runs_histories_by_attack_df["split"] == "eval"
-        ],
-        kind="line",
-        x="optimizer_step_counter_epoch",
-        y="loss/avg_epoch",
-        hue="Evaluated Model",
-        hue_order=unique_and_ordered_eval_model_strs,
-        style="Attack Dataset",
-        style_order=["advbench", "rylan_anthropic_hhh"],
-        col="models_to_attack",
-        row="Eval Dataset",
-        facet_kws={"margin_titles": True},
-    )
-    g.set_axis_labels(
-        "Gradient Step", "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
-    )
-    g.fig.suptitle("Attacked Model(s)", y=1.0)
-    g.set_titles(col_template="{col_name}", row_template="{row_name}")
-    # g._legend.set_title("Evaluated Model")
-    sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=(-0.05, None))
-    src.plot.save_plot_with_multiple_extensions(
-        plot_dir=results_dir,
-        plot_title=f"prismatic_loss_vs_gradient_step_cols=eval_models_rows=attack_models={models_to_attack}",
-    )
-    g.set(
-        xscale="log",
-        yscale="log",
-        ylim=(0.95 * eval_runs_histories_df["loss/avg_epoch"].min(), None),
-    )
-    src.plot.save_plot_with_multiple_extensions(
-        plot_dir=results_dir,
-        plot_title=f"prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={models_to_attack}",
-    )
-    # plt.show()
-
-
-# plt.close()
-# g = sns.relplot(
-#     data=runs_histories_df,
-#     kind="line",
-#     x="n_gradient_steps",
-#     y="eval/generation_begins_with_target",
-#     hue="model_to_eval",
-#     hue_order=unique_and_ordered_eval_model_strs,
-#     col="models_to_attack",
-#     # col_order=unique_and_ordered_attack_models_strs,
-#     # row="model_to_eval",
-#     # row_order=unique_and_ordered_eval_model_strs,
-# )
-# g.set_axis_labels("Gradient Step", "Exact Match of Generation \& Target")
-# g.fig.suptitle("Attacked Model(s)", y=1.0)
-# g.set_titles(col_template="{col_name}", row_template="Eval: {row_name}")
-# g.set(ylim=(-0.05, 1.05))
-# g._legend.set_title("Evaluated Model")
-# sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-# # g.fig.text(
-# #     1.01,
-# #     0.5,
-# #     "Evaluated Model",
-# #     rotation=-90,
-# #     va="center",
-# #     ha="left",
-# #     transform=g.fig.transFigure,
-# # )
-# src.plot.save_plot_with_multiple_extensions(
-#     plot_dir=results_dir,
-#     plot_title="prismatic_exact_match_vs_gradient_step_cols=eval_models_rows=attack_models",
-# )
-# # plt.show()
+    for metric in src.analyze.metrics_to_nice_strings_dict:
+        plt.close()
+        g = sns.relplot(
+            data=eval_runs_histories_by_attack_df[
+                eval_runs_histories_by_attack_df["split"] == "eval"
+            ],
+            kind="line",
+            x="optimizer_step_counter_epoch",
+            y=metric,
+            hue="Evaluated Model",
+            hue_order=unique_and_ordered_eval_model_strs,
+            style="Attack Dataset",
+            style_order=["advbench", "rylan_anthropic_hhh"],
+            col="models_to_attack",
+            row="Eval Dataset",
+            facet_kws={"margin_titles": True},
+        )
+        g.set_axis_labels(
+            "Gradient Step", src.analyze.metrics_to_nice_strings_dict[metric]
+        )
+        g.fig.suptitle("Attacked Model(s)", y=1.0)
+        g.set_titles(col_template="{col_name}", row_template="{row_name}")
+        # g._legend.set_title("Evaluated Model")
+        sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+        g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+        src.plot.save_plot_with_multiple_extensions(
+            plot_dir=learning_curves_by_attack_model_dir,
+            plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={models_to_attack}",
+        )
+        if metric == "loss/avg_epoch":
+            g.set(
+                xscale="log",
+                yscale="log",
+                ylim=(0.95 * eval_runs_histories_df["loss/avg_epoch"].min(), None),
+            )
+            src.plot.save_plot_with_multiple_extensions(
+                plot_dir=learning_curves_by_attack_model_dir,
+                plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={models_to_attack}",
+            )
+        # plt.show()
 
 
 print("Finished notebooks/00_prismatic_results.py!")
