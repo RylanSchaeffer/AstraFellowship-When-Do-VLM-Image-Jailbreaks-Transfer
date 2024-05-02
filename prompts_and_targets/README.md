@@ -19,7 +19,7 @@ https://huggingface.co/datasets/Anthropic/hh-rlhf/discussions/14
     - Arguments:
         - --topics_path - A .jsonl file to read topics from. Defaults to 'topics.jsonl'
         - --output_path - Where to write the dataset when finished. Can be .jsonl or .csv. Defaults to a timestamped csv in the data/ folder.
-        - --n_topics - How many topics from the topics file to use. Leave blank to use them all.
+        - --n_topics - How many topics from the topics file to use. Leave blank to use them all. For testing you should specify something in the range 1-3.
         - --n_subtopics - How many subtopics to generate per topic. 50 works well. Default is 5 for testing.
         - --n_prompts - How many prompts to generate per subtopic. 10 works well. Default is 5 for testing.
 - Load a dataset from a file: `dataset = GeneratedPromptResponseDataset.from_file(path)` - returns a pytorch dataset.
