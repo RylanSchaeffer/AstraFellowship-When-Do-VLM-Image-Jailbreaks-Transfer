@@ -8,7 +8,7 @@
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="SDK_NAME" value="$USER_HOME$/anaconda3" />
+    <option name="SDK_NAME" value="Remote Python 3.11.8 (sftp://rschaef@ampere1.stanford.edu:22/lfs/ampere1/0/rschaef/miniconda3/envs/universal_vlm_jailbreak_env/bin/python)" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
