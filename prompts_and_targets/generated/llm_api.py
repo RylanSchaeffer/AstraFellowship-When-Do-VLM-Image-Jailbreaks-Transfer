@@ -142,7 +142,7 @@ class AnthropicChatModel:
         duration = None
         system_prompt = extract_system_prompt(prompt)
         prompt = transform_messages(prompt)
-        prompt_file = self._create_prompt_history_file([system_prompt] + prompt)
+        # prompt_file = self._create_prompt_history_file([system_prompt] + prompt)
         for i in range(max_attempts):
             try:
                 async with self.available_requests:
@@ -185,7 +185,7 @@ class AnthropicChatModel:
             api_duration=api_duration,
         )
 
-        self._add_response_to_prompt_file(prompt_file, llm_response)
+        # self._add_response_to_prompt_file(prompt_file, llm_response)
         if self.print_prompt_and_response:
             cprint("Prompt:", "white")
             cprint("System: " + system_prompt, PRINT_COLORS["system"])
@@ -215,7 +215,7 @@ class ModelAPI:
             num_threads=self.num_threads,
             print_prompt_and_response=self.print_prompt_and_response,
         )
-        Path("./prompt_history").mkdir(exist_ok=True)
+        # Path("./prompt_history").mkdir(exist_ok=True)
 
     async def __call__(
         self,
