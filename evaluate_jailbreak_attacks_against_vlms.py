@@ -295,6 +295,8 @@ def evaluate_vlm_adversarial_examples():
         }
         wandb.log(wandb_log_data)
 
+    wandb.finish()
+
 
 if __name__ == "__main__":
     if "CUDA_VISIBLE_DEVICES" not in os.environ:

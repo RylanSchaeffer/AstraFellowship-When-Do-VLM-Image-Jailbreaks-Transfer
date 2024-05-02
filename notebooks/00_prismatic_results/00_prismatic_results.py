@@ -11,8 +11,9 @@ import src.analyze
 import src.plot
 
 
-refresh = True
-# refresh = False
+# refresh = True
+refresh = False
+metrics = src.analyze.metrics_to_nice_strings_dict
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -21,9 +22,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "omurwifa",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench
-    "poe9qs91",  # Prismatic with N-Choose-1 Jailbreaks, Rylan Anthropic HHH
-    # "",  # Prismatic with N-Choose-2 Jailbreaks
+    "jb02fx4o",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH
 ]
 
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -33,12 +32,16 @@ eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     refresh=refresh,
     finished_only=False,
 )
-eval_runs_configs_df["dataset"] = eval_runs_configs_df["data"].apply(
+# This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
+eval_runs_configs_df.drop(columns=["models_to_attack"], inplace=True)
+eval_runs_configs_df["eval_dataset"] = eval_runs_configs_df["data"].apply(
     lambda x: x["dataset"] if isinstance(x, dict) else ast.literal_eval(x)["dataset"]
 )
 eval_runs_configs_df["split"] = eval_runs_configs_df["data"].apply(
     lambda x: x["split"] if isinstance(x, dict) else ast.literal_eval(x)["split"]
 )
+# Keep only the eval data (previously we measured train and eval).
+eval_runs_configs_df = eval_runs_configs_df[eval_runs_configs_df["split"] == "eval"]
 
 attack_wandb_run_ids = eval_runs_configs_df["wandb_run_id"].unique()
 api = wandb.Api(timeout=600)
@@ -63,6 +66,57 @@ attack_runs_configs_df.rename(
     inplace=True,
 )
 
+# Add metadata about evaluations.
+# TODO: Fix this shit naming of wandb_run_id.
+eval_runs_configs_df = eval_runs_configs_df.merge(
+    right=attack_runs_configs_df[
+        [
+            "attack_run_id",
+            "attack_dataset",
+            "models_to_attack",  # (we now no longer need this because we updated the eval run on W&B.)
+        ]
+    ],
+    how="left",
+    left_on="wandb_run_id",
+    right_on="attack_run_id",
+)
+
+pairwise_metrics_dir = os.path.join(results_dir, "pairwise_metrics")
+os.makedirs(pairwise_metrics_dir, exist_ok=True)
+for metric_x in metrics:
+    for metric_y in metrics:
+        if metric_x == metric_y:
+            continue
+        plt.close()
+        g = sns.relplot(
+            eval_runs_configs_df,
+            x=metric_x,
+            y=metric_y,
+            col="attack_dataset",
+            row="eval_dataset",
+            # style="attack_dataset",
+            # style_order=["advbench", "rylan_anthropic_hhh"],
+            facet_kws={"margin_titles": True},
+        )
+        g.set(
+            xlim=src.analyze.metrics_to_bounds_dict[metric_x],
+            ylim=src.analyze.metrics_to_bounds_dict[metric_y],
+        )
+        g.set_axis_labels(
+            x_var=src.analyze.metrics_to_nice_strings_dict[metric_x],
+            y_var=src.analyze.metrics_to_nice_strings_dict[metric_y],
+        )
+        g.set_titles(
+            col_template="Attack Dataset: {col_name}",
+            row_template="Eval Dataset: {row_name}",
+        )
+        src.plot.save_plot_with_multiple_extensions(
+            plot_dir=pairwise_metrics_dir,
+            plot_title=f"pairwise_metrics_{metric_y[5:]}_vs_{metric_x[5:]}",  # Strip off "loss/".
+        )
+        # plt.show()
+
+
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
@@ -70,17 +124,9 @@ eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     refresh=refresh,
     wandb_run_history_samples=10000,
 )
+# This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
+eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
 
-# Add metadata about evaluations.
-# TODO: Fix this shit naming of wandb_run_id.
-eval_runs_configs_df = eval_runs_configs_df.merge(
-    right=attack_runs_configs_df[
-        ["attack_run_id", "models_to_attack", "attack_dataset"]
-    ],
-    how="left",
-    left_on="wandb_run_id",
-    right_on="attack_run_id",
-)
 
 eval_runs_histories_df = eval_runs_histories_df.merge(
     right=eval_runs_configs_df[
@@ -90,7 +136,7 @@ eval_runs_histories_df = eval_runs_histories_df.merge(
             "model_to_eval",
             "models_to_attack",
             "attack_dataset",
-            "dataset",
+            "eval_dataset",
             "split",
         ]
     ],
@@ -108,7 +154,7 @@ unique_and_ordered_eval_model_strs = np.sort(
 eval_runs_histories_df.rename(
     columns={
         "model_to_eval": "Evaluated Model",
-        "dataset": "Dataset",
+        "eval_dataset": "Eval Dataset",
         "attack_dataset": "Attack Dataset",
     },
     inplace=True,
@@ -129,12 +175,12 @@ g = sns.relplot(
     style="Attack Dataset",
     style_order=["advbench", "rylan_anthropic_hhh"],
     col="models_to_attack",
-    row="Dataset",
+    row="Eval Dataset",
     facet_kws={"margin_titles": True},
 )
 # plt.show()
 g.set_axis_labels(
-    "Gradient Step", "Eval Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
+    "Gradient Step", "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
 )
 g.fig.suptitle("Attacked Model(s)", y=1.0)
 g.set_titles(col_template="{col_name}", row_template="{row_name}")
@@ -153,7 +199,7 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
 )
-# plt.show()
+plt.show()
 
 
 for (
@@ -173,11 +219,11 @@ for (
         style="Attack Dataset",
         style_order=["advbench", "rylan_anthropic_hhh"],
         col="models_to_attack",
-        row="Dataset",
+        row="Eval Dataset",
         facet_kws={"margin_titles": True},
     )
     g.set_axis_labels(
-        "Gradient Step", "Eval Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
+        "Gradient Step", "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
