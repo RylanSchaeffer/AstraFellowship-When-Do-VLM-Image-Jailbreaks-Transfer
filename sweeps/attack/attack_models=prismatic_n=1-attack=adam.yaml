@@ -18,7 +18,9 @@ parameters:
           ]
       num_workers:
         values:
-          [1]
+          [2]
+      prefetch_factor:
+        values: [ 4 ]
       split:
         values:
           ["train"]

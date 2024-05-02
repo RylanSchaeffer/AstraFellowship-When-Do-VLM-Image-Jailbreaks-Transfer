@@ -9,7 +9,9 @@ parameters:
       dataset:
         values: ["advbench", "rylan_anthropic_hhh"]
       num_workers:
-        values: [ 1 ]
+        values: [ 2 ]
+      prefetch_factor:
+        values: [ 4 ]
       split:
         values: [ "eval" ]
   lightning_kwargs:
