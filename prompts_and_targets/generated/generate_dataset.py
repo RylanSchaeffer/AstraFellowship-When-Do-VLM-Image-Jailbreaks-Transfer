@@ -8,7 +8,7 @@ from functools import partial
 import json
 from typing import Optional
 import asyncio
-from prompts_and_targets.generated.llm_api import ModelAPI
+from prompts_and_targets.generated.llm_api import ModelAPI, load_secrets
 from openai import OpenAI
 import argparse
 from torch.utils.data import Dataset
@@ -66,8 +66,8 @@ def create_claude_handler():
 
 
 def create_llama_handler():
-    RUNPOD_URL = "https://api.runpod.ai/v2/vllm-y6ztnvg8fgyhwx/openai/v1"
-    client = OpenAI(api_key=os.environ.get("RUNPOD_API_KEY"), base_url=RUNPOD_URL)
+    secrets = load_secrets("SECRETS")
+    client = OpenAI(api_key=secrets["RUNPOD_API_KEY"], base_url=secrets["RUNPOD_URL"])
     return client
 
 
