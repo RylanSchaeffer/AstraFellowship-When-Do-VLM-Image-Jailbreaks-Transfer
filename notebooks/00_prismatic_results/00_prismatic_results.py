@@ -167,42 +167,49 @@ learning_curves_by_attack_model_dir = os.path.join(
     results_dir, "learning_curves_by_attack_model"
 )
 os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
-plt.close()
-g = sns.relplot(
-    data=eval_runs_histories_df[eval_runs_histories_df["split"] == "eval"],
-    kind="line",
-    x="optimizer_step_counter_epoch",
-    y="loss/avg_epoch",
-    hue="Evaluated Model",
-    hue_order=unique_and_ordered_eval_model_strs,
-    style="Attack Dataset",
-    style_order=["advbench", "rylan_anthropic_hhh"],
-    col="models_to_attack",
-    row="Eval Dataset",
-    facet_kws={"margin_titles": True},
-)
-# plt.show()
-g.set_axis_labels(
-    "Gradient Step", "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)"
-)
-g.fig.suptitle("Attacked Model(s)", y=1.0)
-g.set_titles(col_template="{col_name}", row_template="{row_name}")
-sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-g.set(ylim=(-0.05, None))
-src.plot.save_plot_with_multiple_extensions(
-    plot_dir=results_dir,
-    plot_title="prismatic_loss_vs_gradient_step_cols=eval_models_rows=attack_models",
-)
-g.set(
-    xscale="log",
-    yscale="log",
-    ylim=(0.95 * eval_runs_histories_df["loss/avg_epoch"].min(), None),
-)
-src.plot.save_plot_with_multiple_extensions(
-    plot_dir=results_dir,
-    plot_title="prismatic_loss_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
-)
-# plt.show()
+
+for metric in src.analyze.metrics_to_nice_strings_dict:
+    plt.close()
+    g = sns.relplot(
+        data=eval_runs_histories_df[eval_runs_histories_df["split"] == "eval"],
+        kind="line",
+        # I stupidly used the wrong column name for the LM eval scoring.
+        x="optimizer_step_counter_epoch"
+        if metric == "loss/avg_epoch"
+        else "optimizer_step_counter",
+        y=metric,
+        hue="Evaluated Model",
+        hue_order=unique_and_ordered_eval_model_strs,
+        style="Attack Dataset",
+        style_order=["advbench", "rylan_anthropic_hhh"],
+        col="models_to_attack",
+        row="Eval Dataset",
+        facet_kws={"margin_titles": True},
+    )
+    # plt.show()
+    g.set_axis_labels(
+        "Gradient Step",
+        src.analyze.metrics_to_nice_strings_dict[metric],
+    )
+    g.fig.suptitle("Attacked Model(s)", y=1.0)
+    g.set_titles(col_template="{col_name}", row_template="{row_name}")
+    sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    src.plot.save_plot_with_multiple_extensions(
+        plot_dir=results_dir,
+        plot_title=f"{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models",
+    )
+    if metric == "loss/avg_epoch":
+        g.set(
+            xscale="log",
+            yscale="log",
+            ylim=(0.95 * eval_runs_histories_df["loss/avg_epoch"].min(), None),
+        )
+        src.plot.save_plot_with_multiple_extensions(
+            plot_dir=results_dir,
+            plot_title=f"{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
+        )
+    # plt.show()
 
 
 for (
