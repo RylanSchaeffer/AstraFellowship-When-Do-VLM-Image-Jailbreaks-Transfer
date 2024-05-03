@@ -5,6 +5,7 @@ default_attack_config = {
         "dataset": "advbench",
         "batch_size": 3,
         "num_workers": 1,
+        "prefetch_factor": 4,
         "split": "train",
     },
     "image_kwargs": {
@@ -51,13 +52,19 @@ default_attack_config = {
 
 default_eval_config = {
     "data": {
-        "num_workers": 1,
         "batch_size": 1,
         "dataset": "rylan_anthropic_hhh",
+        # "num_workers": 1,
+        # "num_workers": 2,
+        "num_workers": 4,
+        # "prefetch_factor": 1,
+        # "prefetch_factor": 4,
+        "prefetch_factor": 8,
         "split": "eval",
     },
     "lightning_kwargs": {
-        "limit_eval_batches": 0.25,  # Fast debugging.
+        "limit_eval_batches": 1.0,  # Fast debugging.
+        # "limit_eval_batches": 0.25,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },

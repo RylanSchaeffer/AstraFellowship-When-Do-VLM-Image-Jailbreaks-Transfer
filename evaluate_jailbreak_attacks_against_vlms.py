@@ -249,6 +249,10 @@ def evaluate_vlm_adversarial_examples():
             )
             runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 
+        # Clean up the eval model once we're done with it.
+        del eval_model
+        gc.collect()
+
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         if "generations_prompts_targets_evals_dict" not in run_jailbreak_dict:
             continue
@@ -287,6 +291,9 @@ def evaluate_vlm_adversarial_examples():
             "eval_model_str": model_name_str,
             "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
+            "optimizer_step_counter_epoch": run_jailbreak_dict[
+                "optimizer_step_counter"
+            ],
             "models_to_attack": run_jailbreak_dict["models_to_attack"],
             "loss/score_model=llamaguard2": run_jailbreak_dict[
                 "loss/score_llamaguard2"

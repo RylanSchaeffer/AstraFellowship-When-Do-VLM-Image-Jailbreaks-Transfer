@@ -43,6 +43,7 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
             num_workers=self.wandb_config["data"]["num_workers"],
             drop_last=True,
             pin_memory=torch.cuda.is_available(),
+            prefetch_factor=self.wandb_config["data"]["prefetch_factor"],
         )
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
@@ -53,6 +54,7 @@ class VLMEnsembleTextDataModule(lightning.LightningDataModule):
             num_workers=self.wandb_config["data"]["num_workers"],
             drop_last=False,
             pin_memory=torch.cuda.is_available(),
+            prefetch_factor=self.wandb_config["data"]["prefetch_factor"],
         )
 
 
