@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "advbench",
-        "batch_size": 3,
+        "batch_size": 1,
         "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
@@ -30,7 +30,8 @@ default_attack_config = {
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
-    "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
+    # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
+    "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",

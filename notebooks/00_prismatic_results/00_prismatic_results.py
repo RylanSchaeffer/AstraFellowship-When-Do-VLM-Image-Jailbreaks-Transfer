@@ -170,13 +170,16 @@ os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
 
 for metric in src.analyze.metrics_to_nice_strings_dict:
     plt.close()
+    # I stupidly used the wrong column name for the LM eval scoring. One has "epoch" and others do not.
+    x = (
+        "optimizer_step_counter_epoch"
+        if metric == "loss/avg_epoch"
+        else "optimizer_step_counter"
+    )
     g = sns.relplot(
         data=eval_runs_histories_df[eval_runs_histories_df["split"] == "eval"],
         kind="line",
-        # I stupidly used the wrong column name for the LM eval scoring.
-        x="optimizer_step_counter_epoch"
-        if metric == "loss/avg_epoch"
-        else "optimizer_step_counter",
+        x=x,
         y=metric,
         hue="Evaluated Model",
         hue_order=unique_and_ordered_eval_model_strs,
