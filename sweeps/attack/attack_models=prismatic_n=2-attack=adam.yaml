@@ -31,7 +31,10 @@ parameters:
           [512]
       image_initialization:
         values:
-          ["random"]
+          [
+            "random",
+            "trina",
+          ]
   lightning_kwargs:
     parameters:
       accumulate_grad_batches:
