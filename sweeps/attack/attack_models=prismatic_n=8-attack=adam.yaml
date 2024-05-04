@@ -65,7 +65,7 @@ parameters:
       ]
   n_generations:
     values:
-      [ 20 ]
+      [ 30 ]
   n_grad_steps:
     values:
       [25000]
