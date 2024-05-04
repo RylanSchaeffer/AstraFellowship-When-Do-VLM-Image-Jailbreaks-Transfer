@@ -7,7 +7,7 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="CUDA_DEVICE_ORDER" value="PCI_BUS_ID" />
-      <env name="CUDA_VISIBLE_DEVICES" value="2" />
+      <env name="CUDA_VISIBLE_DEVICES" value="0,2" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="SDK_NAME" value="Remote Python 3.11.8 (sftp://rschaef@ampere1.stanford.edu:22/lfs/ampere1/0/rschaef/miniconda3/envs/universal_vlm_jailbreak_env/bin/python)" />

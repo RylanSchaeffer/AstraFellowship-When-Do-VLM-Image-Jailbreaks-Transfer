@@ -8,6 +8,12 @@ os.environ["MKL_NUM_THREADS"] = n_threads_str
 os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
 os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
+# The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+# To disable this warning, you can either:
+# 	- Avoid using `tokenizers` before the fork if possible
+# 	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import ast
 import json
 import lightning
@@ -150,11 +156,12 @@ def optimize_vlm_adversarial_examples():
     )
 
     if wandb_config["compile"]:
-        # vlm_ensemble_system: VLMEnsemble = torch.compile(
-        #     vlm_ensemble_system,
-        #     mode="default",  # Good balance between performance and overhead.
-        # )
-        print(
+        print("Compiling system.")
+        vlm_ensemble_system = torch.compile(
+            vlm_ensemble_system,
+            mode="default",  # Good balance between performance and overhead.
+        )
+        raise NotImplementedError(
             "Reminder: torch.compile() doesn't work. Some memory leak? Need to debug."
         )
 

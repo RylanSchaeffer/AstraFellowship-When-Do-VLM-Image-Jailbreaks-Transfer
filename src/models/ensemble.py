@@ -89,7 +89,11 @@ class VLMEnsemble(lightning.LightningModule):
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
             if torch.cuda.is_available():
-                vlm = vlm.to(torch.device(f"cuda:{model_device_int_str}"))
+                # If we have N GPUs, we want the first to go to GPU N-1, the second to GPU N-2, etc.
+                # TODO: Was this actually because someone else was using the GPUs at the same time?
+                vlm = vlm.to(
+                    torch.device(f"cuda:{device_count - model_device_int_str - 1}")
+                )
 
             self.vlms_dict[model_str] = vlm
 
@@ -109,9 +113,29 @@ class VLMEnsemble(lightning.LightningModule):
         handles = {}
 
         # TODO: How to check whether or not this is blocking?
-        # Zane: Increasing sampling frequency of nvidia-smi.
+        # Ran experiments to confirm.
         for model_idx, (model_name, model_wrapper) in enumerate(self.vlms_dict.items()):
             model_wrapper_device = model_wrapper.device
+
+            # # Implementation #0.
+            # # Compute the loss for each model
+            # loss = model_wrapper.compute_loss(
+            #     image=image.to(model_wrapper_device, non_blocking=non_blocking),
+            #     input_ids=text_data_by_model[model_name]["input_ids"].to(
+            #         model_wrapper_device,
+            #     ),
+            #     attention_mask=text_data_by_model[model_name]["attention_mask"].to(
+            #         model_wrapper_device,
+            #     ),
+            #     labels=text_data_by_model[model_name]["labels"].to(
+            #         model_wrapper_device,
+            #     ),
+            # )
+            # losses_per_model[model_name] = loss.to(
+            #     self.device,
+            # )
+
+            # Implementation #1.
             # Compute the loss for each model
             # loss = model_wrapper.compute_loss(
             #     image=image.to(model_wrapper_device, non_blocking=non_blocking),
@@ -132,30 +156,49 @@ class VLMEnsemble(lightning.LightningModule):
             #     self.device, non_blocking=non_blocking
             # )
 
-            image = image.to(model_wrapper_device, non_blocking=non_blocking)
-            input_ids = text_data_by_model[model_name]["input_ids"].to(
-                model_wrapper_device,
-                non_blocking=non_blocking,
-            )
-            attention_mask = text_data_by_model[model_name]["attention_mask"].to(
-                model_wrapper_device,
-                non_blocking=non_blocking,
-            )
-            labels = text_data_by_model[model_name]["labels"].to(
-                model_wrapper_device,
-                non_blocking=non_blocking,
-            )
+            # Implementation #2.
+            # image = image.to(model_wrapper_device, non_blocking=non_blocking)
+            # input_ids = text_data_by_model[model_name]["input_ids"].to(
+            #     model_wrapper_device,
+            #     non_blocking=non_blocking,
+            # )
+            # attention_mask = text_data_by_model[model_name]["attention_mask"].to(
+            #     model_wrapper_device,
+            #     non_blocking=non_blocking,
+            # )
+            # labels = text_data_by_model[model_name]["labels"].to(
+            #     model_wrapper_device,
+            #     non_blocking=non_blocking,
+            # )
 
-            # Fork the computation, i.e., schedule it to run in parallel
+            # # Fork the computation, i.e., schedule it to run in parallel
+            # handles[model_name] = torch.jit.fork(
+            #     model_wrapper.compute_loss,
+            #     image=image,
+            #     input_ids=input_ids,
+            #     attention_mask=attention_mask,
+            #     labels=labels,
+            # )
+
+            # Implementation #3.
             handles[model_name] = torch.jit.fork(
                 model_wrapper.compute_loss,
-                image=image,
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                labels=labels,
+                image=image.to(model_wrapper_device, non_blocking=non_blocking),
+                input_ids=text_data_by_model[model_name]["input_ids"].to(
+                    model_wrapper_device,
+                    non_blocking=non_blocking,
+                ),
+                attention_mask=text_data_by_model[model_name]["attention_mask"].to(
+                    model_wrapper_device,
+                    non_blocking=non_blocking,
+                ),
+                labels=text_data_by_model[model_name]["labels"].to(
+                    model_wrapper_device,
+                    non_blocking=non_blocking,
+                ),
             )
 
-        # Collect results from all models
+        # # Collect results from all models
         for model_name, handle in handles.items():
             loss = torch.jit.wait(handle)
             losses_per_model[model_name] = loss.to(self.device, non_blocking=True)
