@@ -2,8 +2,6 @@ import base64
 from pathlib import Path
 import httpx
 import requests
-# pip install python-dotenv
-import dotenv
 import os
 
 # Function to encode the image
@@ -103,7 +101,8 @@ class OpenAIClient:
         return json["choices"][0]["message"]["content"]
         
 async def main():
-
+    # pip install python-dotenv
+    import dotenv
     # Please set your .env file with the OPENAI_API_KEY
     dotenv.load_dotenv()
     # OpenAI API Key
