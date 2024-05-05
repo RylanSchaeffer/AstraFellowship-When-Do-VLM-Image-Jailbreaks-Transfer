@@ -4,6 +4,7 @@ import httpx
 import requests
 import os
 
+
 # Function to encode the image
 def encode_image(image_path: Path | str) -> str:
     with open(image_path, "rb") as image_file:
@@ -53,10 +54,13 @@ class OpenAIClient:
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
         )
-        
-        try: 
+
+        try:
             json = response.json()
             return json["choices"][0]["message"]["content"]
         except Exception as e:
@@ -98,14 +102,19 @@ class OpenAIClient:
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = await self.session.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
         )
         json = response.json()
         return json["choices"][0]["message"]["content"]
-        
+
+
 async def main():
     # pip install python-dotenv
     import dotenv
+
     # Please set your .env file with the OPENAI_API_KEY
     dotenv.load_dotenv()
     # OpenAI API Key
@@ -121,15 +130,13 @@ async def main():
     max_tokens = 100
     temperature = 0.0
     client = OpenAIClient(api_key)
-    response = await client.a_call_gpt_4_turbo(question, base64_image, temperature, max_tokens)
+    response = await client.a_call_gpt_4_turbo(
+        question, base64_image, temperature, max_tokens
+    )
     print(response)
+
 
 if __name__ == "__main__":
     import asyncio
 
     asyncio.run(main())
-
-
-
-
-
