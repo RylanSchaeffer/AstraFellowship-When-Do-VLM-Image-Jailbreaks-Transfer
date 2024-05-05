@@ -4,3 +4,4 @@ SECRETS
 .venv/
 prompt_history/
 wandb/
+.env
