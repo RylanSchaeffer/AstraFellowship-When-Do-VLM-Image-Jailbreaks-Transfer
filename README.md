@@ -4,7 +4,7 @@
 
 1. (Optional) Update conda:
 
-`conda update -n base -c defaults conda`
+`conda update -n base -c defaults conda -y`
 
 2. Create and activate the conda environment:
 
@@ -22,9 +22,14 @@
 
 `conda install lightning -c conda-forge -y`
 
-7. Grab the git submodules: `git submodule update --init --recursive`
+7. Grab the git submodules:
 
-8. Install Prismatic: `cd submodules/prismatic-vlms && pip install -e . && cd ../..`
+`git submodule update --init --recursive`
+
+8. Install Prismatic: 
+
+`cd submodules/prismatic-vlms && pip install -e . && cd ../..`
+
 9. Then follow their instructions:
 
 `pip install packaging ninja && pip install flash-attn --no-build-isolation`
@@ -38,7 +43,7 @@
 `pip install nvidia-htop sentencepiece`
 
 12. Make sure to log in to W&B by running `wandb login`
-13. Login to Hugginface with `huggingface-cli login`
+13. Login to Huggingface with `huggingface-cli login`
 
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
@@ -60,8 +65,8 @@ Create a sweep using `wandb sweep <path to W&B sweep e.g., sweeps/attack/...>`. 
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=3
-wandb agent rylan/universal-vlm-jailbreak/681o8dt6
+export CUDA_VISIBLE_DEVICES=7
+wandb agent rylan/universal-vlm-jailbreak/srvmywo4
 ```
 
 
@@ -71,7 +76,7 @@ wandb agent rylan/universal-vlm-jailbreak/681o8dt6
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 conda activate universal_vlm_jailbreak_env
 export PYTHONPATH=.
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
 wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 ```
 
@@ -87,6 +92,7 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && ch
 Create SSH key and register it with GitHub:
 ```bash
 ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
+mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
 eval "$(ssh-agent -s)"
 ssh-add /workspace/.ssh/id_ed25519
 cat ~/.ssh/id_ed25519.pub

@@ -16,7 +16,6 @@ from prismatic import (
 )
 from prismatic.models.backbones.vision.base_vision import LetterboxPad
 
-from src.image_handling import normalize_images
 from src.models.base import VisionLanguageModel
 
 
@@ -235,3 +234,17 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         self.model.vision_backbone.requires_grad_(False)
         self.model.vision_backbone.eval()
         self.model.eval()
+
+    def to(
+        self,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+        non_blocking: bool = False,
+    ):
+        if device is not None:
+            raise NotImplementedError
+        if dtype is not None:
+            self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(dtype)
+            self.precision_dtype = dtype
+
+        return self
