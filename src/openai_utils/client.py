@@ -25,6 +25,7 @@ class OpenAIClient:
         temperature: float = 0.0,
         max_tokens: int = 1,
     ) -> str | None:
+        # Note: you can get back the logprobs too, but currently not parsing it out
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
@@ -46,6 +47,7 @@ class OpenAIClient:
                     ],
                 }
             ],
+            "logprobs": True,
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
@@ -90,6 +92,7 @@ class OpenAIClient:
                     ],
                 }
             ],
+            "logprobs": True,
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
