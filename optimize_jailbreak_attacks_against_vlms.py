@@ -142,33 +142,33 @@ def optimize_vlm_adversarial_examples():
             wandb_config=wandb_config,
         )
 
-    # tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
-    #     vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-    #     data_kwargs=wandb_config["data"],
-    #     split="train",  # Hard-code this.
-    # )
+    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
+        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
+        data_kwargs=wandb_config["data"],
+        split="train",  # Hard-code this.
+    )
 
-    # # We need to load the VLMs ensemble in order to tokenize the dataset.
-    # text_datamodule = src.data.VLMEnsembleTextDataModule(
-    #     vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
-    #     tokenized_dir_path=tokenized_dir_path,
-    #     wandb_config=wandb_config,
-    # )
+    # We need to load the VLMs ensemble in order to tokenize the dataset.
+    text_datamodule = src.data.VLMEnsembleTextDataModule(
+        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
+        tokenized_dir_path=tokenized_dir_path,
+        wandb_config=wandb_config,
+    )
 
-    # if wandb_config["compile"]:
-    #     print("Compiling system.")
-    #     vlm_ensemble_system = torch.compile(
-    #         vlm_ensemble_system,
-    #         mode="default",  # Good balance between performance and overhead.
-    #     )
-    #     raise NotImplementedError(
-    #         "Reminder: torch.compile() doesn't work. Some memory leak? Need to debug."
-    #     )
+    if wandb_config["compile"]:
+        print("Compiling system.")
+        vlm_ensemble_system = torch.compile(
+            vlm_ensemble_system,
+            mode="default",  # Good balance between performance and overhead.
+        )
+        raise NotImplementedError(
+            "Reminder: torch.compile() doesn't work. Some memory leak? Need to debug."
+        )
 
-    # trainer.fit(
-    #     model=vlm_ensemble_system,
-    #     datamodule=text_datamodule,
-    # )
+    trainer.fit(
+        model=vlm_ensemble_system,
+        datamodule=text_datamodule,
+    )
 
     # Convert to float32 for generation.
     vlm_ensemble_system.tensor_image = vlm_ensemble_system.tensor_image.to(
@@ -182,17 +182,6 @@ def optimize_vlm_adversarial_examples():
         )
 
         for model_name_str in vlm_ensemble_system.vlm_ensemble.vlms_dict:
-            # We need the tensor dtypes to agree.
-            # vlm_ensemble_system.vlm_ensemble.vlms_dict[
-            #     model_name_str
-            # ].model.llm_backbone.llm = vlm_ensemble_system.vlm_ensemble.vlms_dict[
-            #     model_name_str
-            # ].model.llm_backbone.llm.to(
-            #     torch.float32
-            # )
-            # vlm_ensemble_system.vlm_ensemble = vlm_ensemble_system.vlm_ensemble.to(
-            #     dtype=torch.float32
-            # )
             model_generations_dict = {
                 "generations": [],
                 "prompts": [],

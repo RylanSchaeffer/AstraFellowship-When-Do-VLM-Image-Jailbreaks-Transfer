@@ -100,7 +100,9 @@ class VLMEnsemble(lightning.LightningModule):
                 # If we have N GPUs, we want the first to go to GPU N-1, the second to GPU N-2, etc.
                 # TODO: Was this actually because someone else was using the GPUs at the same time?
                 vlm = vlm.to(
-                    torch.device(f"cuda:{device_count - model_device_int_str - 1}")
+                    device=torch.device(
+                        f"cuda:{device_count - model_device_int_str - 1}"
+                    )
                 )
 
             self.vlms_dict[model_str] = vlm

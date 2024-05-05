@@ -242,9 +242,19 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         non_blocking: bool = False,
     ):
         if device is not None:
-            raise NotImplementedError
+            self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(device=device)
+            self.model.llm_backbone = self.model.llm_backbone.to(device=device)
+            self.model.projector = self.model.projector.to(device=device)
+            self.model.vision_backbone = self.model.vision_backbone.to(device=device)
+            self.model = self.model.to(device=device)
+            super(PrismaticVisionLanguageModel, self).to(device=device)
         if dtype is not None:
-            self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(dtype)
+            self.model.llm_backbone.llm = self.model.llm_backbone.llm.to(dtype=dtype)
+            self.model.llm_backbone = self.model.llm_backbone.to(dtype=dtype)
+            self.model.projector = self.model.projector.to(dtype=dtype)
+            self.model.vision_backbone = self.model.vision_backbone.to(dtype=dtype)
+            self.model = self.model.to(dtype=dtype)
             self.precision_dtype = dtype
+            super(PrismaticVisionLanguageModel, self).to(dtype=dtype)
 
         return self
