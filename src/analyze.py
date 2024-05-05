@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import joblib
 import numpy as np
 import os
@@ -7,17 +8,21 @@ import wandb
 from tqdm import tqdm
 
 
-metrics_to_nice_strings_dict = {
-    "loss/avg_epoch": "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)",
-    "loss/score_model=harmbench": "HarmBench Score",
-    "loss/score_model=llamaguard2": "LlamaGuard2 Score",
-}
+metrics_to_nice_strings_dict = OrderedDict(
+    {
+        "loss/avg_epoch": "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)",
+        "loss/score_model=harmbench": "HarmBench Score",
+        "loss/score_model=llamaguard2": "LlamaGuard2 Score",
+    }
+)
 
-metrics_to_bounds_dict = {
-    "loss/avg_epoch": (0.0, None),
-    "loss/score_model=harmbench": (0.0, 1.0),
-    "loss/score_model=llamaguard2": (0.0, 1.0),
-}
+metrics_to_bounds_dict = OrderedDict(
+    {
+        "loss/avg_epoch": (0.0, None),
+        "loss/score_model=harmbench": (0.0, 1.0),
+        "loss/score_model=llamaguard2": (0.0, 1.0),
+    }
+)
 
 
 def download_wandb_project_runs_configs(

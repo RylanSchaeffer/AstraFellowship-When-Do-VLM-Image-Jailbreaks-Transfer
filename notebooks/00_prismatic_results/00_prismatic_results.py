@@ -261,4 +261,4 @@ for (
         # plt.show()
 
 
-print("Finished notebooks/00_prismatic_results.py!")
+print("Finished notebooks/00_prismatic_results!")
