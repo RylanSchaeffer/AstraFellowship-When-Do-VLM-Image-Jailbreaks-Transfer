@@ -1,0 +1,84 @@
+wandb_version: 1
+
+data:
+  desc: null
+  value:
+    num_workers: 1
+    batch_size: 1
+    dataset: all_model_generated_evals
+    split: eval
+lightning_kwargs:
+  desc: null
+  value:
+    log_loss_every_n_steps: 1
+    precision: bf16-mixed
+n_generations:
+  desc: null
+  value: 400
+model_to_eval:
+  desc: null
+  value: '{''prism-clip+7b''}'
+model_generation_kwargs:
+  desc: null
+  value:
+    prism-clip-controlled+7b:
+      temperature: 0.0
+      max_new_tokens: 1
+      min_new_tokens: 1
+    prism-clip+7b:
+      temperature: 0.0
+      max_new_tokens: 1
+      min_new_tokens: 1
+    prism-siglip+7b:
+      temperature: 0.0
+      max_new_tokens: 1
+      min_new_tokens: 1
+    prism-dinosiglip+7b:
+      temperature: 0.0
+      max_new_tokens: 1
+      min_new_tokens: 1
+prompts_and_targets_kwargs:
+  desc: null
+  value: {}
+seed:
+  desc: null
+  value: 0
+wandb_run_id:
+  desc: null
+  value: ermz17un
+_wandb:
+  desc: null
+  value:
+    python_version: 3.12.1
+    cli_version: 0.16.6
+    framework: huggingface
+    huggingface_version: 4.34.1
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1714469763.0
+    t:
+      1:
+      - 1
+      - 11
+      - 41
+      - 49
+      - 53
+      - 55
+      - 71
+      2:
+      - 1
+      - 11
+      - 41
+      - 49
+      - 53
+      - 55
+      - 71
+      3:
+      - 16
+      - 23
+      4: 3.12.1
+      5: 0.16.6
+      6: 4.34.1
+      8:
+      - 5
+      13: darwin-x86_64

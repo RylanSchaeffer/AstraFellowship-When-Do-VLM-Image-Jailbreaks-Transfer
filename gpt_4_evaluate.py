@@ -59,6 +59,8 @@ def evaluate_vlm_adversarial_examples():
         # refresh=True,
         refresh=False,
     )
+    # skip steps < 400
+    runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter >= 400]
     n_generations: int = int(wandb_config["n_generations"])
     # Load the raw prompts to use for generate.
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
@@ -98,6 +100,7 @@ def evaluate_vlm_adversarial_examples():
             start_time = time.time()
             # todo: You can paralleise this
             single_gen = client.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0)
+            single_gen = "ERROR" if single_gen is None else single_gen
             matches_target = single_gen.strip().lower() == target.strip().lower()
             model_generations_dict["generations"].append(single_gen)
             model_generations_dict["prompts"].append(prompt)

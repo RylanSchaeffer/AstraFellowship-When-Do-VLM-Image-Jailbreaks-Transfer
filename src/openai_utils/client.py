@@ -26,7 +26,7 @@ class OpenAIClient:
         image_base_64: str,
         temperature: float = 0.0,
         max_tokens: int = 1,
-    ) -> str:
+    ) -> str | None:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
@@ -55,8 +55,13 @@ class OpenAIClient:
         response = requests.post(
             "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
         )
-        json = response.json()
-        return json["choices"][0]["message"]["content"]
+        
+        try: 
+            json = response.json()
+            return json["choices"][0]["message"]["content"]
+        except Exception as e:
+            print(e)
+            return None
 
     # async version
     async def a_call_gpt_4_turbo(
@@ -65,7 +70,7 @@ class OpenAIClient:
         image_base_64: str,
         temperature: float = 0.0,
         max_tokens: int = 1,
-    ) -> str:
+    ) -> str | None:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",

@@ -25,3 +25,4 @@ config: {'data': {'num_workers': 1, 'batch_size': 1, 'dataset': 'all_model_gener
 2024-04-30 16:10:28,200 INFO    MainThread:25359 [wandb_run.py:_redirect():2255] Wrapping output streams.
 2024-04-30 16:10:28,200 INFO    MainThread:25359 [wandb_run.py:_redirect():2280] Redirects installed.
 2024-04-30 16:10:28,201 INFO    MainThread:25359 [wandb_init.py:init():842] run started, returning control to user process
+2024-04-30 16:43:15,172 WARNING MsgRouterThr:25359 [router.py:message_loop():77] message_loop has been closed
