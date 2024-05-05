@@ -111,7 +111,7 @@ def evaluate_vlm_adversarial_examples():
         }
     )
 
-    # # Rylan uses this for debugging.
+    # Rylan uses this for debugging.
     # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
