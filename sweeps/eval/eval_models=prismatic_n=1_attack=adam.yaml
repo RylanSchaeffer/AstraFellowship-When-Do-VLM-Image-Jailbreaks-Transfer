@@ -52,17 +52,9 @@ parameters:
   wandb_attack_run_id:
     values:
       [
-        "0o0zo5p4",
-        "9qdgzkuf",
-        "whs93byv",
-        "qw03ma9h",
-        "r57ffvui",
         "e6etb0gm",
         "jwhtjk5r",
-        "75nntvjq",
         "70vsekpx",
-        "bs1xhgdc",
-        "clhaii3y",
         "3j3loy5j",
         "jqtaapor",
         "krzrvf3i",
@@ -108,4 +100,12 @@ parameters:
         "0vbkeuy0",
         "lo2mrd0g",
         "4f2i2urr",
+        "bs1xhgdc",
+        "clhaii3y",
+        "whs93byv",
+        "qw03ma9h",
+        "75nntvjq",
+        "0o0zo5p4",
+        "9qdgzkuf",
+        "r57ffvui",
       ]
