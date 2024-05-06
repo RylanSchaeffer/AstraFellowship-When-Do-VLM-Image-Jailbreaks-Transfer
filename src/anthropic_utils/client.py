@@ -31,6 +31,7 @@ class ChatMessage(BaseModel):
     content: str
     # base64
     image_content: str | None = None
+    image_type: str | None = None # image/jpeg
 
     def to_anthropic_content(self) -> dict:
         if not self.image_content:
@@ -59,7 +60,7 @@ class ChatMessage(BaseModel):
                     "type": "image",
                     "source": {
                         "type": "base64",
-                        "media_type": "image/jpeg",
+                        "media_type": self.image_type or "image/jpeg",
                         "data": self.image_content,
                     },
                 }
@@ -275,7 +276,7 @@ def main():
     message = ChatMessage(role="user", content=question, image_content=base64_image)
     # Call the model
     response = caller.cached_call(messages=[message], config=config)
-    print(response)
+    print(response.content[0].text)
 
 
 if __name__ == "__main__":
