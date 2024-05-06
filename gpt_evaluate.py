@@ -99,7 +99,7 @@ def evaluate_vlm_adversarial_examples():
             target = prompt_target.target
             start_time = time.time()
             # todo: You can paralleise this
-            single_gen = client.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0)
+            single_gen = client.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0, image_type="image/png")
             single_gen = "ERROR" if single_gen is None else single_gen
             matches_target = single_gen.strip().lower() == target.strip().lower()
             model_generations_dict["generations"].append(single_gen)

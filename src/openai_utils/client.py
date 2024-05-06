@@ -24,6 +24,7 @@ class OpenAIClient:
         image_base_64: str,
         temperature: float = 0.0,
         max_tokens: int = 1,
+        image_type: str = "image/jpeg", # or image/png
     ) -> str | None:
         headers = {
             "Content-Type": "application/json",
@@ -40,7 +41,7 @@ class OpenAIClient:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{image_base_64}"
+                                "url": f"data:{image_type};base64,{image_base_64}"
                             },
                         },
                     ],
