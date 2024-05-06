@@ -1,4 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor
 import anthropic
+from git import Sequence
+from openai import BaseModel
+from slist import Slist
 import torchvision.transforms.v2.functional
 import json
 import numpy as np
@@ -32,8 +36,39 @@ os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
 # async def call_openai_and_log(jailbreak: JailbreakData, prompt: PromptAndTarget, client: OpenAIClient):
 #     ...
+threadpool = ThreadPoolExecutor(max_workers=10)
 
 
+class SingleResult(BaseModel):
+    prompt: str
+    target: str
+    generation: str
+    matches_target: bool
+    time_taken: float
+
+def single_generate(prompt_idx: int, prompt_target: PromptAndTarget, adv_image: str, config: InferenceConfig, caller: AnthropicCaller) -> SingleResult:
+    start_time = time.time()
+    prompt = prompt_target.prompt
+    target = prompt_target.target
+    message = ChatMessage(role="user", content=prompt, image_content=adv_image, image_type="image/png")
+    single_gen = caller.cached_call(messages=[message], config=config).content[0].text
+    matches_target = single_gen.strip().lower() == target.strip().lower()
+    time_taken = time.time() - start_time
+    if prompt_idx % 10 == 0:
+        print(
+            f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {time_taken} seconds\n\n"
+        )
+    return SingleResult(prompt=prompt, target=target, generation=single_gen, matches_target=matches_target, time_taken=time_taken)
+
+
+
+
+def parallel_generate(prompt_targets: Sequence[PromptAndTarget], adv_image: str, config: InferenceConfig, caller: AnthropicCaller):
+    slist_items = Slist(prompt_targets)
+    results = slist_items.enumerated().par_map(lambda prompt_target: single_generate(prompt_idx=prompt_target[0], prompt_target=prompt_target[1], adv_image=adv_image, config=config, caller=caller), executor=threadpool)
+    
+    return results
+    
 def evaluate_vlm_adversarial_examples():
 
     
@@ -106,23 +141,30 @@ def evaluate_vlm_adversarial_examples():
             "matches_target": [],
         }
         
-        for prompt_idx, prompt_target in enumerate(prompts_and_targets):
-            prompt = prompt_target.prompt
-            target = prompt_target.target
-            start_time = time.time()
-            # todo: You can paralleise this
-            message = ChatMessage(role="user", content=prompt_target.prompt, image_content=adv_image, image_type="image/png")
-            single_gen = caller.cached_call(messages=[message], config=config).content[0].text
-            matches_target = single_gen.strip().lower() == target.strip().lower()
-            model_generations_dict["generations"].append(single_gen)
-            model_generations_dict["prompts"].append(prompt)
-            model_generations_dict["targets"].append(target)
-            model_generations_dict["matches_target"].append(matches_target)
-            end_time = time.time()
-            if prompt_idx % 10 == 0:
-                print(
-                    f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-                )
+        # for prompt_idx, prompt_target in enumerate(prompts_and_targets):
+        #     prompt = prompt_target.prompt
+        #     target = prompt_target.target
+        #     start_time = time.time()
+        #     # todo: You can paralleise this
+        #     message = ChatMessage(role="user", content=prompt_target.prompt, image_content=adv_image, image_type="image/png")
+        #     single_gen = caller.cached_call(messages=[message], config=config).content[0].text
+        #     matches_target = single_gen.strip().lower() == target.strip().lower()
+        #     model_generations_dict["generations"].append(single_gen)
+        #     model_generations_dict["prompts"].append(prompt)
+        #     model_generations_dict["targets"].append(target)
+        #     model_generations_dict["matches_target"].append(matches_target)
+        #     end_time = time.time()
+        #     if prompt_idx % 10 == 0:
+        #         print(
+        #             f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+        #         )
+        ## Paralleised
+        results = parallel_generate(prompt_targets=prompts_and_targets, adv_image=adv_image, config=config, caller=caller)
+        for result in results:
+            model_generations_dict["generations"].append(result.generation)
+            model_generations_dict["prompts"].append(result.prompt)
+            model_generations_dict["targets"].append(result.target)
+            model_generations_dict["matches_target"].append(result.matches_target)
         model_generations_dict["success_rate"] = np.mean(
             model_generations_dict["matches_target"]
         )
