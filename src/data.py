@@ -208,5 +208,4 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
                     attention_mask=tokenized_data["attention_mask"][datum_idx].numpy(),
                     labels=tokenized_data["labels"][datum_idx].numpy(),
                 )
-
     return tokenized_dir_path

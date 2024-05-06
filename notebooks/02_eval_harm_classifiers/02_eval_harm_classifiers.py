@@ -25,7 +25,7 @@ generations = [
 
 for eval_model_name, eval_model_constr in [
     ("harmbench", src.models.evaluators.HarmBenchEvaluator),
-    ("llamaguard2", src.models.evaluators.LlamaGuardEvaluator),
+    ("llamaguard2", src.models.evaluators.LlamaGuard2Evaluator),
 ]:
     eval_model = eval_model_constr()
     print(eval_model_name)

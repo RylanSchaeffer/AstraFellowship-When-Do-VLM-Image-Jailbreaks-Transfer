@@ -112,7 +112,7 @@ def evaluate_vlm_adversarial_examples():
     )
 
     # Rylan uses this for debugging.
-    # runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
+    runs_jailbreak_dict_list = runs_jailbreak_dict_list[-2:]
 
     # We need to create a placeholder image to initialize the VLMEnsembleEvaluatingSystem.
     # This ensures that Lightning can recognize the parameter and place it on the appropriate device(s).
@@ -225,7 +225,8 @@ def evaluate_vlm_adversarial_examples():
     # Score generations using LlamaGuard2 and HarmBench.
     for eval_model_name, eval_model_constr in [
         ("harmbench", src.models.evaluators.HarmBenchEvaluator),
-        ("llamaguard2", src.models.evaluators.LlamaGuardEvaluator),
+        ("llamaguard2", src.models.evaluators.LlamaGuard2Evaluator),
+        # ("claude3opus", src.models.evaluators.Claude3OpusEvaluator),
     ]:
         eval_model = eval_model_constr()
         for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):

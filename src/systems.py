@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import wandb
 
 from src.models.ensemble import VLMEnsemble
-from src.models.evaluators import HarmBenchEvaluator, LlamaGuardEvaluator
+from src.models.evaluators import HarmBenchEvaluator, LlamaGuard2Evaluator
 from src.utils import create_initial_image
 
 
