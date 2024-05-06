@@ -211,9 +211,9 @@ def evaluate_vlm_adversarial_examples():
                 f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {generation}\nGeneration Duration: {end_time - start_time} seconds\n\n"
             )
 
-        run_jailbreak_dict[
-            "generations_prompts_targets_evals_dict"
-        ] = generations_prompts_targets_evals_dict
+        run_jailbreak_dict["generations_prompts_targets_evals_dict"] = (
+            generations_prompts_targets_evals_dict
+        )
         runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 
     # Free up memory.
@@ -226,7 +226,7 @@ def evaluate_vlm_adversarial_examples():
     for eval_model_name, eval_model_constr in [
         ("harmbench", src.models.evaluators.HarmBenchEvaluator),
         ("llamaguard2", src.models.evaluators.LlamaGuard2Evaluator),
-        # ("claude3opus", src.models.evaluators.Claude3OpusEvaluator),
+        ("claude3opus", src.models.evaluators.Claude3OpusEvaluator),
     ]:
         eval_model = eval_model_constr()
         for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):
@@ -243,12 +243,12 @@ def evaluate_vlm_adversarial_examples():
                     "generations_prompts_targets_evals_dict"
                 ]["generations"],
             )
-            run_jailbreak_dict[
-                f"loss/score_{eval_model_name}"
-            ] = eval_model.compute_score(
-                run_jailbreak_dict["generations_prompts_targets_evals_dict"][
-                    f"judgements_{eval_model_name}"
-                ]
+            run_jailbreak_dict[f"loss/score_{eval_model_name}"] = (
+                eval_model.compute_score(
+                    run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                        f"judgements_{eval_model_name}"
+                    ]
+                )
             )
             runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 
