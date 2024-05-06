@@ -103,6 +103,7 @@ def optimize_vlm_adversarial_examples():
         # not sure if there is a better way to do this
         for i, model_name in enumerate(models_to_attack)
     }
+    print("Model Device Map: ", model_device)
     # if torch.cuda.is_available():
 
     # else:

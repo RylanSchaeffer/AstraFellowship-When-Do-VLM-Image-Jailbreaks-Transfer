@@ -25,6 +25,8 @@ class VLMEnsemble(lightning.LightningModule):
             else:
                 generation_kwargs = None
 
+            device = model_device.get(model_str, None)
+
             # Load BLIP2 models.
             if model_str.startswith("blip2"):
                 from old.how_robust_is_bard.src.models.blip2 import (
@@ -82,11 +84,14 @@ class VLMEnsemble(lightning.LightningModule):
                     generation_kwargs=generation_kwargs,
                     precision=precision,
                 )
+                if device is not None:
+                    print(f"Setting device for {model_str} to {device}")
+                    vlm = vlm.to(device)
 
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
             
-            device = model_device.get(model_str, None)
+            
             if device is not None:
                 print(f"Setting device for {model_str} to {device}")
                 vlm.to(device)
