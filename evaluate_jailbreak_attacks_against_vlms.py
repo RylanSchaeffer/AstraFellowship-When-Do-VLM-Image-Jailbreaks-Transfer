@@ -100,7 +100,7 @@ def evaluate_vlm_adversarial_examples():
 
     # Load jailbreak images' paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
-        wandb_run_id=wandb_config["wandb_run_id"],
+        wandb_attack_run_id=wandb_config["wandb_attack_run_id"],
         wandb_sweep_id=None,
         # refresh=True,
         refresh=False,
@@ -168,7 +168,7 @@ def evaluate_vlm_adversarial_examples():
 
         wandb_additional_data = {
             "eval_model_str": model_name_str,
-            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "wandb_attack_run_id": run_jailbreak_dict["wandb_attack_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
             "models_to_attack": run_jailbreak_dict["models_to_attack"],
         }
@@ -297,7 +297,7 @@ def evaluate_vlm_adversarial_examples():
                 ],
             ),
             "eval_model_str": model_name_str,
-            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "wandb_attack_run_id": run_jailbreak_dict["wandb_attack_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
             "optimizer_step_counter_epoch": run_jailbreak_dict[
                 "optimizer_step_counter"

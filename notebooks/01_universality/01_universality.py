@@ -42,12 +42,12 @@ eval_runs_configs_df["split"] = eval_runs_configs_df["data"].apply(
 # Keep only the eval data (previously we measured train and eval).
 eval_runs_configs_df = eval_runs_configs_df[eval_runs_configs_df["split"] == "eval"]
 
-attack_wandb_run_ids = eval_runs_configs_df["wandb_run_id"].unique()
+attack_wandb_attack_run_ids = eval_runs_configs_df["wandb_attack_run_id"].unique()
 api = wandb.Api(timeout=600)
 attack_wandb_sweep_ids = np.unique(
     [
         api.run(f"rylan/universal-vlm-jailbreak/{run_id}").sweep.id
-        for run_id in attack_wandb_run_ids
+        for run_id in attack_wandb_attack_run_ids
     ]
 ).tolist()
 attack_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -66,7 +66,7 @@ attack_runs_configs_df.rename(
 )
 
 # Add metadata about evaluations.
-# TODO: Fix this shit naming of wandb_run_id.
+# TODO: Fix this shit naming of wandb_attack_run_id.
 eval_runs_configs_df = eval_runs_configs_df.merge(
     right=attack_runs_configs_df[
         [
@@ -76,7 +76,7 @@ eval_runs_configs_df = eval_runs_configs_df.merge(
         ]
     ],
     how="left",
-    left_on="wandb_run_id",
+    left_on="wandb_attack_run_id",
     right_on="attack_run_id",
 )
 

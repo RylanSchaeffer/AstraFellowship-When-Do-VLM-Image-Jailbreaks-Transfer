@@ -91,7 +91,7 @@ def is_dist_avail_and_initialized():
 
 
 def load_jailbreak_dicts_list(
-    wandb_run_id: str = None,
+    wandb_attack_run_id: str = None,
     wandb_sweep_id: str = None,
     data_dir_path: str = "eval_data",
     refresh: bool = False,
@@ -99,22 +99,22 @@ def load_jailbreak_dicts_list(
     os.makedirs(data_dir_path, exist_ok=True)
     runs_jailbreak_dict_list_path = os.path.join(
         data_dir_path,
-        f"runs_jailbreak_dict_list_sweep={wandb_run_id}.joblib",
+        f"runs_jailbreak_dict_list_sweep={wandb_attack_run_id}.joblib",
     )
     if refresh or not os.path.exists(runs_jailbreak_dict_list_path):
         print("Downloading jailbreak images...")
 
         api = wandb.Api()
-        if wandb_sweep_id is None and wandb_run_id is not None:
-            run = api.run(f"universal-vlm-jailbreak/{wandb_run_id}")
+        if wandb_sweep_id is None and wandb_attack_run_id is not None:
+            run = api.run(f"universal-vlm-jailbreak/{wandb_attack_run_id}")
             runs = [run]
-        elif wandb_sweep_id is not None and wandb_run_id is None:
-            sweep = api.sweep(f"universal-vlm-jailbreak/{wandb_run_id}")
+        elif wandb_sweep_id is not None and wandb_attack_run_id is None:
+            sweep = api.sweep(f"universal-vlm-jailbreak/{wandb_attack_run_id}")
             runs = list(sweep.runs)
         else:
             raise ValueError(
-                "Invalid wandb_sweep_id and wandb_run_id: "
-                f"{wandb_sweep_id}, {wandb_run_id}"
+                "Invalid wandb_sweep_id and wandb_attack_run_id: "
+                f"{wandb_sweep_id}, {wandb_attack_run_id}"
             )
         runs_jailbreak_dict_list = []
         for run in runs:
@@ -134,7 +134,7 @@ def load_jailbreak_dicts_list(
                 runs_jailbreak_dict_list.append(
                     {
                         "file_path": file_path,
-                        "wandb_run_id": run.id,
+                        "wandb_attack_run_id": run.id,
                         "optimizer_step_counter": optimizer_step_counter,
                         "models_to_attack": run.config["models_to_attack"],
                     }
@@ -147,10 +147,10 @@ def load_jailbreak_dicts_list(
                     optimizer_step_counter,
                 )
 
-        # Sort runs_jailbreak_dict_list based on wandb_run_id and then n_gradient_steps.
+        # Sort runs_jailbreak_dict_list based on wandb_attack_run_id and then n_gradient_steps.
         runs_jailbreak_dict_list = sorted(
             runs_jailbreak_dict_list,
-            key=lambda x: (x["wandb_run_id"], x["optimizer_step_counter"]),
+            key=lambda x: (x["wandb_attack_run_id"], x["optimizer_step_counter"]),
         )
 
         joblib.dump(
