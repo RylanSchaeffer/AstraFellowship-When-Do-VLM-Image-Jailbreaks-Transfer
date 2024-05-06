@@ -108,3 +108,8 @@ Then modify your `.bashrc` to add:
 conda activate universal_vlm_jailbreak_env
 cd PerezAstraFellowship-Universal-VLM-Jailbreak
 ```
+
+
+`pip install anthropic termcolor`
+
+`export LFS_HOME=/workspace`

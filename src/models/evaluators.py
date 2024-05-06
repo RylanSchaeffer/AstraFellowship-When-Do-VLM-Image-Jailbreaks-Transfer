@@ -234,5 +234,5 @@ class Claude3OpusEvaluator(torch.nn.Module):
             if judgement == "Error":
                 float_judgements.append(np.nan)
             else:
-                float_judgements.append(float(judgement) / 5.0)
+                float_judgements.append((float(judgement) - 1.0) / 4.0)
         return np.mean(float_judgements)
