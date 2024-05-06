@@ -224,9 +224,9 @@ def evaluate_vlm_adversarial_examples():
 
     # Score generations using LlamaGuard2 and HarmBench.
     for eval_model_name, eval_model_constr in [
+        ("claude3opus", src.models.evaluators.Claude3OpusEvaluator),
         ("harmbench", src.models.evaluators.HarmBenchEvaluator),
         ("llamaguard2", src.models.evaluators.LlamaGuard2Evaluator),
-        ("claude3opus", src.models.evaluators.Claude3OpusEvaluator),
     ]:
         eval_model = eval_model_constr()
         for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):
@@ -271,6 +271,7 @@ def evaluate_vlm_adversarial_examples():
                     "target",
                     "llamaguard2",
                     "harmbench",
+                    "claude3opus",
                 ],
                 data=[
                     [
@@ -279,15 +280,19 @@ def evaluate_vlm_adversarial_examples():
                         target,
                         llama_guard2_eval,
                         harmbench_eval,
+                        claude3opus_eval,
                     ]
-                    for prompt, model_generation, target, llama_guard2_eval, harmbench_eval in zip(
+                    for prompt, model_generation, target, llama_guard2_eval, harmbench_eval, claude3opus_eval in zip(
                         generations_prompts_targets_evals_dict["prompts"],
                         generations_prompts_targets_evals_dict["generations"],
                         generations_prompts_targets_evals_dict["targets"],
                         generations_prompts_targets_evals_dict[
-                            f"judgements_llamaguard2"
+                            "judgements_llamaguard2"
                         ],
-                        generations_prompts_targets_evals_dict[f"judgements_harmbench"],
+                        generations_prompts_targets_evals_dict["judgements_harmbench"],
+                        generations_prompts_targets_evals_dict[
+                            "judgements_claude3opus"
+                        ],
                     )
                 ],
             ),
@@ -302,6 +307,9 @@ def evaluate_vlm_adversarial_examples():
                 "loss/score_llamaguard2"
             ],
             "loss/score_model=harmbench": run_jailbreak_dict["loss/score_harmbench"],
+            "loss/score_model=claude3opus": run_jailbreak_dict[
+                "loss/score_claude3opus"
+            ],
         }
         wandb.log(wandb_log_data)
 

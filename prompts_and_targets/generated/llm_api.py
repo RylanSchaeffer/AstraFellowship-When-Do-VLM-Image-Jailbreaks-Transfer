@@ -26,7 +26,7 @@ def load_secrets(file_path):
     return secrets
 
 
-PRINT_COLORS = {"user": "cyan", "system": "magenta", "assistant": "light_green"}
+PRINT_COLORS = {"user": "cyan", "system": "magenta", "assistant": "cyan"}
 
 OAIChatPrompt = list[dict[str, str]]
 
