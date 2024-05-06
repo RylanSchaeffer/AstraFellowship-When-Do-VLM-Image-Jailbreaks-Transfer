@@ -224,8 +224,8 @@ def evaluate_vlm_adversarial_examples():
 
     # Score generations using LlamaGuard2 and HarmBench.
     for eval_model_name, eval_model_constr in [
-        ("llamaguard2", src.models.evaluators.LlamaGuardEvaluator),
         ("harmbench", src.models.evaluators.HarmBenchEvaluator),
+        ("llamaguard2", src.models.evaluators.LlamaGuardEvaluator),
     ]:
         eval_model = eval_model_constr()
         for jailbreak_idx, run_jailbreak_dict in enumerate(runs_jailbreak_dict_list):
@@ -235,10 +235,12 @@ def evaluate_vlm_adversarial_examples():
             run_jailbreak_dict["generations_prompts_targets_evals_dict"][
                 f"judgements_{eval_model_name}"
             ] = eval_model.evaluate(
-                run_jailbreak_dict["generations_prompts_targets_evals_dict"]["prompts"],
-                run_jailbreak_dict["generations_prompts_targets_evals_dict"][
-                    "generations"
+                prompts=run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                    "prompts"
                 ],
+                generations=run_jailbreak_dict[
+                    "generations_prompts_targets_evals_dict"
+                ]["generations"],
             )
             run_jailbreak_dict[
                 f"loss/score_{eval_model_name}"

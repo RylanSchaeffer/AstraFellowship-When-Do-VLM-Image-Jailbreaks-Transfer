@@ -1,21 +1,20 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="optimize_jailbreak_attacks_against_vlms (ampere 1)" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="notebooks/01_universality" type="PythonConfigurationType" factoryName="Python">
     <module name="PerezAstraFellowship-Image-DAN-VLM-Attack" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="CUDA_DEVICE_ORDER" value="PCI_BUS_ID" />
-      <env name="CUDA_VISIBLE_DEVICES" value="7" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="IS_MODULE_SDK" value="true" />
+    <option name="SDK_NAME" value="Remote Python 3.11.8 (sftp://rschaef@ampere1.stanford.edu:22/lfs/ampere1/0/rschaef/miniconda3/envs/universal_vlm_jailbreak_env/bin/python)" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
+    <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/optimize_jailbreak_attacks_against_vlms.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/notebooks/01_universality/01_universality.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

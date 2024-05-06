@@ -194,6 +194,12 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             ):
                 target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
+                # Exclude the EOS token, if it exists.
+                if (
+                    labels[batch_idx, last_nonpadding_idx - 1]
+                    == self.model.llm_backbone.tokenizer.eos_token_id
+                ):
+                    labels[batch_idx, last_nonpadding_idx - 1] = IGNORE_INDEX
 
             # Also mask out the padding tokens.
             labels[labels == pad_token_input_id] = IGNORE_INDEX

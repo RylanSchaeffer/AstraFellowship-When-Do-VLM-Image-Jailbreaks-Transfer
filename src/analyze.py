@@ -103,12 +103,15 @@ def download_wandb_project_runs_histories(
     refresh: bool = False,
     keys: List[str] = None,
     wandb_username: str = None,
+    filetype: str = "csv",
 ) -> pd.DataFrame:
     if keys is None:
         keys = ["losses_train/loss_epoch", "losses_val/loss"]
 
+    assert filetype in {"csv", "parquet", "feather"}
+
     runs_histories_df_path = os.path.join(
-        data_dir, "sweeps=" + ",".join(sweep_ids) + "_runs_histories.csv"
+        data_dir, "sweeps=" + ",".join(sweep_ids) + f"_runs_histories.{filetype}"
     )
     if refresh or not os.path.isfile(runs_histories_df_path):
         # Download sweep results
@@ -136,10 +139,27 @@ def download_wandb_project_runs_histories(
         runs_histories_df.sort_values(["run_id"], ascending=True, inplace=True)
 
         runs_histories_df.reset_index(inplace=True, drop=True)
-        runs_histories_df.to_csv(runs_histories_df_path, index=False)
+
+        if filetype == "csv":
+            runs_histories_df.to_csv(runs_histories_df_path, index=False)
+        elif filetype == "feather":
+            runs_histories_df.reset_index(inplace=True)
+            runs_histories_df.to_feather(runs_histories_df_path)
+        elif filetype == "parquet":
+            runs_histories_df.to_parquet(runs_histories_df_path, index=False)
+        else:
+            raise ValueError(f"Invalid filetype: {filetype}")
         print(f"Wrote {runs_histories_df_path} to disk")
     else:
-        runs_histories_df = pd.read_csv(runs_histories_df_path)
+        if filetype == "csv":
+            runs_histories_df = pd.read_csv(runs_histories_df_path)
+        elif filetype == "feather":
+            runs_histories_df = pd.read_feather(runs_histories_df_path)
+        elif filetype == "parquet":
+            runs_histories_df = pd.read_parquet(runs_histories_df_path)
+            runs_histories_df = pd.read_parquet(runs_histories_df_path)
+        else:
+            raise ValueError(f"Invalid filetype: {filetype}")
         print(f"Loaded {runs_histories_df_path} from disk.")
 
     return runs_histories_df

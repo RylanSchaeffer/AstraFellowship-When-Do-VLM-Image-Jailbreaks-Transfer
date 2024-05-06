@@ -160,12 +160,14 @@ src.plot.save_plot_with_multiple_extensions(
 # plt.show()
 
 
+# Load the heftier runs' histories dataframe.
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
     wandb_run_history_samples=10000,
+    filetype="feather",
 )
 # This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
 eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
@@ -188,6 +190,7 @@ eval_runs_histories_df = eval_runs_histories_df.merge(
     right_on="run_id",
 )
 
+# Keep only the runs that were attacked and evaluated on the same dataset.
 universality_runs_histories_df = eval_runs_histories_df[
     eval_runs_histories_df["models_to_attack"]
     == eval_runs_histories_df["model_to_eval"]
@@ -224,10 +227,11 @@ g = sns.relplot(
     y="Score",
     col="Metric",
     col_order=src.analyze.metrics_to_nice_strings_dict.values(),
-    hue="Same Data Distribution",
-    hue_order=[True, False],
-    split="Attack Dataset (Train Split)",
-    facet_kws={"margin_titles": True},
+    style="Same Data Distribution",
+    style_order=[True, False],
+    hue="Attack Dataset (Train Split)",
+    hue_order=["advbench", "rylan_anthropic_hhh"],
+    facet_kws={"margin_titles": True, "sharey": False},
 )
 g.set_axis_labels("Gradient Step")
 g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
@@ -240,6 +244,6 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title=f"score_vs_optimizer_step_by_same_data_distribution_by_attack_dataset_split_metric_lineplot",
 )
-plt.show()
+# plt.show()
 
 print("Finished notebooks/01_universality!")
