@@ -36,7 +36,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
 # async def call_openai_and_log(jailbreak: JailbreakData, prompt: PromptAndTarget, client: OpenAIClient):
 #     ...
-threadpool = ThreadPoolExecutor(max_workers=10)
+threadpool = ThreadPoolExecutor(max_workers=20)
 
 
 class SingleResult(BaseModel):
@@ -101,13 +101,13 @@ def evaluate_vlm_adversarial_examples():
         refresh=False,
     )
     # skip steps < 400
-    runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter >= 400]
+    # runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter >= 400]
     n_generations: int = int(wandb_config["n_generations"])
     # Load the raw prompts to use for generate.
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
-    )[: 100]
+    )[: 400]
 
 
     # Create a config
