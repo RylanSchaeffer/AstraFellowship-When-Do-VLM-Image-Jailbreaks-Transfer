@@ -72,7 +72,6 @@ class ChatMessage(BaseModel):
                     },
                 ],
             }
-            
 
     def to_anthropic_content(self) -> dict:
         if not self.image_content:

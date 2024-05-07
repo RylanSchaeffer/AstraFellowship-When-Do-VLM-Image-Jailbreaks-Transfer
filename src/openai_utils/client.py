@@ -8,6 +8,7 @@ import os
 
 from src.anthropic_utils.client import APIRequestCache, ChatMessage, InferenceConfig
 
+
 # Function to encode the image
 def encode_image(image_path: Path | str) -> str:
     with open(image_path, "rb") as image_file:
@@ -28,7 +29,7 @@ class OpenAIClient:
         image_base_64: str,
         temperature: float = 0.0,
         max_tokens: int = 1,
-        image_type: str = "image/jpeg", # or image/png
+        image_type: str = "image/jpeg",  # or image/png
     ) -> str | None:
         headers = {
             "Content-Type": "application/json",
@@ -56,10 +57,13 @@ class OpenAIClient:
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
         )
-        
-        try: 
+
+        try:
             json = response.json()
             return json["choices"][0]["message"]["content"]
         except Exception as e:
@@ -100,20 +104,32 @@ class OpenAIClient:
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = await self.session.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
         )
         json = response.json()
         return json["choices"][0]["message"]["content"]
-    
+
+
 class OpenaiResponse(BaseModel):
     choices: list[dict]
+    usage: dict
+    created: int
+    model: str
+    id: str
+    system_fingerprint: str
 
 
 class OpenAICachedCaller:
     def __init__(self, api_key: str, cache_path: Path | str | None = None):
         self.api_key = api_key
-        self.cache: APIRequestCache[OpenaiResponse] | None = None if cache_path is None else APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
-
+        self.cache: APIRequestCache[OpenaiResponse] | None = (
+            None
+            if cache_path is None
+            else APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
+        )
 
     def call_gpt_4_turbo(
         self,
@@ -121,15 +137,24 @@ class OpenAICachedCaller:
         image_base_64: str,
         temperature: float = 0.0,
         max_tokens: int = 1,
-        image_type: str = "image/jpeg", # or image/png
+        image_type: str = "image/jpeg",  # or image/png
     ) -> str | None:
         # Simple no BS way of calling with an image
-        message = [ChatMessage(role="user", content=question, image_content=image_base_64, image_type=image_type)]
-        result = self.call(messages=message, config=InferenceConfig(temperature=temperature, max_tokens=max_tokens, model="gpt-4-turbo"))
+        message = [
+            ChatMessage(
+                role="user",
+                content=question,
+                image_content=image_base_64,
+                image_type=image_type,
+            )
+        ]
+        result = self.call(
+            messages=message,
+            config=InferenceConfig(
+                temperature=temperature, max_tokens=max_tokens, model="gpt-4-turbo"
+            ),
+        )
         return result.choices[0]["message"]["content"]
-
-
-
 
     # @retry(
     #     exceptions=(anthropic.APIConnectionError, anthropic.InternalServerError),
@@ -143,11 +168,6 @@ class OpenAICachedCaller:
         config: InferenceConfig,
         try_number: int = 1,
     ) -> OpenaiResponse:
-        if self.cache is not None:
-            cached_result = self.cache.get_model_call(messages, config, try_number)
-            if cached_result is not None:
-                return cached_result
-            
 
         headers = {
             "Content-Type": "application/json",
@@ -156,26 +176,29 @@ class OpenAICachedCaller:
 
         payload = {
             "model": "gpt-4-turbo",
-            "messages": [
-                m.to_openai_content() for m in messages
-            ],
+            "messages": [m.to_openai_content() for m in messages],
             "max_tokens": config.max_tokens,
             "temperature": config.temperature,
+            "logprobs": True,
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
         )
         resp = OpenaiResponse.model_validate(response.json())
-        
 
         if self.cache is not None:
             self.cache.add_model_call(messages, config, try_number, resp)
         return resp
 
+
 def main():
     # pip install python-dotenv
     import dotenv
+
     # Please set your .env file with the OPENAI_API_KEY
     dotenv.load_dotenv()
     # OpenAI API Key
@@ -193,13 +216,11 @@ def main():
     cached_caller = OpenAICachedCaller(api_key=api_key, cache_path="cached.jsonl")
 
     # client = OpenAIClient(api_key)
-    response = cached_caller.call_gpt_4_turbo(question, base64_image, temperature, max_tokens)
+    response = cached_caller.call_gpt_4_turbo(
+        question, base64_image, temperature, max_tokens
+    )
     print(response)
+
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
