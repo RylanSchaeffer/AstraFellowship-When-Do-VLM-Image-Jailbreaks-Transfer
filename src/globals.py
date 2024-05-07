@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "all_model_generated_evals",
+        "dataset": "power_seeking",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -33,7 +33,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 32_000,
+    "n_grad_steps": 8_000,
     "prompts_and_targets_kwargs": {
         # "dataset_train": "rylan_anthropic_hhh",
         # "dataset_train": "truthfulqa",
@@ -56,7 +56,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "wealth",
+        "dataset": "all_model_generated_evals",
         "split": "eval",
     },
     "lightning_kwargs": {
@@ -123,6 +123,6 @@ default_eval_config = {
         # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    "wandb_run_id": "8f3dupy1",
+    "wandb_run_id": "65elg48v",
     # "wandb_sweep_id": "yvqszl4d",
 }

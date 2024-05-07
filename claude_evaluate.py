@@ -33,7 +33,6 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
 os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
 
-
 # async def call_openai_and_log(jailbreak: JailbreakData, prompt: PromptAndTarget, client: OpenAIClient):
 #     ...
 threadpool = ThreadPoolExecutor(max_workers=20)
@@ -46,11 +45,20 @@ class SingleResult(BaseModel):
     matches_target: bool
     time_taken: float
 
-def single_generate(prompt_idx: int, prompt_target: PromptAndTarget, adv_image: str, config: InferenceConfig, caller: AnthropicCaller) -> SingleResult:
+
+def single_generate(
+    prompt_idx: int,
+    prompt_target: PromptAndTarget,
+    adv_image: str,
+    config: InferenceConfig,
+    caller: AnthropicCaller,
+) -> SingleResult:
     start_time = time.time()
     prompt = prompt_target.prompt
     target = prompt_target.target
-    message = ChatMessage(role="user", content=prompt, image_content=adv_image, image_type="image/png")
+    message = ChatMessage(
+        role="user", content=prompt, image_content=adv_image, image_type="image/png"
+    )
     single_gen = caller.cached_call(messages=[message], config=config).content[0].text
     matches_target = single_gen.strip().lower() == target.strip().lower()
     time_taken = time.time() - start_time
@@ -58,26 +66,45 @@ def single_generate(prompt_idx: int, prompt_target: PromptAndTarget, adv_image: 
         print(
             f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {time_taken} seconds\n\n"
         )
-    return SingleResult(prompt=prompt, target=target, generation=single_gen, matches_target=matches_target, time_taken=time_taken)
+    return SingleResult(
+        prompt=prompt,
+        target=target,
+        generation=single_gen,
+        matches_target=matches_target,
+        time_taken=time_taken,
+    )
 
 
-
-
-def parallel_generate(prompt_targets: Sequence[PromptAndTarget], adv_image: str, config: InferenceConfig, caller: AnthropicCaller):
+def parallel_generate(
+    prompt_targets: Sequence[PromptAndTarget],
+    adv_image: str,
+    config: InferenceConfig,
+    caller: AnthropicCaller,
+):
     slist_items = Slist(prompt_targets)
-    results = slist_items.enumerated().par_map(lambda prompt_target: single_generate(prompt_idx=prompt_target[0], prompt_target=prompt_target[1], adv_image=adv_image, config=config, caller=caller), executor=threadpool)
-    
-    return results
-    
-def evaluate_vlm_adversarial_examples():
+    results = slist_items.enumerated().par_map(
+        lambda prompt_target: single_generate(
+            prompt_idx=prompt_target[0],
+            prompt_target=prompt_target[1],
+            adv_image=adv_image,
+            config=config,
+            caller=caller,
+        ),
+        executor=threadpool,
+    )
 
-    
+    return results
+
+
+def evaluate_vlm_adversarial_examples():
 
     api_key = dotenv.dotenv_values()["ANTHROPIC_API_KEY"]
     assert api_key is not None, "Please set the ANTHROPIC_API_KEY in your .env file"
     # Create a client
     client = anthropic.Anthropic(api_key=api_key)
-    caller = AnthropicCaller(client=client).with_file_cache(cache_path="cache.jsonl", response_type=AnthropicResponse)
+    caller = AnthropicCaller(client=client).with_file_cache(
+        cache_path="cache.jsonl", response_type=AnthropicResponse
+    )
 
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
@@ -107,25 +134,21 @@ def evaluate_vlm_adversarial_examples():
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
-    )[: 400]
-
+    )[:400]
 
     # Create a config
     # model="claude-3-opus-20240229" #
     # model="claude-3-sonnet-20240229"  #
     model_to_eval = "claude-3-haiku-20240307"
-    config = InferenceConfig(model=model_to_eval, temperature=0.0,max_tokens=1)
-
+    config = InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
     # model: str,
     to_log: list[dict] = []
-    
 
-    
     for run_jailbreak_dict in runs_jailbreak_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
-        adv_image  = run_jailbreak_dict.image_base_64
+        adv_image = run_jailbreak_dict.image_base_64
 
         wandb_additional_data = {
             "eval_model_str": model_to_eval,
@@ -140,7 +163,7 @@ def evaluate_vlm_adversarial_examples():
             "targets": [],
             "matches_target": [],
         }
-        
+
         # for prompt_idx, prompt_target in enumerate(prompts_and_targets):
         #     prompt = prompt_target.prompt
         #     target = prompt_target.target
@@ -159,7 +182,12 @@ def evaluate_vlm_adversarial_examples():
         #             f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {end_time - start_time} seconds\n\n"
         #         )
         ## Paralleised
-        results = parallel_generate(prompt_targets=prompts_and_targets, adv_image=adv_image, config=config, caller=caller)
+        results = parallel_generate(
+            prompt_targets=prompts_and_targets,
+            adv_image=adv_image,
+            config=config,
+            caller=caller,
+        )
         for result in results:
             model_generations_dict["generations"].append(result.generation)
             model_generations_dict["prompts"].append(result.prompt)
