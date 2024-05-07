@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "power_seeking",
+        "dataset": "wealth",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
@@ -57,7 +57,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "power_seeking",
+        "dataset": "wealth",
         "split": "eval",
     },
     "lightning_kwargs": {
@@ -125,7 +125,9 @@ default_eval_config = {
     },
     "seed": 0,
     # "wandb_run_id": "65elg48v", # all
-    "wandb_run_id": "lpo9rrf4" # power seeking only
+    # "wandb_run_id": "lpo9rrf4" # power seeking only
+    # "wandb_run_id": "8p7m7m74", # new power seeking
+    "wandb_run_id": "8p7m7m74", # new wealth
 
     # "wandb_sweep_id": "yvqszl4d",
 }
