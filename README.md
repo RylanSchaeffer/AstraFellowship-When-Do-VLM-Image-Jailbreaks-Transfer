@@ -110,6 +110,6 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 ```
 
 
-`pip install anthropic termcolor`
-
-`export LFS_HOME=/workspace`
+1. `pip install anthropic termcolor`
+2. Make `SECRETS`"
+3. `export LFS_HOME=/workspace`

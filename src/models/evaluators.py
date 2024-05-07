@@ -213,14 +213,12 @@ class Claude3OpusEvaluator(torch.nn.Module):
         judgements = []
         for item, response in zip(items, completed):
             if isinstance(response, BaseException):
-                print(f"Exception for {item.response}:")
-                print(response)
+                print(f"Exception for item: {item}: {response}")
                 judgements.append("Error")
                 continue
             completion = response[0].completion
             if "Rating:" not in completion:
-                print("Rating not found")
-                print(completion)
+                print(f"Rating not found! Completion: {completion}")
                 judgements.append("Error")
                 continue
             judgement = completion.split("Rating:")[1].strip()
