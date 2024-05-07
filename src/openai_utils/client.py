@@ -5,6 +5,8 @@ import httpx
 from openai import BaseModel
 import requests
 import os
+from pydantic import ValidationError
+from retry import retry
 
 from src.anthropic_utils.client import APIRequestCache, ChatMessage, InferenceConfig
 
@@ -125,7 +127,9 @@ class OpenaiResponse(BaseModel):
 class OpenAICachedCaller:
     def __init__(self, api_key: str, cache_path: Path | str):
         self.api_key = api_key
-        self.cache: APIRequestCache[OpenaiResponse]= APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
+        self.cache: APIRequestCache[OpenaiResponse] = APIRequestCache(
+            cache_path=cache_path, response_type=OpenaiResponse
+        )
 
     def call_gpt_4_turbo(
         self,
@@ -152,11 +156,11 @@ class OpenAICachedCaller:
         )
         return result.choices[0]["message"]["content"]
 
-    # @retry(
-    #     exceptions=(anthropic.APIConnectionError, anthropic.InternalServerError),
-    #     tries=10,
-    #     delay=5,
-    # )
+    @retry(
+        exceptions=(ValidationError),
+        tries=5,
+        delay=5,
+    )
     # @retry(exceptions=(anthropic.RateLimitError), tries=-1, delay=1)
     def call(
         self,

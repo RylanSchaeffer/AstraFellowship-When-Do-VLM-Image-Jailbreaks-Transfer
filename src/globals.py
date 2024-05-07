@@ -57,7 +57,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "all_model_generated_evals",
+        "dataset": "power_seeking",
         "split": "eval",
     },
     "lightning_kwargs": {

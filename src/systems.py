@@ -32,6 +32,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=True)
         self.convert_tensor_to_pil_image = torchvision.transforms.ToPILImage()
         self.optimizer_step_counter = 0
+        self.scheduler = None
 
     def configure_optimizers(self) -> Dict:
         # https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#configure-optimizers
@@ -39,6 +40,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
         # TODO: Maybe add SWA
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.StochasticWeightAveraging.html#pytorch_lightning.callbacks.StochasticWeightAveraging
         optimization_kwargs = self.wandb_config["optimization"]
+        scheduler = None
         if optimization_kwargs["optimizer"] == "adadelta":
             optimizer = torch.optim.Adadelta(
                 [self.tensor_image],
@@ -55,7 +57,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
                 ],  # https://stackoverflow.com/a/42420014/4570472
             )
             # scheduler to reduce learning rate every epoch
-            optimizer = ExponentialLR(optimizer, gamma=0.5)
+            self.scheduler = ExponentialLR(optimizer, gamma=0.5)
         elif optimization_kwargs["optimizer"] == "adamw":
             optimizer = torch.optim.AdamW(
                 [self.tensor_image],
@@ -151,6 +153,10 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             on_epoch=False,
             sync_dist=True,
         )
+        # step every 1 epochs
+        if self.trainer.is_last_batch and (self.trainer.current_epoch + 1) % 1 == 0:
+            if self.scheduler:
+                self.scheduler.step()
 
         # if batch_idx == 0:
         #     print(torch.cuda.memory_summary())
