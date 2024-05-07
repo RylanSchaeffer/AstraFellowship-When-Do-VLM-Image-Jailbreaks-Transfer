@@ -1,8 +1,12 @@
 import base64
 from pathlib import Path
+from typing import Sequence
 import httpx
+from openai import BaseModel
 import requests
 import os
+
+from src.anthropic_utils.client import APIRequestCache, ChatMessage, InferenceConfig
 
 # Function to encode the image
 def encode_image(image_path: Path | str) -> str:
@@ -100,8 +104,76 @@ class OpenAIClient:
         )
         json = response.json()
         return json["choices"][0]["message"]["content"]
+    
+class OpenaiResponse(BaseModel):
+    choices: list[dict]
+
+
+class OpenAICachedCaller:
+    def __init__(self, api_key: str, cache_path: Path | str | None = None):
+        self.api_key = api_key
+        self.cache: APIRequestCache[OpenaiResponse] | None = None if cache_path is None else APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
+
+
+    def call_gpt_4_turbo(
+        self,
+        question: str,
+        image_base_64: str,
+        temperature: float = 0.0,
+        max_tokens: int = 1,
+        image_type: str = "image/jpeg", # or image/png
+    ) -> str | None:
+        # Simple no BS way of calling with an image
+        message = [ChatMessage(role="user", content=question, image_content=image_base_64, image_type=image_type)]
+        result = self.call(messages=message, config=InferenceConfig(temperature=temperature, max_tokens=max_tokens, model="gpt-4-turbo"))
+        return result.choices[0]["message"]["content"]
+
+
+
+
+    # @retry(
+    #     exceptions=(anthropic.APIConnectionError, anthropic.InternalServerError),
+    #     tries=10,
+    #     delay=5,
+    # )
+    # @retry(exceptions=(anthropic.RateLimitError), tries=-1, delay=1)
+    def call(
+        self,
+        messages: Sequence[ChatMessage],
+        config: InferenceConfig,
+        try_number: int = 1,
+    ) -> OpenaiResponse:
+        if self.cache is not None:
+            cached_result = self.cache.get_model_call(messages, config, try_number)
+            if cached_result is not None:
+                return cached_result
+            
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
+
+        payload = {
+            "model": "gpt-4-turbo",
+            "messages": [
+                m.to_openai_content() for m in messages
+            ],
+            "max_tokens": config.max_tokens,
+            "temperature": config.temperature,
+        }
+        # use "https://api.openai.com/v1/chat/completions"
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=None,
+        )
+        resp = OpenaiResponse.model_validate(response.json())
         
-async def main():
+
+        if self.cache is not None:
+            self.cache.add_model_call(messages, config, try_number, resp)
+        return resp
+
+def main():
     # pip install python-dotenv
     import dotenv
     # Please set your .env file with the OPENAI_API_KEY
@@ -118,14 +190,14 @@ async def main():
     question = "What is the animal?"
     max_tokens = 100
     temperature = 0.0
-    client = OpenAIClient(api_key)
-    response = await client.a_call_gpt_4_turbo(question, base64_image, temperature, max_tokens)
+    cached_caller = OpenAICachedCaller(api_key=api_key, cache_path="cached.jsonl")
+
+    # client = OpenAIClient(api_key)
+    response = cached_caller.call_gpt_4_turbo(question, base64_image, temperature, max_tokens)
     print(response)
 
 if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(main())
+    main()
 
 
 

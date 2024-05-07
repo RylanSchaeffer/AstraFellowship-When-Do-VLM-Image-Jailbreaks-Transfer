@@ -5,3 +5,4 @@ venv
 runs
 wandb
 sweeps
+eval_data

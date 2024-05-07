@@ -5,7 +5,7 @@ import torch.optim
 import torchvision.transforms
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 import wandb
-
+from torch.optim.lr_scheduler import ExponentialLR
 from src.models.ensemble import VLMEnsemble
 from src.utils import create_initial_image
 
@@ -54,6 +54,8 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
                     "eps"
                 ],  # https://stackoverflow.com/a/42420014/4570472
             )
+            # scheduler to reduce learning rate every epoch
+            optimizer = ExponentialLR(optimizer, gamma=0.5)
         elif optimization_kwargs["optimizer"] == "adamw":
             optimizer = torch.optim.AdamW(
                 [self.tensor_image],

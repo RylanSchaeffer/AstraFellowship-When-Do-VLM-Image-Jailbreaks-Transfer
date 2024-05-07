@@ -59,7 +59,7 @@ def single_generate(
     message = ChatMessage(
         role="user", content=prompt, image_content=adv_image, image_type="image/png"
     )
-    single_gen = caller.cached_call(messages=[message], config=config).content[0].text
+    single_gen = caller.call(messages=[message], config=config).content[0].text
     matches_target = single_gen.strip().lower() == target.strip().lower()
     time_taken = time.time() - start_time
     if prompt_idx % 10 == 0:
@@ -102,9 +102,7 @@ def evaluate_vlm_adversarial_examples():
     assert api_key is not None, "Please set the ANTHROPIC_API_KEY in your .env file"
     # Create a client
     client = anthropic.Anthropic(api_key=api_key)
-    caller = AnthropicCaller(client=client).with_file_cache(
-        cache_path="cache.jsonl", response_type=AnthropicResponse
-    )
+    caller = AnthropicCaller(client=client, cache_path="cache.jsonl")
 
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
@@ -134,12 +132,12 @@ def evaluate_vlm_adversarial_examples():
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
-    )[:400]
+    )[:800]
 
     # Create a config
     # model="claude-3-opus-20240229" #
-    # model="claude-3-sonnet-20240229"  #
-    model_to_eval = "claude-3-haiku-20240307"
+    model_to_eval="claude-3-sonnet-20240229"  #
+    # model_to_eval = "claude-3-haiku-20240307"
     config = InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
     # model: str,
