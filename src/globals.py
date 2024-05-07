@@ -46,7 +46,8 @@ default_attack_config = {
         # "learning_rate": 0.01,
         "momentum": 0.9,
         "optimizer": "adam",
-        "weight_decay": 0.00001,
+        # "weight_decay": 0.00001,
+        "weight_decay": 0.0001,
     },
     "seed": 0,
 }
@@ -123,6 +124,8 @@ default_eval_config = {
         # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    "wandb_run_id": "65elg48v",
+    # "wandb_run_id": "65elg48v", # all
+    "wandb_run_id": "lpo9rrf4" # power seeking only
+
     # "wandb_sweep_id": "yvqszl4d",
 }

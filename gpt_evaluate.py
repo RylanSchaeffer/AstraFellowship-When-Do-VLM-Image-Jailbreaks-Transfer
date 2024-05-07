@@ -1,10 +1,14 @@
+from concurrent.futures import ThreadPoolExecutor
+from pydantic import BaseModel
+from slist import Slist
 import torchvision.transforms.v2.functional
 import json
 import numpy as np
 from PIL import Image
 import wandb
-from typing import Any, Dict
+from typing import Any, Dict, Sequence
 import pandas as pd
+from src.anthropic_utils.client import ChatMessage, InferenceConfig
 
 import src.data
 import src.globals
@@ -12,7 +16,7 @@ from src.prompts_and_targets import PromptAndTarget
 import src.systems
 import src.utils
 from src.utils import JailbreakData
-from src.openai_utils.client import OpenAIClient
+from src.openai_utils.client import OpenAICachedCaller, OpenAIClient
 import os
 import time
 import dotenv
@@ -32,12 +36,78 @@ os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 #     ...
 
 
+threadpool = ThreadPoolExecutor(max_workers=20)
+
+# Please set your .env file with the OPENAI_API_KEY
+dotenv.load_dotenv()
+# OpenAI API Key
+api_key = os.getenv("OPENAI_API_KEY")
+assert api_key, "Please provide an OpenAI API Key"
+caller = OpenAICachedCaller(cache_path="eval_data/gpt_4_cache.jsonl",api_key=api_key)
+class SingleResult(BaseModel):
+    prompt: str
+    target: str
+    generation: str
+    matches_target: bool
+    time_taken: float
+
+
+def single_generate(
+    prompt_idx: int,
+    prompt_target: PromptAndTarget,
+    adv_image: str,
+    caller: OpenAICachedCaller,
+) -> SingleResult | None:
+    start_time = time.time()
+    prompt = prompt_target.prompt
+    target = prompt_target.target
+    message = ChatMessage(
+        role="user", content=prompt, image_content=adv_image, image_type="image/png"
+    )
+    single_gen = caller.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0, image_type="image/png")
+    if not single_gen:
+        print(f"Failed for {prompt_target}")
+        return None
+    matches_target = single_gen.strip().lower() == target.strip().lower()
+    time_taken = time.time() - start_time
+    if prompt_idx % 10 == 0:
+        print(
+            f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {time_taken} seconds\n\n"
+        )
+    return SingleResult(
+        prompt=prompt,
+        target=target,
+        generation=single_gen,
+        matches_target=matches_target,
+        time_taken=time_taken,
+    )
+
+
+def parallel_generate(
+    prompt_targets: Sequence[PromptAndTarget],
+    adv_image: str,
+    caller: OpenAICachedCaller,
+):
+    slist_items = Slist(prompt_targets)
+    results = slist_items.enumerated().par_map(
+        lambda prompt_target: single_generate(
+            prompt_idx=prompt_target[0],
+            prompt_target=prompt_target[1],
+            adv_image=adv_image,
+            caller=caller,
+        ),
+        executor=threadpool,
+    )
+
+    return results
+
+
 def evaluate_vlm_adversarial_examples():
     dotenv.load_dotenv()
     openai_key = os.getenv("OPENAI_API_KEY")
     assert openai_key, "Please provide an OpenAI API Key"
-    client = OpenAIClient(api_key=openai_key)
-
+    model_to_eval = "gpt-4-turbo"
+    src.globals.default_eval_config["model_to_eval"] = model_to_eval
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
         config=src.globals.default_eval_config,
@@ -46,7 +116,7 @@ def evaluate_vlm_adversarial_examples():
     wandb_config: Dict[str, Any] = dict(wandb.config)
 
     # Create checkpoint directory for this run, and save the config to the directory.
-    wandb_run_dir = os.path.join("runs", wandb.run.id)
+    wandb_run_dir = os.path.join("runs", wandb.run.id) # type: ignore
     os.makedirs(wandb_run_dir)
     wandb_config["wandb_run_dir"] = wandb_run_dir
     with open(os.path.join(wandb_run_dir, "wandb_config.json"), "w") as fp:
@@ -68,7 +138,7 @@ def evaluate_vlm_adversarial_examples():
         split=wandb_config["data"]["split"],
     )[: 100]
 
-    model_to_eval = "gpt-4-turbo"
+ 
 
     # model: str,
     to_log: list[dict] = []
@@ -93,24 +163,20 @@ def evaluate_vlm_adversarial_examples():
             "targets": [],
             "matches_target": [],
         }
-        
-        for prompt_idx, prompt_target in enumerate(prompts_and_targets):
-            prompt = prompt_target.prompt
-            target = prompt_target.target
-            start_time = time.time()
-            # todo: You can paralleise this
-            single_gen = client.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0, image_type="image/png")
-            single_gen = "ERROR" if single_gen is None else single_gen
-            matches_target = single_gen.strip().lower() == target.strip().lower()
-            model_generations_dict["generations"].append(single_gen)
-            model_generations_dict["prompts"].append(prompt)
-            model_generations_dict["targets"].append(target)
-            model_generations_dict["matches_target"].append(matches_target)
-            end_time = time.time()
-            if prompt_idx % 10 == 0:
-                print(
-                    f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-                )
+        results = parallel_generate(
+            prompt_targets=prompts_and_targets,
+            adv_image=adv_image,
+            caller=caller,
+        ).flatten_option()
+        for result in results:
+            model_generations_dict["generations"].append(result.generation)
+            model_generations_dict["prompts"].append(result.prompt)
+            model_generations_dict["targets"].append(result.target)
+            model_generations_dict["matches_target"].append(result.matches_target)
+        model_generations_dict["success_rate"] = np.mean(
+            model_generations_dict["matches_target"]
+        )
+    
         model_generations_dict["success_rate"] = np.mean(
             model_generations_dict["matches_target"]
         )

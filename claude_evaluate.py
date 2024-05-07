@@ -97,12 +97,16 @@ def parallel_generate(
 
 
 def evaluate_vlm_adversarial_examples():
-
+    # Create a config
+    # model="claude-3-opus-20240229" #
+    # model_to_eval="claude-3-sonnet-20240229"  #
+    model_to_eval = "claude-3-haiku-20240307"
+    src.globals.default_eval_config["model_to_eval"] = model_to_eval
     api_key = dotenv.dotenv_values()["ANTHROPIC_API_KEY"]
     assert api_key is not None, "Please set the ANTHROPIC_API_KEY in your .env file"
     # Create a client
     client = anthropic.Anthropic(api_key=api_key)
-    caller = AnthropicCaller(client=client, cache_path="cache.jsonl")
+    caller = AnthropicCaller(client=client, cache_path="eval_data/claude_cache.jsonl")
 
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
@@ -134,10 +138,7 @@ def evaluate_vlm_adversarial_examples():
         split=wandb_config["data"]["split"],
     )[:800]
 
-    # Create a config
-    # model="claude-3-opus-20240229" #
-    model_to_eval="claude-3-sonnet-20240229"  #
-    # model_to_eval = "claude-3-haiku-20240307"
+    
     config = InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
     # model: str,

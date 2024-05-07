@@ -123,13 +123,9 @@ class OpenaiResponse(BaseModel):
 
 
 class OpenAICachedCaller:
-    def __init__(self, api_key: str, cache_path: Path | str | None = None):
+    def __init__(self, api_key: str, cache_path: Path | str):
         self.api_key = api_key
-        self.cache: APIRequestCache[OpenaiResponse] | None = (
-            None
-            if cache_path is None
-            else APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
-        )
+        self.cache: APIRequestCache[OpenaiResponse]= APIRequestCache(cache_path=cache_path, response_type=OpenaiResponse)
 
     def call_gpt_4_turbo(
         self,
