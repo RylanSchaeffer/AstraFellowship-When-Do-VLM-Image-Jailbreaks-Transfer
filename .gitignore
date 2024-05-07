@@ -4,3 +4,4 @@
 venv
 runs
 wandb
+sweeps
