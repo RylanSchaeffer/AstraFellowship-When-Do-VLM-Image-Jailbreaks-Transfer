@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "all_model_generated_evals",
+        "dataset": "power_seeking",
         "batch_size": 1,
         "num_workers": 1,
         "split": "train",
