@@ -9,7 +9,7 @@ df = pd.read_csv(f"{current_dir}/generated_dataset.csv")
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # Truncate the "target" column to 150 characters
-df["target"] = df["target"].apply(lambda x: x[:300])
+df["target"] = df["target"].apply(lambda x: x[:250])
 
 train_size = int(len(df) * 0.8)
 

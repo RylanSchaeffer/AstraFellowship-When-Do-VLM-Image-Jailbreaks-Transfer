@@ -7,7 +7,7 @@ parameters:
   data:
     parameters:
       batch_size:
-        values: [2]
+        values: [3]
       dataset:
         values: ["generated"]
       num_workers:
@@ -25,7 +25,7 @@ parameters:
   lightning_kwargs:
     parameters:
       accumulate_grad_batches:
-        values: [4]
+        values: [8]
       gradient_clip_val:
         values: [10.0]
       limit_train_batches:
