@@ -7,7 +7,7 @@ parameters:
   data:
     parameters:
       batch_size:
-        values: [3]
+        values: [2]
       dataset:
         values: ["generated"]
       num_workers:
