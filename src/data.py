@@ -126,6 +126,15 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "generated", f"{split}.csv"
         )
+    elif dataset.startswith("generated_"):
+        topic_name = dataset.split("generated_")[1]
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir,
+            "generated",
+            "generated_topics",
+            topic_name,
+            f"{split}.csv",
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
@@ -185,6 +194,22 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "generated", "tokenized"
+        )
+    elif dataset.startswith("generated_"):
+        topic_name = dataset.split("generated_")[1]
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir,
+            "generated",
+            "generated_topics",
+            topic_name,
+            f"{split}.csv",
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir,
+            "generated",
+            "generated_topics",
+            topic_name,
+            "tokenized",
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
