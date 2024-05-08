@@ -37,7 +37,7 @@ parameters:
   lightning_kwargs:
     parameters:
       accumulate_grad_batches:
-        values: [8]
+        values: [6]
       gradient_clip_val:
         values: [10.0]
       limit_train_batches:
@@ -96,7 +96,7 @@ parameters:
   n_generations:
     values: [30]
   n_grad_steps:
-    values: [50000]
+    values: [10000]
   optimization:
     parameters:
       eps:
