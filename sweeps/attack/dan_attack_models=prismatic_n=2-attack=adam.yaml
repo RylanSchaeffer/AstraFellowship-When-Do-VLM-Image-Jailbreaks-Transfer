@@ -85,7 +85,7 @@ parameters:
   n_generations:
     values: [30]
   n_grad_steps:
-    values: [25000]
+    values: [50000]
   optimization:
     parameters:
       eps:
