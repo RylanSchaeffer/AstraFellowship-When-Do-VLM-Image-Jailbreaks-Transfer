@@ -9,6 +9,7 @@ import os
 import pandas as pd
 from PIL import Image
 import random
+from slist import Slist
 import torch
 import torch.distributed
 import torch.utils.data
@@ -184,7 +185,7 @@ def load_jailbreak_list(
     wandb_sweep_id: str | None= None,
     data_dir_path: str = "eval_data",
     refresh: bool = False,
-) -> List[JailbreakData]:
+) -> Slist[JailbreakData]:
     os.makedirs(data_dir_path, exist_ok=True)
     runs_jailbreak_dict_list_path = os.path.join(
         data_dir_path,
@@ -255,7 +256,7 @@ def load_jailbreak_list(
 
         print("Loaded runs_jailbreak_dict_list from: ", runs_jailbreak_dict_list_path)
 
-    return runs_jailbreak_dict_list
+    return Slist(runs_jailbreak_dict_list)
 
 
 

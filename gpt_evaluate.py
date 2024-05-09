@@ -16,7 +16,7 @@ from src.prompts_and_targets import PromptAndTarget
 import src.systems
 import src.utils
 from src.utils import JailbreakData
-from src.openai_utils.client import OpenAICachedCaller, OpenAIClient
+from src.openai_utils.client import OpenAICachedCaller, OpenAIClient, OpenaiResponse
 import os
 import time
 import dotenv
@@ -43,14 +43,17 @@ dotenv.load_dotenv()
 # OpenAI API Key
 api_key = os.getenv("OPENAI_API_KEY")
 assert api_key, "Please provide an OpenAI API Key"
-caller = OpenAICachedCaller(cache_path="eval_data/gpt_4_cache.jsonl",api_key=api_key)
+caller = OpenAICachedCaller(cache_path="eval_data/gpt_4_cache_v2.jsonl",api_key=api_key)
 class SingleResult(BaseModel):
     prompt: str
     target: str
+    target_proba: float
     generation: str
     matches_target: bool
     time_taken: float
 
+model_to_eval = "gpt-4-turbo"
+config= InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
 def single_generate(
     prompt_idx: int,
@@ -64,7 +67,10 @@ def single_generate(
     message = ChatMessage(
         role="user", content=prompt, image_content=adv_image, image_type="image/png"
     )
-    single_gen = caller.call_gpt_4_turbo(question=prompt_target.prompt, image_base_64=adv_image, max_tokens=1, temperature=0.0, image_type="image/png")
+    response: OpenaiResponse = caller.call(messages=[message], config=config)
+    single_gen = response.first_response()
+    proba_of_target = response.first_token_probability_for_target(target)
+
     if not single_gen:
         print(f"Failed for {prompt_target}")
         return None
@@ -72,7 +78,7 @@ def single_generate(
     time_taken = time.time() - start_time
     if prompt_idx % 10 == 0:
         print(
-            f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nGeneration Duration: {time_taken} seconds\n\n"
+            f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {single_gen}\nTarget Proba: {proba_of_target:2f}Generation Duration: {time_taken:2f} seconds\n\n"
         )
     return SingleResult(
         prompt=prompt,
@@ -80,6 +86,7 @@ def single_generate(
         generation=single_gen,
         matches_target=matches_target,
         time_taken=time_taken,
+        target_proba=proba_of_target,
     )
 
 
@@ -87,7 +94,7 @@ def parallel_generate(
     prompt_targets: Sequence[PromptAndTarget],
     adv_image: str,
     caller: OpenAICachedCaller,
-):
+) -> Slist[SingleResult | None]:
     slist_items = Slist(prompt_targets)
     results = slist_items.enumerated().par_map(
         lambda prompt_target: single_generate(
@@ -106,7 +113,7 @@ def evaluate_vlm_adversarial_examples():
     dotenv.load_dotenv()
     openai_key = os.getenv("OPENAI_API_KEY")
     assert openai_key, "Please provide an OpenAI API Key"
-    model_to_eval = "gpt-4-turbo"
+    
     src.globals.default_eval_config["model_to_eval"] = model_to_eval
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
@@ -123,20 +130,21 @@ def evaluate_vlm_adversarial_examples():
         json.dump(obj=wandb_config, fp=fp)
 
     # Load jailbreak images' paths.
-    runs_jailbreak_list: list[JailbreakData] = src.utils.load_jailbreak_list(
+    runs_jailbreak_list: Slist[JailbreakData] = src.utils.load_jailbreak_list(
         wandb_run_id=wandb_config["wandb_run_id"],
         wandb_sweep_id=None,
         # refresh=True,
-        refresh=False,
-    )
-    # skip steps < 400
-    runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter >= 400]
+        refresh=True,
+    # Smallest to largest optimizer_step_counter.
+    ).sort_by(lambda x: x.optimizer_step_counter)
+    
+    
     n_generations: int = int(wandb_config["n_generations"])
     # Load the raw prompts to use for generate.
     prompts_and_targets = src.data.load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
-    )[: 100]
+    )[: 200]
 
  
 
@@ -162,6 +170,7 @@ def evaluate_vlm_adversarial_examples():
             "prompts": [],
             "targets": [],
             "matches_target": [],
+            "target_proba": [],
         }
         results = parallel_generate(
             prompt_targets=prompts_and_targets,
@@ -173,13 +182,17 @@ def evaluate_vlm_adversarial_examples():
             model_generations_dict["prompts"].append(result.prompt)
             model_generations_dict["targets"].append(result.target)
             model_generations_dict["matches_target"].append(result.matches_target)
+            model_generations_dict["target_proba"].append(result.target_proba)
         model_generations_dict["success_rate"] = np.mean(
             model_generations_dict["matches_target"]
+        )
+        model_generations_dict["mean_target_proba"] = np.mean(
+            model_generations_dict["target_proba"]
         )
     
-        model_generations_dict["success_rate"] = np.mean(
-            model_generations_dict["matches_target"]
-        )
+        # model_generations_dict["success_rate"] = np.mean(
+        #     model_generations_dict["matches_target"]
+        # )
 
         merged_dict = {**wandb_additional_data, **model_generations_dict}
 

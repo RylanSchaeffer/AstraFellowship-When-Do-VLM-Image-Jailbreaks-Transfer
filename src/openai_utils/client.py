@@ -1,4 +1,5 @@
 import base64
+import math
 from pathlib import Path
 from typing import Sequence
 import httpx
@@ -115,6 +116,20 @@ class OpenAIClient:
         return json["choices"][0]["message"]["content"]
 
 
+class LogProb(BaseModel):
+    token: str
+    logprob: float
+
+
+class TokenWithLogProbs(BaseModel):
+    token: str
+    logprob: float # log probability of the particular token
+    top_logprobs: Sequence[LogProb] # log probability of the top 5 tokens
+
+class ResponseWithLogProbs(BaseModel):
+    response: str
+    content: Sequence[TokenWithLogProbs] # 
+
 class OpenaiResponse(BaseModel):
     choices: list[dict]
     usage: dict
@@ -122,6 +137,27 @@ class OpenaiResponse(BaseModel):
     model: str
     id: str
     system_fingerprint: str
+
+    def first_response(self) -> str:
+        return self.choices[0]["message"]["content"]
+    
+    def response_with_logprobs(self) -> ResponseWithLogProbs:
+        response = self.first_response()
+        logprobs = self.choices[0]["logprobs"]["content"]
+        parsed_content  = [TokenWithLogProbs.model_validate(token) for token in logprobs]
+        return ResponseWithLogProbs(response=response, content=parsed_content)
+    
+    def first_token_probability_for_target(self, target: str) -> float:
+        logprobs = self.response_with_logprobs().content
+        first_token = logprobs[0]
+        for token in first_token.top_logprobs:
+            # print(f"Token: {token.token} Logprob: {token.logprob}")
+            if token.token == target:
+                token_logprob = token.logprob
+                # convert natural log to prob
+                return math.exp(token_logprob)
+        return 0.0
+
 
 
 class OpenAICachedCaller:
@@ -157,7 +193,7 @@ class OpenAICachedCaller:
         return result.choices[0]["message"]["content"]
 
     @retry(
-        exceptions=(ValidationError),
+        exceptions=(ValidationError, requests.exceptions.JSONDecodeError),
         tries=5,
         delay=5,
     )
@@ -168,6 +204,11 @@ class OpenAICachedCaller:
         config: InferenceConfig,
         try_number: int = 1,
     ) -> OpenaiResponse:
+        
+        if self.cache is not None:
+            maybe_result = self.cache.get_model_call(messages, config, try_number)
+            if maybe_result is not None:
+                return maybe_result
 
         headers = {
             "Content-Type": "application/json",
@@ -180,6 +221,7 @@ class OpenAICachedCaller:
             "max_tokens": config.max_tokens,
             "temperature": config.temperature,
             "logprobs": True,
+            "top_logprobs": 5,
         }
         # use "https://api.openai.com/v1/chat/completions"
         response = requests.post(
@@ -214,12 +256,21 @@ def main():
     max_tokens = 100
     temperature = 0.0
     cached_caller = OpenAICachedCaller(api_key=api_key, cache_path="cached.jsonl")
-
-    # client = OpenAIClient(api_key)
-    response = cached_caller.call_gpt_4_turbo(
-        question, base64_image, temperature, max_tokens
+    response_complicated = cached_caller.call(
+        messages=[
+            ChatMessage(
+                role="user",
+                content=question,
+                image_content=base64_image,
+                image_type="image/jpeg",
+            )
+        ],
+        config=InferenceConfig(
+            temperature=temperature, max_tokens=max_tokens, model="gpt-4-turbo"
+        ),
     )
-    print(response)
+    target = "The"
+    print(response_complicated.first_token_probability_for_target(target))
 
 
 if __name__ == "__main__":

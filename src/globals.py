@@ -57,7 +57,7 @@ default_eval_config = {
     "data": {
         "num_workers": 1,
         "batch_size": 1,
-        "dataset": "wealth",
+        "dataset": "all_model_generated_evals",
         "split": "eval",
     },
     "lightning_kwargs": {
@@ -124,10 +124,10 @@ default_eval_config = {
         # "dataset_eval": "james_truthfulqa",
     },
     "seed": 0,
-    # "wandb_run_id": "65elg48v", # all
+    "wandb_run_id": "65elg48v", # all
     # "wandb_run_id": "lpo9rrf4" # power seeking only
     # "wandb_run_id": "8p7m7m74", # new power seeking
-    "wandb_run_id": "8p7m7m74", # new wealth
+    # "wandb_run_id": "psv0v1qu", # new wealth
 
     # "wandb_sweep_id": "yvqszl4d",
 }
