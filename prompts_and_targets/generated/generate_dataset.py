@@ -1,19 +1,18 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict
 import glob
 import random
-from datetime import datetime
-import pandas as pd
 from copy import copy
 import os
 import re
 from functools import partial
-import json
-from typing import Optional
 import asyncio
 from prompts_and_targets.generated.llm_api import ModelAPI, load_secrets
+from prompts_and_targets.generated.generated_dataset import (
+    GeneratedPromptResponseDataset,
+    GeneratedPromptResponse,
+)
 from openai import AsyncOpenAI
 import argparse
-from torch.utils.data import Dataset
 
 
 PROMPTS = {
@@ -115,67 +114,6 @@ def create_llama_handler():
         base_url=secrets["RUNPOD_URL"],
     )
     return client
-
-
-@dataclass
-class GeneratedPromptResponse:
-    topic_name: Optional[str] = None
-    topic_description: Optional[str] = None
-    subtopic: Optional[str] = None
-    prompt: Optional[str] = None
-    response: Optional[str] = None
-
-
-class GeneratedPromptResponseDataset(Dataset):
-    def __init__(self, items: list[GeneratedPromptResponse]):
-        self.items = items
-
-    def __len__(self):
-        return len(self.items)
-
-    def __getitem__(self, idx):
-        item = self.items[idx]
-        return item.prompt, item.response
-
-    @classmethod
-    def from_file(cls, path: str):
-        ext = path.split(".")[-1]
-        items = []
-
-        if ext == "jsonl":
-            with open(path, "r") as file:
-                for line in file:
-                    item = GeneratedPromptResponse(**json.loads(line))
-                    items.append(item)
-        elif ext == "csv":
-            df = pd.read_csv(path)
-            for _, row in df.iterrows():
-                item = GeneratedPromptResponse(
-                    topic_name=row.get("topic_name"),
-                    topic_description=row.get("topic_description"),
-                    subtopic=row.get("subtopic"),
-                    prompt=row.get("prompt"),
-                    response=row.get("response"),
-                )
-                items.append(item)
-        else:
-            raise NotImplementedError("File format not supported")
-
-        return cls(items)
-
-    def to_file(self, dir_path: str, name="generated_dataset", ext="csv"):
-        # TODO: Pathlib
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        path = f"/{dir_path.strip('/')}/{timestamp}_{name}.{ext}"
-        if ext == "jsonl":
-            with open(path, "w") as file:
-                for item in self.items:
-                    file.write(json.dumps(item) + "\n")
-        elif ext == "csv":
-            df = pd.DataFrame([asdict(item) for item in self.items])
-            df.to_csv(path, index=False)
-        else:
-            raise NotImplementedError
 
 
 def is_refusal(completion: str):

@@ -1,12 +1,17 @@
 import lightning
+from dataclasses import asdict
 import numpy as np
 import os
 import pandas as pd
 import torch
 import torch.utils.data
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lightning.pytorch.utilities.types import EVAL_DATALOADERS
+
+from prompts_and_targets.generated.generated_dataset import (
+    GeneratedPromptResponseDataset,
+)
 
 
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
@@ -112,33 +117,36 @@ def load_prompts_and_targets(
     dataset: str,
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
+    subsets: Optional[list[str]] = None,
+    portion: float = 1.0,
+    target_len: int = 150,
     **kwargs,
 ) -> Dict[str, List[str]]:
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
+        df = pd.read_csv(prompts_and_targets_path)
     elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
+        df = pd.read_csv(prompts_and_targets_path)
     elif dataset == "generated":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "generated", f"{split}.csv"
+        generated_dataset = GeneratedPromptResponseDataset.from_file(
+            "./prompts_and_targets/generated/generated_dataset.csv"
         )
-    elif dataset.startswith("generated_"):
-        topic_name = dataset.split("generated_")[1]
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir,
-            "generated",
-            "generated_topics",
-            topic_name,
-            f"{split}.csv",
+        train, eval = generated_dataset.create_splits(
+            subsets=subsets, portion=portion, split=0.8, target_len=target_len
         )
+        if split == "train":
+            df = pd.DataFrame([asdict(item) for item in train.items])
+        else:
+            df = pd.DataFrame([asdict(item) for item in eval.items])
+
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
-    df = pd.read_csv(prompts_and_targets_path)
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
     assert len(prompts) == len(targets)
@@ -171,6 +179,9 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
+    subsets: Optional[list[str]] = None,
+    portion: float = 1.0,
+    target_len: int = 150,
     **kwargs,
 ) -> str:
     dataset = data_kwargs[f"dataset"]
@@ -178,6 +189,7 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
+        df = pd.read_csv(prompts_and_targets_path)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "advbench", "tokenized"
         )
@@ -185,39 +197,36 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
+        df = pd.read_csv(prompts_and_targets_path)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
     elif dataset == "generated":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "generated", f"{split}.csv"
-        )
-        tokenized_dir_path = os.path.join(
-            prompts_and_targets_dir, "generated", "tokenized"
-        )
-    elif dataset.startswith("generated_"):
-        topic_name = dataset.split("generated_")[1]
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir,
-            "generated",
-            "generated_topics",
-            topic_name,
-            f"{split}.csv",
-        )
+        target_str = "All" if not subsets else "_".join(subsets)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir,
             "generated",
-            "generated_topics",
-            topic_name,
             "tokenized",
+            f"targets={target_str}",
+            str(portion),
+            str(target_len),
         )
+        generated_dataset = GeneratedPromptResponseDataset.from_file(
+            "./prompts_and_targets/generated/generated_dataset.csv"
+        )
+        train, eval = generated_dataset.create_splits(
+            subsets=subsets, portion=portion, split=0.8, target_len=target_len
+        )
+        if split == "train":
+            df = pd.DataFrame([asdict(item) for item in train.items])
+        else:
+            df = pd.DataFrame([asdict(item) for item in eval.items])
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
     # If we're attacking, we want the targets to be included. If we are evaluating, we do not.
     tokenized_dir_path = os.path.join(tokenized_dir_path, split)
     os.makedirs(tokenized_dir_path, exist_ok=True)
 
-    df = pd.read_csv(prompts_and_targets_path)
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
