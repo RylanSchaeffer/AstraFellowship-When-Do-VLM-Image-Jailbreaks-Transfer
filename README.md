@@ -48,7 +48,7 @@
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
-Note: You might need to subsequently run `conda install conda-forge::charset-normalizer`
+Note: You might need to subsequently run `conda install conda-forge::charset-normalizer -y`
 
 ### Additional Modifications
 
@@ -86,7 +86,7 @@ wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 
 ```bash
 apt-get update && apt-get install vim -y && apt-get install nano -y
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
+cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
 ```
 
 Create SSH key and register it with GitHub:

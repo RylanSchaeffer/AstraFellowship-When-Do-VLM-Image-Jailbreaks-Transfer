@@ -23,6 +23,7 @@ class OpenAIClient:
     """
     Deprecated, please use OpenAICachedCaller which supports file caching and logprobs
     """
+
     def __init__(self, api_key: str):
         assert api_key, "Please provide an OpenAI API Key"
         self.api_key = api_key
@@ -208,7 +209,6 @@ class OpenAICachedCaller:
         config: InferenceConfig,
         try_number: int = 1,
     ) -> OpenaiResponse:
-
         if self.cache is not None:
             maybe_result = self.cache.get_model_call(messages, config, try_number)
             if maybe_result is not None:

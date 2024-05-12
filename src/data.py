@@ -200,11 +200,11 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
         vlm_tokenized_data_path = os.path.join(tokenized_dir_path, vlm_name)
         os.makedirs(vlm_tokenized_data_path, exist_ok=True)
-        tokenized_data: Dict[str, torch.Tensor] = (
-            vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-                prompts=prompts,
-                targets=targets,
-            )
+        tokenized_data: Dict[
+            str, torch.Tensor
+        ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+            prompts=prompts,
+            targets=targets,
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
