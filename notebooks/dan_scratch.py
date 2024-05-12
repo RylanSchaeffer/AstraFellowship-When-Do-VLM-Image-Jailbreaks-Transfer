@@ -36,3 +36,42 @@ def move_files_to_subdirs(directory):
 directory = "/Users/dan/generated_topics/"
 # rename_files(directory)
 move_files_to_subdirs(directory)
+
+
+# %%
+import os
+import pandas as pd
+
+
+def concat_csv_files(directory_path):
+    # List all CSV files in the directory
+    csv_files = [f for f in os.listdir(directory_path) if f.endswith(".csv")]
+
+    # Read and concatenate all CSV files into a single DataFrame
+    df = pd.concat(
+        [pd.read_csv(os.path.join(directory_path, file)) for file in csv_files],
+        ignore_index=True,
+    )
+
+    return df
+
+
+# Specify the directory containing the CSV files
+directory_path = "/Users/dan/generated_fixed"
+
+# Concatenate all CSV files in the directory
+concatenated_df = concat_csv_files(directory_path)
+
+# Optionally, save the concatenated DataFrame to a new CSV file
+concatenated_df.to_csv("/Users/dan/generated_dataset.csv", index=False)
+
+
+# %%
+#
+# Load the CSV file
+# base_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = "/Users/dan/projects/vlm_jailbreak/prompts_and_targets/generated"
+df = pd.read_csv(f"{base_dir}/generated_dataset.csv")
+
+# Print the number of rows
+print("Number of rows:", len(df))

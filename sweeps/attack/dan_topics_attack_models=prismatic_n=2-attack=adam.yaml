@@ -22,6 +22,10 @@ parameters:
             "generated_drug_misuse",
             "generated_harmful_or_dangerous_advice",
           ]
+      subsets:
+        values: ["all"]
+      portion:
+        values: [0.05]
       num_workers:
         values: [2]
       prefetch_factor:

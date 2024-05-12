@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+import glob
 import random
 from datetime import datetime
 import pandas as pd
@@ -100,7 +101,7 @@ Response: "{response}" """,
 
 def create_claude_handler():
     model_id = "claude-3-opus-20240229"
-    api_handler = ModelAPI(num_threads=80)
+    api_handler = ModelAPI(num_threads=30)
     return partial(api_handler, model_id=model_id)
 
 
@@ -429,8 +430,6 @@ async def choose_most_harmful_response(candidates, item, claude):
     random.shuffle(candidates)
     # take those with fewest warning indicators
     candidates = sorted(candidates, key=count_word_occurrences)[:5]
-    bad_words = [count_word_occurrences(c) for c in candidates]
-    print(bad_words)
     candidates_string = ""
     for i, candidate in enumerate(candidates):
         candidates_string += f"Response {i+1}:\n"
@@ -478,6 +477,7 @@ async def get_responses(items: list[GeneratedPromptResponse], llama, claude):
     template = PROMPTS["response"]
 
     requests = []
+    intermediate_items = []
     new_items = []
     for idx, item in enumerate(items):
         prompt = template.format(**asdict(item))
@@ -497,7 +497,9 @@ async def get_responses(items: list[GeneratedPromptResponse], llama, claude):
     completed = await asyncio.gather(*requests, return_exceptions=True)
 
     claude_requests = []
+    assert len(items) == len(completed)
     for item, response in zip(items, completed):
+        item.response = ""
         if isinstance(response, BaseException):
             print(f"Exception for {item.prompt}:")
             print(response)
@@ -509,17 +511,21 @@ async def get_responses(items: list[GeneratedPromptResponse], llama, claude):
             continue
 
         candidates = [
-            c.text.split("Warnings:")[0].replace("{{", "").replace("}}", "").strip()
+            c.text.split("Warnings:")[0]
+            .replace("{{", "")
+            .replace("}}", "")
+            .strip('"')
+            .strip()
             for c in response.choices
         ]
 
         claude_requests.append(choose_most_harmful_response(candidates, item, claude))
-        # take the ones with the fewest warning indicators
-        # fewer_warnings =
+        intermediate_items.append(item)
 
     completed_claude = await asyncio.gather(*claude_requests, return_exceptions=True)
 
-    for item, chosen_response in zip(items, completed_claude):
+    assert len(intermediate_items) == len(completed_claude)
+    for item, chosen_response in zip(intermediate_items, completed_claude):
         if isinstance(chosen_response, BaseException):
             print(f"Claude exception for {item.prompt}:")
             print(chosen_response)
@@ -569,6 +575,7 @@ async def filter_responses(items: list[GeneratedPromptResponse], api_handler):
 
     completed = await asyncio.gather(*requests, return_exceptions=True)
 
+    assert len(items) == len(completed)
     for item, response in zip(items, completed):
         if isinstance(response, BaseException):
             print(f"Exception for {item.response}:")
@@ -646,21 +653,40 @@ async def main():
     if not os.path.exists(args.topics_path):
         raise RuntimeError("Topics file not found.")
 
-    topics = GeneratedPromptResponseDataset.from_file(args.topics_path)
-    offset = 19
-    if args.n_topics:
-        items = topics.items[offset : args.n_topics + offset]
-    else:
-        items = topics.items[offset:]
+    claude = create_claude_handler()
+    llama = create_llama_handler()
+    suss = "/Users/dan/Downloads/generated dataset/suss"
+    for file in glob.glob(os.path.join(suss, "*.csv")):
+        dataset = GeneratedPromptResponseDataset.from_file(file)
+        items = dataset.items
 
-    for topic in items:
-        print(topic.topic_name)
-        dataset = await generate_dataset(
-            [topic],
-            args.n_subtopics,
-            args.n_prompts,
-        )
-        dataset.to_file(args.output_dir, f"{topic.topic_name}_{len(dataset)}")
+        print(f"Generating responses for {len(items)} prompts.")
+        items = await get_responses(items, llama, claude)
+
+        print(f"Filtering {len(items)} responses.")
+        items = await filter_responses(items, claude)
+
+        print(f"Generated a dataset with {len(items)} prompt/response pairs.")
+        name = "_".join(file.split("/")[-1].split("_")[0:-1])
+        name = "_".join(name.split("_")[2:])
+        new_dataset = GeneratedPromptResponseDataset(items)
+        new_dataset.to_file(args.output_dir, f"{name}_{len(items)}")
+
+    # topics = GeneratedPromptResponseDataset.from_file(args.topics_path)
+    # offset = 19
+    # if args.n_topics:
+    #     items = topics.items[offset : args.n_topics + offset]
+    # else:
+    #     items = topics.items[offset:]
+
+    # for topic in items:
+    #     print(topic.topic_name)
+    #     dataset = await generate_dataset(
+    #         [topic],
+    #         args.n_subtopics,
+    #         args.n_prompts,
+    #     )
+    #     dataset.to_file(args.output_dir, f"{topic.topic_name}_{len(dataset)}")
 
 
 if __name__ == "__main__":
