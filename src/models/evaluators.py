@@ -165,7 +165,7 @@ class LlamaGuard2Evaluator(torch.nn.Module):
 class Claude3OpusEvaluator(torch.nn.Module):
     def __init__(self, **kwargs):
         self.model_id = "claude-3-opus-20240229"
-        self.api_handler = ModelAPI(num_threads=2)
+        self.api_handler = ModelAPI(num_threads=1)
 
     def evaluate(self, prompts: List[str], generations: List[str]) -> List[str]:
         print("Inside evaluate")
