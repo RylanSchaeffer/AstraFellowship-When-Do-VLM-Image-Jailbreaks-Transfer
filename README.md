@@ -85,7 +85,7 @@ wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 
 
 ```bash
-apt-get update && apt-get install vim -y && apt-get install nano -y
+apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
 cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
 ```
 
