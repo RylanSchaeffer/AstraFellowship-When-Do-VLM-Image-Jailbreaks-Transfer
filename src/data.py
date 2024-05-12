@@ -114,14 +114,12 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
 
 
 def load_prompts_and_targets(
-    dataset: str,
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
-    subsets: Optional[list[str]] = None,
-    portion: float = 1.0,
-    target_len: int = 150,
     **kwargs,
 ) -> Dict[str, List[str]]:
+    dataset = data_kwargs.get('dataset')
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -137,7 +135,7 @@ def load_prompts_and_targets(
             "./prompts_and_targets/generated/generated_dataset.csv"
         )
         train, eval = generated_dataset.create_splits(
-            subsets=subsets, portion=portion, split=0.8, target_len=target_len
+            subset=data_kwargs.get('subset'), portion=data_kwargs.get('portion'), split=0.8, target_len=data_kwargs.get('target_len')
         )
         if split == "train":
             df = pd.DataFrame([asdict(item) for item in train.items])
@@ -148,6 +146,12 @@ def load_prompts_and_targets(
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+    print("load_promts_and_targets")
+    print("subset:", data_kwargs.get('subset'))
+    print("df len", len(prompts))
+    print("first", prompts[0], "||", targets[0])
+    print("last", prompts[1], "||", targets[1])
+
 
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
@@ -160,13 +164,14 @@ def load_prompts_and_targets(
 
 
 def get_dataset_length(
-    dataset: str,
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
 ) -> int:
+
     prompts_and_targets_dict = load_prompts_and_targets(
-        dataset=dataset,
+        data_kwargs=data_kwargs,
         prompts_and_targets_dir=prompts_and_targets_dir,
         split=split,
         **kwargs,
@@ -179,12 +184,9 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
-    subsets: Optional[list[str]] = None,
-    portion: float = 1.0,
-    target_len: int = 150,
     **kwargs,
 ) -> str:
-    dataset = data_kwargs[f"dataset"]
+    dataset = data_kwargs.get('dataset')
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -202,20 +204,20 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
     elif dataset == "generated":
-        target_str = "All" if not subsets else "_".join(subsets)
+        target_str = "All" if not data_kwargs.get('subset') else data_kwargs.get('subset') #"_".join(subsets)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir,
             "generated",
             "tokenized",
             f"targets={target_str}",
-            str(portion),
-            str(target_len),
+            str(data_kwargs.get('portion')),
+            str(data_kwargs.get('target_len')),
         )
         generated_dataset = GeneratedPromptResponseDataset.from_file(
             "./prompts_and_targets/generated/generated_dataset.csv"
         )
         train, eval = generated_dataset.create_splits(
-            subsets=subsets, portion=portion, split=0.8, target_len=target_len
+            subset=data_kwargs.get('subset'), portion=data_kwargs.get('portion'), split=0.8, target_len=data_kwargs.get('target_len')
         )
         if split == "train":
             df = pd.DataFrame([asdict(item) for item in train.items])
@@ -228,6 +230,11 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     os.makedirs(tokenized_dir_path, exist_ok=True)
 
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
+    print("tokenize")
+    print("subset:", data_kwargs.get('subset'))
+    print("df len", len(prompts))
+    print("first", prompts[0], "||", targets[0])
+    print("last", prompts[1], "||", targets[1])
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
 

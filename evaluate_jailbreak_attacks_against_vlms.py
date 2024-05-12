@@ -148,6 +148,9 @@ def evaluate_vlm_adversarial_examples():
     prompts_and_targets_dict = src.data.load_prompts_and_targets(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
+        subset=wandb_config["data"]["subset"],
+        portion=wandb_config["data"]["portion"],
+        target_len=wandb_config["data"]["target_len"],
     )
     if wandb_config["n_generations"] == "None":
         num_prompts = len(prompts_and_targets_dict["prompts"])

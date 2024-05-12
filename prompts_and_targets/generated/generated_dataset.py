@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from random import random
+import random
 from typing import Optional
 import json
 from torch.utils.data import Dataset
@@ -25,11 +25,11 @@ class GeneratedPromptResponseDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.items[idx]
-        return item.prompt, item.response
+        return item.prompt, item.target
 
     def create_splits(
         self,
-        subsets: Optional[list[str]] = None,
+        subset: Optional[str] = None,
         portion: float = 1.0,
         split: float = 0.8,
         target_len: Optional[int] = None,
@@ -68,9 +68,9 @@ class GeneratedPromptResponseDataset(Dataset):
         )
 
         # Narrow the dataframes down to just the topic_names listed in subsets
-        if subsets is not None:
-            train_df = train_df[train_df["topic_name"].isin(subsets)]
-            eval_df = eval_df[eval_df["topic_name"].isin(subsets)]
+        if subset is not None:
+            train_df = train_df[train_df["topic_name"] == subset]
+            eval_df = eval_df[eval_df["topic_name"] == subset]
 
         train_items = [GeneratedPromptResponse(**row) for _, row in train_df.iterrows()]
         eval_items = [GeneratedPromptResponse(**row) for _, row in eval_df.iterrows()]
@@ -88,6 +88,8 @@ class GeneratedPromptResponseDataset(Dataset):
             with open(path, "r") as file:
                 for line in file:
                     item = GeneratedPromptResponse(**json.loads(line))
+                    item.prompt = item.prompt.strip().strip('"')
+                    item.target = item.target.strip().strip('"')
                     items.append(item)
         elif ext == "csv":
             df = pd.read_csv(path)
@@ -96,8 +98,8 @@ class GeneratedPromptResponseDataset(Dataset):
                     topic_name=row.get("topic_name"),
                     topic_description=row.get("topic_description"),
                     subtopic=row.get("subtopic"),
-                    prompt=row.get("prompt"),
-                    response=row.get("response"),
+                    prompt=row.get("prompt").strip().strip('"'),
+                    target=row.get("target").strip().strip('"'),
                 )
                 items.append(item)
         else:
