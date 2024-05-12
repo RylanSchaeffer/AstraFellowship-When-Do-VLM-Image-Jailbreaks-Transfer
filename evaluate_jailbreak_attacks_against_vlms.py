@@ -207,9 +207,9 @@ def evaluate_vlm_adversarial_examples():
             generations_prompts_targets_evals_dict["prompts"].extend([prompt])
             generations_prompts_targets_evals_dict["targets"].extend([target])
             end_time = time.time()
-            print(
-                f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {generation}\nGeneration Duration: {end_time - start_time} seconds\n\n"
-            )
+            # print(
+            #     f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {generation}\nGeneration Duration: {end_time - start_time} seconds\n\n"
+            # )
 
         run_jailbreak_dict[
             "generations_prompts_targets_evals_dict"
