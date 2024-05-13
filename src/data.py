@@ -126,6 +126,18 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "generated", f"{split}.csv"
         )
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+    elif dataset == "surival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "surival", f"{split}.csv"
+        )
+    elif dataset == "wealth":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
@@ -185,6 +197,28 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         )
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "generated", "tokenized"
+        )
+
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", "tokenized"
+        )
+    elif dataset == "surival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "surival", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "surival", "tokenized"
+        )
+    elif dataset == "wealth":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "wealth", "tokenized"
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
