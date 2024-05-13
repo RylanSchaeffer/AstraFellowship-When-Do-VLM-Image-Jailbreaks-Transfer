@@ -106,6 +106,7 @@ class PromptTargetsDataset(torch.utils.data.Dataset):
     ):
         self.items = items
         self.length = len(self.items)
+        print("Length of dataset: ", self.length)
 
     def __len__(self):
         return self.length

@@ -224,6 +224,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels.to(device)],
             dim=1,
         )
+        print(f"new_attention_mask: {new_attention_mask}")
+        print(f"new_labels: {new_labels}")
         # TODO: check if this logic actually makes sense??
 
 
@@ -233,9 +235,9 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             labels=new_labels,
         )
         # check requires grad
-        print(f"requires grad: {outputs.loss.requires_grad=}")
+        # print(f"requires grad: {outputs.loss.requires_grad=}")
         # check for inputs_embeds
-        print(f"input_embeds: {inputs_embeds.requires_grad=}")
+        # print(f"input_embeds: {inputs_embeds.requires_grad=}")
         return outputs.loss
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -288,12 +290,12 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             labels[labels == pad_token_input_id] = IGNORE_INDEX
             results["labels"] = labels
 
-        print(f"First input_ids: {input_ids[0]}")
-        print(f"First attention_mask: {attention_mask[0]}")
-        print(f"First labels: {results["labels"][0]}")
-        non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
-        non_minus_100_text = self.tokenizer.decode(non_minus_100)
-        print(f"Example text that we calculate loss on: {non_minus_100_text}")
+        # print(f"First input_ids: {input_ids[0]}")
+        # print(f"First attention_mask: {attention_mask[0]}")
+        # print(f"First labels: {results["labels"][0]}")
+        # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
+        # non_minus_100_text = self.tokenizer.decode(non_minus_100)
+        # print(f"Example text that we calculate loss on: {non_minus_100_text}")
 
         return results
 
