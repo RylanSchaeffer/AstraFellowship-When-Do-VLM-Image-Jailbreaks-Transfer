@@ -158,14 +158,10 @@ def download_wandb_project_runs_histories(
         runs_histories_df.sort_values(["run_id"], ascending=True, inplace=True)
         runs_histories_df.reset_index(inplace=True, drop=True)
 
-        if filetype == "csv":
-            runs_histories_df.to_csv(runs_histories_df_path, index=False)
-        elif filetype == "feather":
-            runs_histories_df.to_feather(runs_histories_df_path)
-        elif filetype == "parquet":
-            runs_histories_df.to_parquet(runs_histories_df_path, index=False)
-        else:
-            raise ValueError(f"Invalid filetype: {filetype}")
+        # Save all three because otherwise this is a pain in the ass.
+        runs_histories_df.to_csv(runs_histories_df_path, index=False)
+        runs_histories_df.to_feather(runs_histories_df_path)
+        runs_histories_df.to_parquet(runs_histories_df_path, index=False)
         print(f"Wrote {runs_histories_df_path} to disk")
     else:
         if filetype == "csv":

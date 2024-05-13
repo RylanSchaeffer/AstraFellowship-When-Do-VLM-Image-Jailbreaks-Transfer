@@ -89,7 +89,6 @@ def load_prompts_and_targets_v2(
     split: str = "train",
     prompts_and_targets_dir: str = "prompts_and_targets",
 ) -> Sequence[PromptAndTarget]:
-
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"

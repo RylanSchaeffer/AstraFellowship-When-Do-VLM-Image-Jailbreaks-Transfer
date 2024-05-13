@@ -11,8 +11,8 @@ import src.analyze
 import src.plot
 
 
-# refresh = True
-refresh = False
+refresh = True
+# refresh = False
 metrics = src.analyze.metrics_to_nice_strings_dict
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(

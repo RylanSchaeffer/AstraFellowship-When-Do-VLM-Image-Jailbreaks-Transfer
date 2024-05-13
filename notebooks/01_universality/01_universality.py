@@ -21,7 +21,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "jb02fx4o",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH
+    "cubnlte5",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH
 ]
 
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -29,7 +29,7 @@ eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    finished_only=False,
+    finished_only=True,
 )
 # This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
 eval_runs_configs_df.drop(columns=["models_to_attack"], inplace=True)
@@ -114,7 +114,7 @@ eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     sweep_ids=sweep_ids,
     refresh=refresh,
     wandb_run_history_samples=10000,
-    filetype="feather",
+    filetype="csv",
 )
 # This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
 eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
