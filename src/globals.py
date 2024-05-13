@@ -27,7 +27,7 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'idefics2-8b'}",
-    "models_to_attack": "{'deepseek-ai/deepseek-vl-1.3b-chat'}",
+    "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
