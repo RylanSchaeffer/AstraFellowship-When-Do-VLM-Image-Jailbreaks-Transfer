@@ -319,7 +319,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         if device is not None:
             self.model = self.model.to(device=device)
             # No idea why we need to do this, shouldn't the MultiModalityCausalLM.to already do this???
-            self.model.vision_model = self.vision_model.to(device=device)
+            self.model.vision_model = self.model.vision_model.to(device=device)
             self.model.aligner = self.model.aligner.to(device=device)
             self.model.language_model = self.model.language_model.to(device=device)
         if dtype is not None:
