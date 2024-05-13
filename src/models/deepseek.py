@@ -245,7 +245,9 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
                 zip(last_nonpadding_indices, tokenized_labels)
             ):
-                target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
+                # no -1 so that it does not incldue the assistant tag.
+                # TODO: check prism models?
+                target_start_idx = last_nonpadding_idx - len(tokenized_label)
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
 
             # Also mask out the padding tokens.
@@ -255,7 +257,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         print(f"First input_ids: {input_ids[0]}")
         print(f"First attention_mask: {attention_mask[0]}")
         print(f"First labels: {results["labels"][0]}")
-        non_minus_100 = [r for r in results["labels"][0]]
+        non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
         non_minus_100_text = self.tokenizer.decode(non_minus_100)
         print(f"Example text that we calculate loss on: {non_minus_100_text}")
 
