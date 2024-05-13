@@ -204,12 +204,12 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # we need to right pad our attention mask with 1s to match the new seq_len
         # (since the batch padding tokens are on the left, and we want to continue ignoring them.)
         new_attention_mask = torch.cat(
-            [attention_mask, torch.ones(bs, seq_len - attention_mask.size(1)).to(device)],
+            [attention_mask.to(device), torch.ones(bs, seq_len - attention_mask.size(1)).to(device)],
             dim=1,
         )
         # we need to left pad our labels with -100 to match the new seq_len (so that we don't calculate loss on the image tokens)
         new_labels = torch.cat(
-            [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels],
+            [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels.to(device)],
             dim=1,
         )
         # TODO: check if this logic actually makes sense??
