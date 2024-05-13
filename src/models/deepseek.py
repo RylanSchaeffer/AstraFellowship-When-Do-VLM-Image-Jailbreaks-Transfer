@@ -214,7 +214,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         first_text = prompt_texts[0]
         print(f"First text: {first_text}")
 
-        batch_encoding = self.model.llm_backbone.tokenizer(
+        batch_encoding = self.tokenizer(
             prompt_texts, padding=True, return_tensors="pt"
         )
         input_ids = batch_encoding["input_ids"]
@@ -238,7 +238,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
 
             # Find the last non-zero token. Then set labels to ignore for anything
             # before and before the targets (plus two).
-            tokenized_labels = self.model.llm_backbone.tokenizer(targets).input_ids
+            tokenized_labels = self.tokenizer(targets).input_ids
             for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
                 zip(last_nonpadding_indices, tokenized_labels)
             ):
