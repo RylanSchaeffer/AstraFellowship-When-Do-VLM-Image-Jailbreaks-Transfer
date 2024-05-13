@@ -10,6 +10,8 @@ from src.models.base import VisionLanguageModel
 from deepseek_vl.models import (
     VLChatProcessor,
     MultiModalityCausalLM,
+)
+from deepseek_vl.models.processing_vlm import (
     VLChatProcessorOutput,
 )
 
