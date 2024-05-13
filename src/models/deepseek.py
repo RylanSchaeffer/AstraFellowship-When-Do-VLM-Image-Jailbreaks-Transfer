@@ -193,7 +193,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         ]
         
         batched = self.processor.batchify(processor_outputs).to(self.device)
-        print(f"batched: {batched}")
+        print(f"batched device: {batched.input_ids.device}")
 
         # call batchify because it adds the image masks that we need
 
