@@ -115,7 +115,7 @@ def optimize_vlm_adversarial_examples():
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
         # deterministic=True,
         # devices=devices,
-        limit_train_batches=wandb_config["lightning_kwargs"]["limit_train_batches"],
+        # limit_train_batches=wandb_config["lightning_kwargs"]["limit_train_batches"],
         logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
         log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
         # overfit_batches=1,  # useful for debugging
