@@ -226,7 +226,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         }
 
         pad_token = self.tokenizer.special_tokens_map["pad_token"]
-        pad_token_input_id = self.convert_tokens_to_ids(pad_token)
+        pad_token_input_id = self.tokenizer.eos_token_id
 
         if targets[0] is not None:
             labels = input_ids.clone()
