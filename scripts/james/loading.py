@@ -143,4 +143,4 @@ def load_prompts_and_targets_v2(
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
-    return [PromptAndTarget(prompt, target) for prompt, target in zip(prompts, targets)]
+    return [PromptAndTarget(prompt=prompt, target=target) for prompt, target in zip(prompts, targets)]

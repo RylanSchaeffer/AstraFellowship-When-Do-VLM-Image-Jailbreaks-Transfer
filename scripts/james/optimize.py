@@ -96,12 +96,12 @@ def optimize_vlm_adversarial_examples():
     torch.cuda.device_count()
     assert devices >= num_attacking
     # Make a map of each model to a device.
-    model_device = {
-        model_name: torch.device(f"cuda:{i}")
-        # not sure if there is a better way to do this
-        for i, model_name in enumerate(models_to_attack)
-    }
-    print("Model Device Map: ", model_device)
+    # model_device = {
+    #     model_name: torch.device(f"cuda:{i}")
+    #     # not sure if there is a better way to do this
+    #     for i, model_name in enumerate(models_to_attack)
+    # }
+    # print("Model Device Map: ", model_device)
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
@@ -134,7 +134,7 @@ def optimize_vlm_adversarial_examples():
     with trainer.init_module():
         vlm_ensemble_system = src.systems.VLMEnsembleAttackingSystem(
             wandb_config=wandb_config,
-            model_device=model_device,
+            # model_device=model_device,
         )
 
     batch_size = wandb_config["data"]["batch_size"]
