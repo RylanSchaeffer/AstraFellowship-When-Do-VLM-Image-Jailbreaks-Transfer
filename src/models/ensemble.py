@@ -1,3 +1,4 @@
+from pyexpat import model
 import numpy as np
 import os
 import lightning
@@ -92,7 +93,14 @@ class VLMEnsemble(lightning.LightningModule):
                     generation_kwargs=generation_kwargs,
                     precision=precision,
                 )
+            elif model_str.startswith("deepseek"):
+                from src.models.deepseek import DeepSeekVisionLanguageModel
 
+                vlm = DeepSeekVisionLanguageModel(
+                    model_str=model_str,
+                    generation_kwargs=generation_kwargs,
+                    precision=precision,
+                )
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
