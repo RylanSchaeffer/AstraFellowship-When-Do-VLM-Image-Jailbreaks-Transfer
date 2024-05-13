@@ -202,6 +202,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             for input_id in input_ids
         ]
         device = self.model.device
+        default_shape = self.processor.image_processor.default_shape
+        print(f"default_shape: {default_shape}")
         batched = self.processor.batchify(processor_outputs).to(device)
         print(f"batched device: {batched.input_ids.device}")
 
