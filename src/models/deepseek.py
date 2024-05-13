@@ -220,6 +220,10 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             attention_mask=new_attention_mask,
             labels=new_labels,
         )
+        # check requires grad
+        print(f"requires grad: {outputs.loss.requires_grad=}")
+        # check for inputs_embeds
+        print(f"input_embeds: {inputs_embeds.requires_grad=}")
         return outputs.loss
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
