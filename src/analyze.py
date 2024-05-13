@@ -13,6 +13,7 @@ metrics_to_nice_strings_dict = OrderedDict(
         "loss/avg_epoch": "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)",
         "loss/score_model=harmbench": "HarmBench Score",
         "loss/score_model=llamaguard2": "LlamaGuard2 Score",
+        "loss/score_model=claude3opus": "Claude 3 Opus",
     }
 )
 
@@ -21,6 +22,7 @@ metrics_to_bounds_dict = OrderedDict(
         "loss/avg_epoch": (0.0, None),
         "loss/score_model=harmbench": (0.0, 1.0),
         "loss/score_model=llamaguard2": (0.0, 1.0),
+        "loss/score_model=claude3opus": (0.0, 1.0),
     }
 )
 
@@ -32,9 +34,11 @@ def download_wandb_project_runs_configs(
     finished_only: bool = True,
     refresh: bool = False,
     wandb_username: str = None,
+    filetype: str = "csv",
 ) -> pd.DataFrame:
+    assert filetype in {"csv", "feather", "parquet"}
     runs_configs_df_path = os.path.join(
-        data_dir, "sweeps=" + ",".join(sweep_ids) + "_runs_configs.csv"
+        data_dir, "sweeps=" + ",".join(sweep_ids) + f"_runs_configs.{filetype}"
     )
     if refresh or not os.path.isfile(runs_configs_df_path):
         # Download sweep results
@@ -69,12 +73,27 @@ def download_wandb_project_runs_configs(
                 sweep_results_list.append(summary)
 
             runs_configs_df = pd.DataFrame(sweep_results_list)
+            runs_configs_df.reset_index(inplace=True, drop=True)
 
             # Save to disk.
-            runs_configs_df.to_csv(runs_configs_df_path, index=False)
+            if filetype == "csv":
+                runs_configs_df.to_csv(runs_configs_df_path, index=False)
+            elif filetype == "feather":
+                runs_configs_df.to_feather(runs_configs_df_path)
+            elif filetype == "parquet":
+                runs_configs_df.to_parquet(runs_configs_df_path, index=False)
+            else:
+                raise ValueError(f"Invalid filetype: {filetype}")
             print(f"Wrote {runs_configs_df_path} to disk.")
     else:
-        runs_configs_df = pd.read_csv(runs_configs_df_path)
+        if filetype == "csv":
+            runs_configs_df = pd.read_csv(runs_configs_df_path)
+        elif filetype == "feather":
+            runs_configs_df = pd.read_feather(runs_configs_df_path)
+        elif filetype == "parquet":
+            runs_configs_df = pd.read_parquet(runs_configs_df_path)
+        else:
+            raise ValueError(f"Invalid filetype: {filetype}")
         print(f"Loaded {runs_configs_df_path} from disk.")
 
     # Keep only finished runs
@@ -108,7 +127,7 @@ def download_wandb_project_runs_histories(
     if keys is None:
         keys = ["losses_train/loss_epoch", "losses_val/loss"]
 
-    assert filetype in {"csv", "parquet", "feather"}
+    assert filetype in {"csv", "feather", "parquet"}
 
     runs_histories_df_path = os.path.join(
         data_dir, "sweeps=" + ",".join(sweep_ids) + f"_runs_histories.{filetype}"
@@ -137,13 +156,11 @@ def download_wandb_project_runs_histories(
         runs_histories_df = pd.concat(runs_histories_list, sort=False)
 
         runs_histories_df.sort_values(["run_id"], ascending=True, inplace=True)
-
         runs_histories_df.reset_index(inplace=True, drop=True)
 
         if filetype == "csv":
             runs_histories_df.to_csv(runs_histories_df_path, index=False)
         elif filetype == "feather":
-            runs_histories_df.reset_index(inplace=True)
             runs_histories_df.to_feather(runs_histories_df_path)
         elif filetype == "parquet":
             runs_histories_df.to_parquet(runs_histories_df_path, index=False)
@@ -156,7 +173,6 @@ def download_wandb_project_runs_histories(
         elif filetype == "feather":
             runs_histories_df = pd.read_feather(runs_histories_df_path)
         elif filetype == "parquet":
-            runs_histories_df = pd.read_parquet(runs_histories_df_path)
             runs_histories_df = pd.read_parquet(runs_histories_df_path)
         else:
             raise ValueError(f"Invalid filetype: {filetype}")

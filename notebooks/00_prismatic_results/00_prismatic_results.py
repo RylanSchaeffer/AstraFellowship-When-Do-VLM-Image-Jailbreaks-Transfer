@@ -11,8 +11,8 @@ import src.analyze
 import src.plot
 
 
-refresh = True
-# refresh = False
+# refresh = True
+refresh = False
 metrics = src.analyze.metrics_to_nice_strings_dict
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
@@ -22,7 +22,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "jb02fx4o",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH
+    "cubnlte5",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH
 ]
 
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
@@ -123,6 +123,7 @@ eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     sweep_ids=sweep_ids,
     refresh=refresh,
     wandb_run_history_samples=10000,
+    filetype="csv",
 )
 # This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
 eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
@@ -168,7 +169,55 @@ learning_curves_by_attack_model_dir = os.path.join(
 )
 os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
 
+
 for metric in src.analyze.metrics_to_nice_strings_dict:
+    plt.close()
+    # I stupidly used the wrong column name for the LM eval scoring. One has "epoch" and others do not.
+    x = (
+        "optimizer_step_counter_epoch"
+        if metric == "loss/avg_epoch"
+        else "optimizer_step_counter"
+    )
+    g = sns.relplot(
+        data=eval_runs_histories_df[eval_runs_histories_df["split"] == "eval"],
+        kind="line",
+        x=x,
+        y=metric,
+        hue="Attack Dataset",
+        hue_order=["advbench", "rylan_anthropic_hhh"],
+        style="Eval Dataset",
+        style_order=["advbench", "rylan_anthropic_hhh"],
+        col="models_to_attack",
+        col_order=unique_and_ordered_eval_model_strs,
+        row="Evaluated Model",
+        row_order=unique_and_ordered_eval_model_strs,
+        facet_kws={"margin_titles": True},
+    )
+    # plt.show()
+    g.set_axis_labels(
+        "Gradient Step",
+        src.analyze.metrics_to_nice_strings_dict[metric],
+    )
+    g.fig.suptitle("Attacked Model(s)", y=1.0)
+    g.set_titles(col_template="{col_name}", row_template="{row_name}")
+    sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    src.plot.save_plot_with_multiple_extensions(
+        plot_dir=results_dir,
+        plot_title=f"{metric[5:]}_vs_gradient_step_cols=attack_models_rows=eval_models",
+    )
+    if metric == "loss/avg_epoch":
+        g.set(
+            xscale="log",
+            yscale="log",
+            ylim=(0.95 * eval_runs_histories_df["loss/avg_epoch"].min(), None),
+        )
+        src.plot.save_plot_with_multiple_extensions(
+            plot_dir=results_dir,
+            plot_title=f"{metric[5:]}_log_vs_gradient_step_log_cols=attack_models_rows=eval_models",
+        )
+    # plt.show()
+
     plt.close()
     # I stupidly used the wrong column name for the LM eval scoring. One has "epoch" and others do not.
     x = (
@@ -210,7 +259,7 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
         )
         src.plot.save_plot_with_multiple_extensions(
             plot_dir=results_dir,
-            plot_title=f"{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models",
+            plot_title=f"{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=eval_datasets",
         )
     # plt.show()
 
