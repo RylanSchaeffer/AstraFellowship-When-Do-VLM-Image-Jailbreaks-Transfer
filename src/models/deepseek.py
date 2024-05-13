@@ -87,9 +87,13 @@ def add_image_token(
         image_indices=image_indices,
         input_ids=input_ids,
     )
-    # TODO: We are calling the image processor here, but we should be able to do this in batched
-    # Is this a model?
-    image_output = processor.image_processor([pixel_values], return_tensors="pt")
+    
+    # we need to preprocess the image to pil_img (PIL.Image): [H, W, 3] in PIL.Image in RGB
+    pil_img = torchvision.transforms.functional.to_pil_image(
+        pixel_values[0].to(torch.float32)
+    )
+
+    image_output = processor.image_processor([pil_img], return_tensors="pt")
     prepare = VLChatProcessorOutput(
         sft_format="placeholder",
         input_ids=input_ids,
@@ -225,7 +229,6 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             "attention_mask": attention_mask,
         }
 
-        pad_token = self.tokenizer.special_tokens_map["pad_token"]
         pad_token_input_id = self.tokenizer.eos_token_id
 
         if targets[0] is not None:
@@ -252,6 +255,10 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         print(f"First input_ids: {input_ids[0]}")
         print(f"First attention_mask: {attention_mask[0]}")
         print(f"First labels: {results["labels"][0]}")
+        non_minus_100 = [r for r in results["labels"][0]]
+        non_minus_100_text = self.tokenizer.decode(non_minus_100)
+        print(f"Example text that we calculate loss on: {non_minus_100_text}")
+
         return results
 
     @torch.inference_mode()
