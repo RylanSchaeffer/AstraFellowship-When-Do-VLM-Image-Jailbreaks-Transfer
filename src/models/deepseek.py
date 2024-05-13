@@ -1,4 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
+from email.mime import image
 import lightning
 import torch
 import torchvision
@@ -88,16 +89,19 @@ def add_image_token(
         input_ids=input_ids,
     )
     
+    # shit, its a pil image! TODO: 
     # we need to preprocess the image to pil_img (PIL.Image): [H, W, 3] in PIL.Image in RGB
-    pil_img = torchvision.transforms.functional.to_pil_image(
-        pixel_values[0].to(torch.float32)
-    )
+    assert pixel_values.ndim == 4
+    # remove the batch dim
+    # we have (1, 3, h,w) , we want (3, H, W)
+    new_image = image.squeeze(0)
+    
 
-    image_output = processor.image_processor([pil_img], return_tensors="pt")
+    image_output = processor.image_processor.preprocess_one(image=new_image, return_tensors="pt")
     prepare = VLChatProcessorOutput(
         sft_format="placeholder",
         input_ids=input_ids,
-        pixel_values=image_output.pixel_values,
+        pixel_values=image_output,
         num_image_tokens=num_image_tokens,
     )
     return prepare
@@ -289,9 +293,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # We should only have a single image.
         assert image.shape[0] == 1
-        pil_image = torchvision.transforms.functional.to_pil_image(
-            image[0].to(torch.float32)
-        )
+        # we have (1, 3, h,w) , we want (3, H, W)
+        new_image = image.squeeze(0)
         model_generations = []
         for prompt in prompts:
             # Create inputs
