@@ -43,7 +43,9 @@ for idx, run in enumerate(runs):
                 if len(claude_errors) == 0:
                     # just copy the file and upload it
                     print(f"No errors in {file.name}")
-                    new_table = table
+                    new_table = wandb.Table(
+                        columns=table["columns"], data=table["data"]
+                    )
                 else:
                     print(f"Re-running Claude for {file.name}")
                     new_data = []
