@@ -18,7 +18,7 @@ parameters:
           ]
       num_workers:
         values:
-          [2]
+          [1]
       prefetch_factor:
         values: [ 4 ]
       split:
@@ -33,7 +33,6 @@ parameters:
         values:
           [
             "random",
-            "trina",
           ]
   lightning_kwargs:
     parameters:
