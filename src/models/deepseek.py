@@ -224,8 +224,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels.to(device)],
             dim=1,
         )
-        print(f"new_attention_mask: {new_attention_mask}")
-        print(f"new_labels: {new_labels}")
+        # print(f"new_attention_mask: {new_attention_mask}")
+        # print(f"new_labels: {new_labels}")
         # TODO: check if this logic actually makes sense??
 
 
