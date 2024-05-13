@@ -1,5 +1,7 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
 from email.mime import image
+from deepseek_vl.models.image_processing_vlm import VLMImageProcessor, VLMImageProcessorConfig
+from transformers import AutoImageProcessor, PretrainedConfig
 import lightning
 import torch
 import torchvision
@@ -160,6 +162,10 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         else:
             raise ValueError(f"Invalid precision: {self.precision_str}")
         model_path = f"deepseek-ai/{model_str}"
+
+        # not sure why we need to register the image processor manually
+        print(f"Using DeepSeek model: {model_path}")
+        AutoImageProcessor.register(VLMImageProcessorConfig, VLMImageProcessor)
         self.processor = VLChatProcessor.from_pretrained(model_path)
         self.model = MultiModalityCausalLM.from_pretrained(
             model_path,
