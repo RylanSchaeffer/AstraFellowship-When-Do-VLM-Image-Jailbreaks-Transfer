@@ -6,7 +6,6 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from typing import Dict, List
 
-# ModuleNotFoundError (this probably lacks __init__.py files necessary to be a module.
 from prompts_and_targets.generated.llm_api import ModelAPI
 
 
@@ -163,9 +162,9 @@ class LlamaGuard2Evaluator(torch.nn.Module):
 
 
 class Claude3OpusEvaluator(torch.nn.Module):
-    def __init__(self, **kwargs):
+    def __init__(self, num_threads=1, **kwargs):
         self.model_id = "claude-3-opus-20240229"
-        self.api_handler = ModelAPI(num_threads=1)
+        self.num_threads = num_threads
 
     def evaluate(self, prompts: List[str], generations: List[str]) -> List[str]:
         print("Inside evaluate")
@@ -173,6 +172,7 @@ class Claude3OpusEvaluator(torch.nn.Module):
         return judgements
 
     async def evaluate_helper(self, prompts: List[str], generations: List[str]):
+        api_handler = ModelAPI(num_threads=self.num_threads)
         items = []
         for prompt, response in zip(prompts, generations):
             items.append({"prompt": prompt, "response": response})
@@ -197,7 +197,7 @@ class Claude3OpusEvaluator(torch.nn.Module):
                 }
             ]
             requests.append(
-                self.api_handler(
+                api_handler(
                     model_id=self.model_id,
                     prompt=prompt,
                     temperature=0,
