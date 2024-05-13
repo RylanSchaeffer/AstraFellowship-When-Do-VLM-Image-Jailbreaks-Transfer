@@ -96,7 +96,7 @@ def add_image_token(
     assert pixel_values.ndim == 4
     # remove the batch dim
     # we have (1, 3, h,w) , we want (3, H, W)
-    new_image = image.squeeze(0)
+    new_image = pixel_values.squeeze(0)
     
 
     image_output = processor.image_processor.preprocess_one(image=new_image, return_tensors="pt")
