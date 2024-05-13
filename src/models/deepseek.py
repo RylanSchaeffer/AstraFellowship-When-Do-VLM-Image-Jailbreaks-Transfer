@@ -153,7 +153,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             raise ValueError(f"Invalid precision: {self.precision_str}")
         model_path = f"deepseek-ai/{model_str}"
         self.processor = VLChatProcessor.from_pretrained(model_path)
-        self.vl_gpt = MultiModalityCausalLM.from_pretrained(
+        self.model = MultiModalityCausalLM.from_pretrained(
             model_path,
             torch_dtype=self.precision_dtype,
         ).to(self.precision_dtype)
@@ -191,9 +191,9 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
 
         # call batchify because it adds the image masks that we need
 
-        inputs_embeds = self.vl_gpt.prepare_inputs_embeds(**batched).to(self.device)
+        inputs_embeds = self.model.prepare_inputs_embeds(**batched).to(self.device)
 
-        outputs = self.vl_gpt.language_model(
+        outputs = self.model.language_model(
             inputs_embeds=inputs_embeds,
             attention_mask=attention_mask,
             labels=labels,
