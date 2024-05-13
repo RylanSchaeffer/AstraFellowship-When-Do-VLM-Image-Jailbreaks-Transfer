@@ -18,7 +18,7 @@ from src.anthropic_utils.client import AnthropicCaller
 import src.data
 import src.globals
 from src.openai_utils.shared import ChatMessage, InferenceConfig
-from src.prompts_and_targets import PromptAndTarget
+from scripts.james.loading import PromptAndTarget
 import src.systems
 import src.utils
 

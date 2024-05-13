@@ -6,7 +6,7 @@ from typing import Any, Dict, Sequence
 
 
 from src.models.ensemble import VLMEnsemble
-from src.prompts_and_targets import PromptAndTarget
+from scripts.james.loading import PromptAndTarget
 
 # dict[model, input_ids, attention_mask, labels]
 DataLoaderOutput = Dict[

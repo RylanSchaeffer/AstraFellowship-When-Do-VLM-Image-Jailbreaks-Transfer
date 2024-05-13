@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 import pandas as pd
 import pydantic
 import os
@@ -6,7 +7,11 @@ from typing import Sequence
 import wandb
 
 from src.openai_utils.client import encode_image
-from src.prompts_and_targets import PromptAndTarget
+
+
+class PromptAndTarget(BaseModel):
+    prompt: str
+    target: str
 
 
 class JailbreakData(pydantic.BaseModel):
