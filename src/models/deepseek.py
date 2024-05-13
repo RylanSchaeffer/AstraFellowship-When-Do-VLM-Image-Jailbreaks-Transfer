@@ -196,13 +196,27 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         print(f"batched device: {batched.input_ids.device}")
 
         # call batchify because it adds the image masks that we need
-
+        # (bs, seq_len, dim)
         inputs_embeds = self.model.prepare_inputs_embeds(**batched).to(device)
+        # input_embeds have a new seq_len due to the image tokens
+        seq_len = inputs_embeds.size(1)
+        bs = labels.size(0)
+        # we need to right pad our attention mask with 1s to match the new seq_len
+        new_attention_mask = torch.cat(
+            [attention_mask, torch.ones(bs, seq_len - attention_mask.size(1)).to(device)],
+            dim=1,
+        )
+        # we need to left pad our labels with -100 to match the new seq_len
+        new_labels = torch.cat(
+            [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels],
+            dim=1,
+        )
+
 
         outputs = self.model.language_model(
             inputs_embeds=inputs_embeds,
-            attention_mask=attention_mask,
-            labels=labels,
+            attention_mask=new_attention_mask,
+            labels=new_labels,
         )
         return outputs.loss
 
