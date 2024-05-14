@@ -120,6 +120,6 @@ default_eval_config = {
     },
     "n_generations": 100,
     "seed": 0,
-    "wandb_attack_run_id": "bnynjfog",
+    "wandb_attack_run_id": "ff12eqh1",
     # "wandb_sweep_id": "yvqszl4d",
 }
