@@ -109,7 +109,8 @@ class VLMEnsemble(lightning.LightningModule):
                 # TODO: Was this actually because someone else was using the GPUs at the same time?
                 vlm = vlm.to(
                     device=torch.device(
-                        f"cuda:{dmodel_device_int_str}"
+                        # f"cuda:{device_count - model_device_int_str - 1}"
+                        f"cuda:{model_device_int_str}"
                     )
                 )
 
