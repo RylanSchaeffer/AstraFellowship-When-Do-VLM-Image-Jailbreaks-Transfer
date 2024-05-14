@@ -151,8 +151,6 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             for input_id in input_ids
         ]
         device = self.model.device
-        default_shape = self.processor.image_processor.default_shape
-        # print(f"default_shape: {default_shape}")
         batched = self.processor.batchify(processor_outputs).to(device)
         # print(f"batched device: {batched.input_ids.device}")
 
@@ -241,10 +239,11 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             first_text = prompt_texts[0]
             # print(f"First text: {first_text}")
             print(f"First input_ids: {input_ids[0]}")
-            # print(f"First attention_mask: {attention_mask[0]}")
+            print(f"First attention_mask: {attention_mask[0]}")
             print(f"First labels: {results["labels"][0]}")
             if len(input_ids) > 1:
-                print(f"Second labels: {input_ids[1]}")
+                print(f"Second input ids: {input_ids[1]}")
+                print(f"Second attention_mask: {attention_mask[1]}")
                 print(f"Second labels: {results["labels"][1]}")
             # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
             # non_minus_100_text = self.tokenizer.decode(non_minus_100)
