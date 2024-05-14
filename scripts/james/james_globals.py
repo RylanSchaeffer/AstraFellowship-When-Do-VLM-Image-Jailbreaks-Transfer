@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "wealth",
+        "dataset": "generated",
         "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
