@@ -113,7 +113,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # not sure why we need to register the image processor manually
         print(f"Using DeepSeek model: {model_path}")
         AutoImageProcessor.register(VLMImageProcessorConfig, VLMImageProcessor)
-        self.processor = VLChatProcessor.from_pretrained(model_path)
+        self.processor: VLChatProcessor = VLChatProcessor.from_pretrained(model_path) # type: ignore
         self.model = MultiModalityCausalLM.from_pretrained(
             model_path,
             torch_dtype=self.precision_dtype,
@@ -258,41 +258,47 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
     def generate(self, image: torch.Tensor, prompts: List[str]) -> List[str]:
         # We should only have a single image.
         assert image.shape[0] == 1
+        assert image.ndim == 4, f"Expected (1, 3, H, W), got {image.shape}"
         # we have (1, 3, h,w) , we want (3, H, W)
-        new_image = image.squeeze(0)
         model_generations = []
         for prompt in prompts:
-            # Create inputs
-            messages = [
+            conversation = conversation = [
                 {
-                    "role": "user",
-                    "content": [
-                        {"type": "image"},
-                        {"type": "text", "text": prompt},
-                    ],
+                    "role": "User",
+                    "content": prompt,
+                    "images": ["not used"]
+                },
+                {
+                    "role": "Assistant",
+                    "content": ""
                 }
             ]
-            chat_template_prompt = self.processor.apply_chat_template(
-                messages, add_generation_prompt=True
-            )
-            inputs = self.processor(
-                text=chat_template_prompt, images=[pil_image], return_tensors="pt"
-            )
-            inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
 
-            # Generate
-            generated_ids = self.model.generate(
-                **inputs,
-                do_sample=True if self.generation_kwargs["temperature"] > 0 else False,
+            # todo: tihs can be batched
+            input_1 = self.processor(
+                conversations=conversation,
+                images=image,
+                force_batchify=True
+            ).to(self.model.device)
+
+            # run image encoder to get the image embeddings
+            inputs_embeds = self.model.prepare_inputs_embeds(**input_1)
+            do_sample=True if self.generation_kwargs.get("temperature", 0) > 0 else False
+            # # run the model to get the response
+            outputs = self.model.language_model.generate(
+                inputs_embeds=inputs_embeds,
+                # attention_mask=inputs_embeds.attention_mask,
+                pad_token_id=self.tokenizer.eos_token_id,
+                bos_token_id=self.tokenizer.bos_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
+                # max_new_tokens=512,
+                do_sample=do_sample,
                 **self.generation_kwargs,
+                use_cache=True
             )
-            generated_text = self.processor.batch_decode(
-                generated_ids,
-                skip_special_tokens=True,
-            )[0]
-            # Strip off the user's request.
-            generated_text = generated_text[len(chat_template_prompt) :]
-            model_generations.append(generated_text)
+            out: str = self.tokenizer.decode(outputs.squeeze(), skip_special_tokens=True)
+
+            model_generations.append(out)
 
         return model_generations
 

@@ -94,8 +94,8 @@ def evaluate_vlm_adversarial_examples():
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
         wandb_run_id=wandb_config["wandb_run_id"],
         wandb_sweep_id=None,  # type: ignore
-        # refresh=True,
-        refresh=False,
+        refresh=True,
+        # refresh=False,
     )
 
     # # Rylan uses this for debugging.

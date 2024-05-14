@@ -57,7 +57,7 @@ default_attack_config = {
 default_eval_config = {
     "data": {
         "batch_size": 1,
-        "dataset": "rylan_anthropic_hhh",
+        "dataset": "wealth",
         # "num_workers": 1,
         # "num_workers": 2,
         "num_workers": 4,
@@ -68,13 +68,19 @@ default_eval_config = {
     },
     "lightning_kwargs": {
         # "limit_eval_batches": 1.0,
-        "limit_eval_batches": 0.1,  # Fast debugging.
+        # "limit_eval_batches": 0.1,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'prism-clip+7b'}",
+    "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     "model_generation_kwargs": {
+        "deepseek-vl-1.3b-chat": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 1,
+        },
         # "prism-reproduction-llava-v15+7b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,
