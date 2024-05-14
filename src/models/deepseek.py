@@ -1,6 +1,9 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
 from email.mime import image
-from deepseek_vl.models.image_processing_vlm import VLMImageProcessor, VLMImageProcessorConfig
+from deepseek_vl.models.image_processing_vlm import (
+    VLMImageProcessor,
+    VLMImageProcessorConfig,
+)
 from transformers import AutoImageProcessor, PretrainedConfig
 import lightning
 import torch
@@ -23,62 +26,6 @@ from deepseek_vl.models.processing_vlm import (
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
 IGNORE_INDEX = -100
 
-# def process_batch(
-#         conversations: list[list[dict[str, str]]],
-#         processor: VLChatProcessor,
-#         images: list[Image] = None,
-#     ):
-#         """
-#         Custom function because the deepseek boys don't have a nice way to process batches wtf
-
-#         Args:
-#             conversations (List[Dict]): conversations with a list of messages;
-#             images (List[ImageType]): the list of images;
-#             **kwargs:
-
-#         Returns:
-#             outputs (BaseProcessorOutput): the output of the processor,
-#                 - input_ids (torch.LongTensor): [N + image tokens]
-#                 - target_ids (torch.LongTensor): [N + image tokens]
-#                 - images (torch.FloatTensor): [n_images, 3, H, W]
-#                 - image_id (int): the id of the image token
-#                 - num_image_tokens (List[int]): the number of image tokens
-#         """
-
-#         # apply sft format
-#         processor.tokenizer.pad_token=processor.tokenizer.eos_token
-#         formatted = [processor.apply_sft_template_for_multi_turn_prompts(
-#             conversations=c,
-#             sft_format=processor.sft_format,
-#             system_prompt=processor.system_prompt,
-#         ) for c in conversations]
-
-
-#         # tokenize
-#         tokenizer_result = processor.tokenizer(formatted, padding=True, return_tensors="pt")
-
-
-#         # add image tokens to the input_ids
-#         image_token_mask: torch.BoolTensor = tokenizer_result == processor.image_id
-#         image_indices = image_token_mask.nonzero()
-
-#         input_ids, num_image_tokens = processor.add_image_token(
-#             image_indices=image_indices,
-#             input_ids=tokenizer_result,
-#         )
-
-#         # load images
-#         images_outputs = processor.image_processor(images, return_tensors="pt")
-
-#         prepare = VLChatProcessorOutput(
-#             sft_format="placeholder",
-#             input_ids=input_ids,
-#             pixel_values=images_outputs.pixel_values,
-#             num_image_tokens=num_image_tokens,
-#         )
-
-#         return prepare
-
 
 def add_image_token(
     input_ids: torch.Tensor,  # (seq_len) non batched
@@ -91,14 +38,15 @@ def add_image_token(
         image_indices=image_indices,
         input_ids=input_ids,
     )
-    
+
     assert pixel_values.ndim == 4
     # remove the batch dim
     # we have (1, 3, h,w) , we want (3, H, W)
     new_image = pixel_values.squeeze(0)
-    
 
-    image_output = processor.image_processor.preprocess_one(image=new_image, return_tensors="pt")
+    image_output = processor.image_processor.preprocess_one(
+        image=new_image, return_tensors="pt"
+    )
     prepare = VLChatProcessorOutput(
         sft_format="placeholder",
         input_ids=input_ids,
@@ -126,7 +74,6 @@ def to_deepseek_sft_format(
         sft_format=processor.sft_format,
         system_prompt=processor.system_prompt,
     )
-
 
 
 class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
@@ -174,8 +121,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         self.tokenizer = self.processor.tokenizer
         # eos is the pad token
         self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.already_logged_new_mask: bool = False # For print debugigng
-        self.already_logged_text: bool = False # For print debugigng
+        self.already_logged_new_mask: bool = False  # For print debugigng
+        self.already_logged_text: bool = False  # For print debugigng
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         raise NotImplementedError(
@@ -218,11 +165,16 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # we need to right pad our attention mask with 1s to match the new seq_len
         # (since the batch padding tokens are on the left, and we want to continue ignoring them.)
         new_attention_mask = torch.cat(
-            [attention_mask.to(device), torch.ones(bs, seq_len - attention_mask.size(1)).to(device)],
+            [
+                attention_mask.to(device),
+                torch.ones(bs, seq_len - attention_mask.size(1)).to(device),
+            ],
             dim=1,
         )
         # we need to left pad our labels with -100 to match the new seq_len (so that we don't calculate loss on the image tokens)
-        left_pad = torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device)
+        left_pad = torch.full(
+            size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX
+        ).to(device)
         new_labels = torch.cat(
             [left_pad, labels.to(device)],
             dim=1,
@@ -238,9 +190,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             print(f"Example text that we calculate loss on: {non_minus_100_text}")
 
             self.already_logged_new_mask = True
-            torch.set_printoptions(profile='default')
+            torch.set_printoptions(profile="default")
         # TODO: check if this logic actually makes sense??
-
 
         outputs = self.model.language_model(
             inputs_embeds=inputs_embeds,
@@ -264,11 +215,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             to_deepseek_sft_format(prompt, target, self.processor)
             for prompt, target in zip(prompts, targets)
         ]
-        
 
-        batch_encoding = self.tokenizer(
-            prompt_texts, padding=True, return_tensors="pt"
-        )
+        batch_encoding = self.tokenizer(prompt_texts, padding=True, return_tensors="pt")
         input_ids = batch_encoding["input_ids"]
         attention_mask = batch_encoding["attention_mask"]
 
@@ -277,10 +225,15 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             "attention_mask": attention_mask,
         }
 
-        pad_token_input_id: int= self.tokenizer.eos_token_id #type: ignore
+        pad_token_input_id: int = self.tokenizer.eos_token_id  # type: ignore
 
         if targets[0] is not None:
-            labels = make_labels(input_ids=input_ids, pad_token_id=pad_token_input_id, targets=targets, tokenizer=self.tokenizer)
+            labels = make_labels(
+                input_ids=input_ids,
+                pad_token_id=pad_token_input_id,
+                targets=targets,
+                tokenizer=self.tokenizer,
+            )
             results["labels"] = labels
 
         if not self.already_logged_text:
@@ -296,7 +249,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
             # non_minus_100_text = self.tokenizer.decode(non_minus_100)
             # print(f"Example text that we calculate loss on: {non_minus_100_text}")
-            torch.set_printoptions(profile='default')
+            torch.set_printoptions(profile="default")
             self.already_logged_text = True
 
         return results

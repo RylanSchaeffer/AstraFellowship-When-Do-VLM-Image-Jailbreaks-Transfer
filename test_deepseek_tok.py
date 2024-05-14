@@ -27,3 +27,4 @@ print(decoded)
 encode_me = "B"
 encoded = tokenizer.encode(encode_me)
 print(encoded)
+
