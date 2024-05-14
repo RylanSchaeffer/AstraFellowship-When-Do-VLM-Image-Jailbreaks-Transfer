@@ -8,6 +8,7 @@ import torchvision
 import torchvision.transforms
 import torchvision.transforms.functional
 from typing import Any, Callable, Dict, List, Optional
+from make_labels import make_labels
 
 from src.models.base import VisionLanguageModel
 from deepseek_vl.models import (
@@ -125,6 +126,7 @@ def to_deepseek_sft_format(
         sft_format=processor.sft_format,
         system_prompt=processor.system_prompt,
     )
+
 
 
 class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
@@ -275,29 +277,10 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             "attention_mask": attention_mask,
         }
 
-        pad_token_input_id = self.tokenizer.eos_token_id
+        pad_token_input_id: int= self.tokenizer.eos_token_id #type: ignore
 
         if targets[0] is not None:
-            labels = input_ids.clone()
-            last_nonpadding_indices = torch.argmin(
-                (labels != pad_token_input_id).float(), axis=1
-            )
-            # If there are no padding tokens, then we want to set the last non-padding index to the length.
-            last_nonpadding_indices[last_nonpadding_indices == 0] = labels.shape[1]
-
-            # Find the last non-zero token. Then set labels to ignore for anything
-            # before and before the targets (plus two).
-            tokenized_labels = self.tokenizer(targets).input_ids
-            for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
-                zip(last_nonpadding_indices, tokenized_labels)
-            ):
-                # + 1 that it does not incldue the assistant tag.
-                # TODO: check prism models?
-                target_start_idx = last_nonpadding_idx - len(tokenized_label) + 1
-                labels[batch_idx, :target_start_idx] = IGNORE_INDEX
-
-            # Also mask out the padding tokens.
-            labels[labels == pad_token_input_id] = IGNORE_INDEX
+            labels = make_labels(input_ids=input_ids, pad_token_id=pad_token_input_id, targets=targets, tokenizer=self.tokenizer)
             results["labels"] = labels
 
         if not self.already_logged_text:
