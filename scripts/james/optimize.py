@@ -13,7 +13,7 @@ import wandb
 from scripts.james.loading import load_prompts_and_targets_v2
 from scripts.james.text_v2 import TextDataModule
 import src.data
-from src.globals import default_attack_config
+from scripts.james.james_globals import default_attack_config
 import src.systems
 import src.utils
 
@@ -71,7 +71,7 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
     n_gradient_steps = wandb_config["n_grad_steps"]
-    
+
     prompts_and_targets = load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split="train",  # Hard-code this.
