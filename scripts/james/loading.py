@@ -99,7 +99,10 @@ def load_prompts_and_targets_v2(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
-        os.path.join(prompts_and_targets_dir, "anthropic_hhh", "tokenized")
+    elif dataset == "generated":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "generated", f"{split}.csv"
+        )
     elif dataset == "mmlu":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "mmlu", f"{split}.csv"
