@@ -12,7 +12,7 @@ import torch
 import wandb
 from typing import Any, Dict
 import pandas as pd
-
+import numpy as np
 import src.data
 import src.globals
 import src.systems
