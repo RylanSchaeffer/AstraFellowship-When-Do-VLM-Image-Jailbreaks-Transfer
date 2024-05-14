@@ -19,7 +19,7 @@ default_attack_config = {
         # "limit_train_batches": 1.0,
         # "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
-        "log_image_every_n_steps": 200,
+        "log_image_every_n_steps": 100,
         "precision": "bf16-mixed",
         # "precision": "bf16-true",
     },
