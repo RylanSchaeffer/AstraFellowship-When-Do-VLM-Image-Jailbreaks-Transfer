@@ -2,8 +2,8 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "generated",
-        "batch_size": 16,
+        "dataset": "wealth",
+        "batch_size": 4,
         "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
@@ -39,7 +39,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 10000,
+    "n_grad_steps": 20000,
     "n_generations": 2,
     "optimization": {
         "eps": 1e-4,
