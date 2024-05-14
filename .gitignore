@@ -5,3 +5,5 @@ SECRETS
 prompt_history/
 wandb/
 .env
+eval_data
+runs

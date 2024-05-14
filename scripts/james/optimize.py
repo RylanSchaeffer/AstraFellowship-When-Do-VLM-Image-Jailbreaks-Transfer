@@ -13,7 +13,7 @@ import wandb
 from scripts.james.loading import load_prompts_and_targets_v2
 from scripts.james.text_v2 import TextDataModule
 import src.data
-from src.globals import default_attack_config
+from scripts.james.james_globals import default_attack_config
 import src.systems
 import src.utils
 
@@ -37,11 +37,11 @@ def optimize_vlm_adversarial_examples():
     )
     wandb_config = dict(wandb.config)
 
-    # Ensure that this is a float and bounded between 0 and 1.
-    wandb_config["lightning_kwargs"]["limit_train_batches"] = float(
-        wandb_config["lightning_kwargs"]["limit_train_batches"]
-    )
-    assert 0.0 < wandb_config["lightning_kwargs"]["limit_train_batches"] <= 1.0
+    # # Ensure that this is a float and bounded between 0 and 1.
+    # wandb_config["lightning_kwargs"]["limit_train_batches"] = float(
+    #     wandb_config["lightning_kwargs"]["limit_train_batches"]
+    # )
+    # assert 0.0 < wandb_config["lightning_kwargs"]["limit_train_batches"] <= 1.0
 
     # Log the effective batch size.
     wandb.config.update(
@@ -71,16 +71,12 @@ def optimize_vlm_adversarial_examples():
 
     src.utils.set_seed(seed=wandb_config["seed"])
     n_gradient_steps = wandb_config["n_grad_steps"]
-    # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
-    limit = wandb_config["prompts_and_targets_kwargs"]["n_unique_prompts_and_targets"]
 
     prompts_and_targets = load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split="train",  # Hard-code this.
     )
-    prompts_and_targets = (
-        prompts_and_targets[:limit] if limit != -1 else prompts_and_targets
-    )
+
     epochs_rounded_up = math.ceil(n_gradient_steps / len(prompts_and_targets))
     n_train_epochs = max(epochs_rounded_up, 1)
     print(f"Number of unique prompts and targets: {len(prompts_and_targets)}")
@@ -95,17 +91,16 @@ def optimize_vlm_adversarial_examples():
         ]
     )
     print("GPUs available: ", devices)
-    models_to_attack: set[str] = wandb_config["models_to_attack"]
     num_attacking = len(wandb_config["models_to_attack"])
     torch.cuda.device_count()
     assert devices >= num_attacking
     # Make a map of each model to a device.
-    model_device = {
-        model_name: torch.device(f"cuda:{i}")
-        # not sure if there is a better way to do this
-        for i, model_name in enumerate(models_to_attack)
-    }
-    print("Model Device Map: ", model_device)
+    # model_device = {
+    #     model_name: torch.device(f"cuda:{i}")
+    #     # not sure if there is a better way to do this
+    #     for i, model_name in enumerate(models_to_attack)
+    # }
+    # print("Model Device Map: ", model_device)
 
     # https://lightning.ai/docs/pytorch/stable/common/trainer.html
     trainer = lightning.pytorch.Trainer(
@@ -119,7 +114,7 @@ def optimize_vlm_adversarial_examples():
         default_root_dir=os.path.join(wandb_config["wandb_run_dir"], "results"),
         # deterministic=True,
         # devices=devices,
-        limit_train_batches=wandb_config["lightning_kwargs"]["limit_train_batches"],
+        # limit_train_batches=wandb_config["lightning_kwargs"]["limit_train_batches"],
         logger=lightning.pytorch.loggers.WandbLogger(experiment=run),
         log_every_n_steps=wandb_config["lightning_kwargs"]["log_loss_every_n_steps"],
         # overfit_batches=1,  # useful for debugging
@@ -138,7 +133,7 @@ def optimize_vlm_adversarial_examples():
     with trainer.init_module():
         vlm_ensemble_system = src.systems.VLMEnsembleAttackingSystem(
             wandb_config=wandb_config,
-            model_device=model_device,
+            # model_device=model_device,
         )
 
     batch_size = wandb_config["data"]["batch_size"]

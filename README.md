@@ -26,9 +26,11 @@
 
 `git submodule update --init --recursive`
 
-8. Install Prismatic: 
+8a. Install Prismatic and Deepseek
+Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
+`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
 
-`cd submodules/prismatic-vlms && pip install -e . && cd ../..`
 
 9. Then follow their instructions:
 

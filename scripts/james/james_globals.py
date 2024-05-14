@@ -2,8 +2,8 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "advbench",
-        "batch_size": 1,
+        "dataset": "wealth",
+        "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
@@ -17,9 +17,9 @@ default_attack_config = {
         "accumulate_grad_batches": 6,
         "gradient_clip_val": 10.0,
         # "limit_train_batches": 1.0,
-        "limit_train_batches": 0.05,  # Fast debugging.
+        # "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
-        "log_image_every_n_steps": 1000,
+        "log_image_every_n_steps": 200,
         "precision": "bf16-mixed",
         # "precision": "bf16-true",
     },
@@ -27,9 +27,8 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1p6-mistral7b'}",
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'idefics2-8b'}",
-    # "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
+    "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     # "models_to_attack": "{'deepseek-vl-7b-chat'}",
-    "models_to_attack": "{'prism-reproduction-llava-v15+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
@@ -40,15 +39,15 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 29,
+    "n_grad_steps": 20000,
     "n_generations": 2,
     "optimization": {
         "eps": 1e-4,
-        "learning_rate": 0.001,
-        "momentum": 0.0,
-        # "momentum": 0.9,
-        # "optimizer": "adam",
-        "optimizer": "sgd",
+        "learning_rate": 0.005,
+        # "momentum": 0.0,
+        "momentum": 0.9,
+        "optimizer": "adam",
+        # "optimizer": "sgd",
         "weight_decay": 0.00001,
     },
     "seed": 0,
@@ -58,7 +57,7 @@ default_attack_config = {
 default_eval_config = {
     "data": {
         "batch_size": 1,
-        "dataset": "rylan_anthropic_hhh",
+        "dataset": "wealth",
         # "num_workers": 1,
         # "num_workers": 2,
         "num_workers": 4,
@@ -69,13 +68,19 @@ default_eval_config = {
     },
     "lightning_kwargs": {
         # "limit_eval_batches": 1.0,
-        "limit_eval_batches": 0.1,  # Fast debugging.
+        # "limit_eval_batches": 0.1,  # Fast debugging.
         "log_loss_every_n_steps": 1,
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'prism-clip+7b'}",
+    "model_to_eval": "{'deepseek-vl-1.3b-chat'}",
     "model_generation_kwargs": {
+        "deepseek-vl-1.3b-chat": {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_new_tokens": 100,
+            "min_new_tokens": 1,
+        },
         # "prism-reproduction-llava-v15+7b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,
@@ -113,8 +118,8 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "n_generations": 5,
+    "n_generations": 100,
     "seed": 0,
-    "wandb_attack_run_id": "llu4vrns",
+    "wandb_attack_run_id": "bnynjfog",
     # "wandb_sweep_id": "yvqszl4d",
 }

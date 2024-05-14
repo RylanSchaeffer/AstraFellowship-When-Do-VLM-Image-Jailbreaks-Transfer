@@ -19,6 +19,7 @@ import src.data
 import src.globals
 from src.openai_utils.shared import ChatMessage, InferenceConfig
 from scripts.james.loading import PromptAndTarget
+from scripts.james.james_globals import default_attack_config
 import src.systems
 import src.utils
 
@@ -104,7 +105,13 @@ def evaluate_vlm_adversarial_examples():
     # model="claude-3-opus-20240229" #
     # model_to_eval="claude-3-sonnet-20240229"  #
     model_to_eval = "claude-3-haiku-20240307"
-    src.globals.default_eval_config["model_to_eval"] = model_to_eval
+    config = default_attack_config
+    config["model_to_eval"] = model_to_eval
+    wandb.init(
+        project="universal-vlm-jailbreak-eval",
+        config=config,
+        entity=src.utils.retrieve_wandb_username(),
+    )
     api_key = dotenv.dotenv_values()["ANTHROPIC_API_KEY"]
     assert api_key is not None, "Please set the ANTHROPIC_API_KEY in your .env file"
     # Create a client
