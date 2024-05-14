@@ -172,7 +172,8 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         self.tokenizer = self.processor.tokenizer
         # eos is the pad token
         self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.already_logged: bool = False # For print debugigng
+        self.already_logged_new_mask: bool = False # For print debugigng
+        self.already_logged_text: bool = False # For print debugigng
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         raise NotImplementedError(
@@ -202,9 +203,9 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         ]
         device = self.model.device
         default_shape = self.processor.image_processor.default_shape
-        print(f"default_shape: {default_shape}")
+        # print(f"default_shape: {default_shape}")
         batched = self.processor.batchify(processor_outputs).to(device)
-        print(f"batched device: {batched.input_ids.device}")
+        # print(f"batched device: {batched.input_ids.device}")
 
         # call batchify because it adds the image masks that we need
         # (bs, seq_len, dim)
@@ -224,7 +225,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             dim=1,
         )
 
-        if not self.already_logged:
+        if not self.already_logged_new_mask:
             print(f"input_ids: {input_ids}")
             print(f"new_attention_mask: {new_attention_mask}")
             print(f"new_labels: {new_labels}")
@@ -232,7 +233,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             non_minus_100_text = self.tokenizer.decode(non_minus_100)
             print(f"Example text that we calculate loss on: {non_minus_100_text}")
 
-            self.already_logged = True
+            self.already_logged_new_mask = True
         # TODO: check if this logic actually makes sense??
 
 
@@ -258,8 +259,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             to_deepseek_sft_format(prompt, target, self.processor)
             for prompt, target in zip(prompts, targets)
         ]
-        first_text = prompt_texts[0]
-        print(f"First text: {first_text}")
+        
 
         batch_encoding = self.tokenizer(
             prompt_texts, padding=True, return_tensors="pt"
@@ -297,12 +297,16 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             labels[labels == pad_token_input_id] = IGNORE_INDEX
             results["labels"] = labels
 
-        # print(f"First input_ids: {input_ids[0]}")
-        # print(f"First attention_mask: {attention_mask[0]}")
-        # print(f"First labels: {results["labels"][0]}")
-        # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
-        # non_minus_100_text = self.tokenizer.decode(non_minus_100)
-        # print(f"Example text that we calculate loss on: {non_minus_100_text}")
+        if not self.already_logged_text:
+            first_text = prompt_texts[0]
+            print(f"First text: {first_text}")
+            # print(f"First input_ids: {input_ids[0]}")
+            # print(f"First attention_mask: {attention_mask[0]}")
+            # print(f"First labels: {results["labels"][0]}")
+            # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
+            # non_minus_100_text = self.tokenizer.decode(non_minus_100)
+            # print(f"Example text that we calculate loss on: {non_minus_100_text}")
+            self.already_logged_text = True
 
         return results
 
