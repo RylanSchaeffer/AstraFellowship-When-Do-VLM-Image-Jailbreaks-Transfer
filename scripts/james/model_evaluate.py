@@ -153,7 +153,7 @@ def evaluate_vlm_adversarial_examples():
             "eval_model_str": model_name_str,
             "wandb_attack_run_id": run_jailbreak_dict["wandb_attack_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            "attack_models_str": run_jailbreak_dict["models_to_attack"],
         }
 
         # Bind data to the evaluation system for W&B logging on epoch end.
