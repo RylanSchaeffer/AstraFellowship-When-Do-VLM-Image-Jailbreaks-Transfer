@@ -76,9 +76,9 @@ default_eval_config = {
     "model_to_eval": "{'deepseek-vl-1.3b-chat'}",
     "model_generation_kwargs": {
         "deepseek-vl-1.3b-chat": {
-            "temperature": 0.1,
-            "top_p": 0.9,
-            "max_new_tokens": 100,
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
             "min_new_tokens": 1,
         },
         # "prism-reproduction-llava-v15+7b": {
@@ -118,7 +118,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "n_generations": 100,
+    "n_generations": 200,
     "seed": 0,
     "wandb_attack_run_id": "ff12eqh1",
     # "wandb_sweep_id": "yvqszl4d",
