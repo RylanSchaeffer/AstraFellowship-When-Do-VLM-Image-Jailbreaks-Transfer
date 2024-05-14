@@ -81,6 +81,12 @@ default_eval_config = {
             "max_new_tokens": 1,
             "min_new_tokens": 1,
         },
+        "deepseek-vl-7b-chat": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         # "prism-reproduction-llava-v15+7b": {
         #     "temperature": 0.1,
         #     "top_p": 0.9,
