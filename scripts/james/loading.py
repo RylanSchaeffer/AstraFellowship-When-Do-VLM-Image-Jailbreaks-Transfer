@@ -98,7 +98,10 @@ def load_prompts_and_targets_v2(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
-        os.path.join(prompts_and_targets_dir, "anthropic_hhh", "tokenized")
+    elif dataset == "generated":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "generated", f"{split}.csv"
+        )
     elif dataset == "mmlu":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "mmlu", f"{split}.csv"
@@ -142,4 +145,7 @@ def load_prompts_and_targets_v2(
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
-    return [PromptAndTarget(prompt, target) for prompt, target in zip(prompts, targets)]
+    return [
+        PromptAndTarget(prompt=prompt, target=target)
+        for prompt, target in zip(prompts, targets)
+    ]

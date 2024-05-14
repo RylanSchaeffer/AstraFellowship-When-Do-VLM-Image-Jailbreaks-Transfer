@@ -11,10 +11,10 @@ import pprint
 import torch
 import wandb
 from typing import Any, Dict
-
-
+import pandas as pd
+import numpy as np
 import src.data
-import src.globals
+from scripts.james.james_globals import default_attack_config
 import src.systems
 import src.utils
 
@@ -26,11 +26,13 @@ os.environ["MKL_NUM_THREADS"] = n_threads_str
 os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
 os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
+config = default_attack_config
+
 
 def evaluate_vlm_adversarial_examples():
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
-        config=src.globals.default_eval_config,
+        config=default_attack_config,
         entity=src.utils.retrieve_wandb_username(),
     )
     wandb_config: Dict[str, Any] = dict(wandb.config)
@@ -92,10 +94,10 @@ def evaluate_vlm_adversarial_examples():
 
     # Load jailbreak images' paths.
     runs_jailbreak_dict_list = src.utils.load_jailbreak_dicts_list(
-        wandb_run_id=wandb_config["wandb_run_id"],
+        wandb_attack_run_id=wandb_config["wandb_attack_run_id"],
         wandb_sweep_id=None,  # type: ignore
-        # refresh=True,
-        refresh=False,
+        refresh=True,
+        # refresh=False,
     )
 
     # # Rylan uses this for debugging.
@@ -139,6 +141,7 @@ def evaluate_vlm_adversarial_examples():
 
     model_name_str = list(wandb_config["model_to_eval"])[0]
     print(f"Eval Model: {model_name_str}")
+    to_log: list[dict] = []
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -151,9 +154,9 @@ def evaluate_vlm_adversarial_examples():
 
         wandb_additional_data = {
             "eval_model_str": model_name_str,
-            "wandb_run_id": run_jailbreak_dict["wandb_run_id"],
+            "wandb_attack_run_id": run_jailbreak_dict["wandb_attack_run_id"],
             "optimizer_step_counter": run_jailbreak_dict["optimizer_step_counter"],
-            "attack_models_str": run_jailbreak_dict["attack_models_str"],
+            "attack_models_str": run_jailbreak_dict["models_to_attack"],
         }
 
         # Bind data to the evaluation system for W&B logging on epoch end.
@@ -171,6 +174,7 @@ def evaluate_vlm_adversarial_examples():
             "generations": [],
             "prompts": [],
             "targets": [],
+            "matches_target": [],
         }
         # # Move to the CPU for faster sampling.
         # # Will explicitly placing on CPU cause issues?
@@ -188,12 +192,24 @@ def evaluate_vlm_adversarial_examples():
             model_generations_dict["generations"].extend(model_generations)
             model_generations_dict["prompts"].extend([prompt])
             model_generations_dict["targets"].extend([target])
+
+            single_gen = model_generations[0]
+            matches_target = single_gen.strip().lower() == target.strip().lower()
+            model_generations_dict["matches_target"].append(matches_target)
             end_time = time.time()
             print(
                 f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {model_generations[0]}\nGeneration Duration: {end_time - start_time} seconds\n\n"
             )
-
+        model_generations_dict["success_rate"] = np.mean(
+            model_generations_dict["matches_target"]
+        )
         run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+        merged_dict = {**wandb_additional_data, **model_generations_dict}
+        to_log.append(merged_dict)
+        wandb.log(merged_dict)
+    # make a pd dataframe
+    df = pd.DataFrame(to_log)
+    wandb.log({"evaluations": wandb.Table(dataframe=df)})
 
     # # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # # the evaluation VLM.
