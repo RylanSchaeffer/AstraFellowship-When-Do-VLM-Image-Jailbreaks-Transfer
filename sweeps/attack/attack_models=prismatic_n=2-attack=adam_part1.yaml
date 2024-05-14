@@ -1,0 +1,128 @@
+program: optimize_jailbreak_attacks_against_vlms.py
+project: universal-vlm-jailbreak
+method: grid
+parameters:
+  compile:
+    values:
+      [False]
+  data:
+    parameters:
+      batch_size:
+        values:
+          [2]
+      dataset:
+        values:
+          [
+            "advbench",
+            "rylan_anthropic_hhh",
+          ]
+      num_workers:
+        values:
+          [1]
+      prefetch_factor:
+        values: [ 4 ]
+      split:
+        values:
+          [ "train" ]
+  image_kwargs:
+    parameters:
+      image_size:
+        values:
+          [512]
+      image_initialization:
+        values:
+          [
+            "random",
+          ]
+  lightning_kwargs:
+    parameters:
+      accumulate_grad_batches:
+        values:
+          [4]
+      gradient_clip_val:
+        values:
+          [10.0]
+      limit_train_batches:
+        values:
+          [1.0]
+      log_loss_every_n_steps:
+        values:
+          [1]
+      log_image_every_n_steps:
+        values:
+          [250]
+      precision:
+        values:
+          ["bf16-mixed"]
+  models_to_attack:
+    values:
+      [
+        "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
+        "{'prism-clip+7b', 'prism-siglip+7b'}",
+        "{'prism-siglip+7b', 'prism-dinosiglip+7b'}",
+        "{'prism-dinosiglip+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-clip-controlled+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-siglip-controlled+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-siglip+7b'}",
+        "{'prism-clip+7b', 'prism-dinosiglip+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-dinosiglip+7b'}",
+        "{'prism-clip+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-siglip+7b', 'prism-clip-controlled+7b'}",
+        "{'prism-clip+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-clip+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-dinosiglip+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-siglip+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-siglip+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-dinosiglip+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-siglip-controlled+7b'}",
+        "{'prism-clip-controlled+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-dinosiglip-controlled+7b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-clip+13b'}",
+        "{'prism-clip+13b', 'prism-siglip+13b'}",
+        "{'prism-siglip+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-clip-controlled+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip-controlled+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-siglip+13b'}",
+        "{'prism-clip+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-dinosiglip+13b'}",
+        "{'prism-clip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-clip-controlled+13b'}",
+        "{'prism-clip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-clip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-siglip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-dinosiglip+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-siglip-controlled+13b'}",
+        "{'prism-clip-controlled+13b', 'prism-dinosiglip-controlled+13b'}",
+        "{'prism-reproduction-llava-v15+13b', 'prism-dinosiglip-controlled+13b'}",
+      ]
+  n_generations:
+    values:
+      [ 30 ]
+  n_grad_steps:
+    values:
+      [25000]
+  optimization:
+    parameters:
+      eps:
+        values:
+          [0.0001]
+      learning_rate:
+        values:
+          [0.001]
+      momentum:
+        values:
+          [0.9]
+      optimizer:
+        values:
+          ["adam"]
+      weight_decay:
+        values:
+          [0.00001]
+  seed:
+    values:
+      [0]

@@ -28,6 +28,8 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             image_kwargs=wandb_config["image_kwargs"],
             seed=wandb_config["seed"],
         )
+        # print(f"tensor_image.shape: {tensor_image.shape}")
+        # print(f"tensor_image: {tensor_image}")
         self.tensor_image = torch.nn.Parameter(tensor_image, requires_grad=True)
         self.convert_tensor_to_pil_image = torchvision.transforms.ToPILImage()
         self.optimizer_step_counter = 0

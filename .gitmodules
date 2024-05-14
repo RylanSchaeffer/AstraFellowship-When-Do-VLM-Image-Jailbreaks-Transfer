@@ -13,3 +13,6 @@
 [submodule "submodules/prismatic-vlms"]
 	path = submodules/prismatic-vlms
 	url = git@github.com:TRI-ML/prismatic-vlms.git
+[submodule "submodules/DeepSeek-VL"]
+	path = submodules/DeepSeek-VL
+	url = https://github.com/deepseek-ai/DeepSeek-VL

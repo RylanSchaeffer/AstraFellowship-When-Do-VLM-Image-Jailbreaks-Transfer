@@ -26,9 +26,11 @@
 
 `git submodule update --init --recursive`
 
-8. Install Prismatic: 
+8a. Install Prismatic and Deepseek
+Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
+`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
 
-`cd submodules/prismatic-vlms && pip install -e . && cd ../..`
 
 9. Then follow their instructions:
 
@@ -48,7 +50,7 @@
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
-Note: You might need to subsequently run `conda install conda-forge::charset-normalizer`
+Note: You might need to subsequently run `conda install conda-forge::charset-normalizer -y`
 
 ### Additional Modifications
 
@@ -85,8 +87,8 @@ wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 
 
 ```bash
-apt-get update && apt-get install vim -y && apt-get install nano -y
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
+apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
+cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
 ```
 
 Create SSH key and register it with GitHub:

@@ -124,12 +124,10 @@ def load_prompts_and_targets(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
-        df = pd.read_csv(prompts_and_targets_path)
     elif dataset == "rylan_anthropic_hhh":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
-        df = pd.read_csv(prompts_and_targets_path)
     elif dataset == "generated":
         generated_dataset = GeneratedPromptResponseDataset.from_file(
             "./prompts_and_targets/generated/generated_dataset.csv"
@@ -141,17 +139,25 @@ def load_prompts_and_targets(
             df = pd.DataFrame([asdict(item) for item in train.items])
         else:
             df = pd.DataFrame([asdict(item) for item in eval.items])
-
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+    elif dataset == "surival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "surival", f"{split}.csv"
+        )
+    elif dataset == "wealth":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
-    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
-    print("load_promts_and_targets")
-    print("subset:", data_kwargs.get('subset'))
-    print("df len", len(prompts))
-    print("first", prompts[0], "||", targets[0])
-    print("last", prompts[1], "||", targets[1])
+    if df is None:
+        df = pd.read_csv(prompts_and_targets_path)
 
+    prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
@@ -191,7 +197,6 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
         )
-        df = pd.read_csv(prompts_and_targets_path)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "advbench", "tokenized"
         )
@@ -199,7 +204,6 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
-        df = pd.read_csv(prompts_and_targets_path)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
@@ -223,29 +227,50 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             df = pd.DataFrame([asdict(item) for item in train.items])
         else:
             df = pd.DataFrame([asdict(item) for item in eval.items])
+
+    elif dataset == "power_seeking":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "power_seeking", "tokenized"
+        )
+    elif dataset == "surival":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "surival", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "surival", "tokenized"
+        )
+    elif dataset == "wealth":
+        prompts_and_targets_path = os.path.join(
+            prompts_and_targets_dir, "wealth", f"{split}.csv"
+        )
+        tokenized_dir_path = os.path.join(
+            prompts_and_targets_dir, "wealth", "tokenized"
+        )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+
+    if df is None:
+        df = pd.read_csv(prompts_and_targets_path)
+
     # If we're attacking, we want the targets to be included. If we are evaluating, we do not.
     tokenized_dir_path = os.path.join(tokenized_dir_path, split)
     os.makedirs(tokenized_dir_path, exist_ok=True)
 
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
-    print("tokenize")
-    print("subset:", data_kwargs.get('subset'))
-    print("df len", len(prompts))
-    print("first", prompts[0], "||", targets[0])
-    print("last", prompts[1], "||", targets[1])
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
 
     for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
         vlm_tokenized_data_path = os.path.join(tokenized_dir_path, vlm_name)
         os.makedirs(vlm_tokenized_data_path, exist_ok=True)
-        tokenized_data: Dict[str, torch.Tensor] = (
-            vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-                prompts=prompts,
-                targets=targets,
-            )
+        tokenized_data: Dict[
+            str, torch.Tensor
+        ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+            prompts=prompts,
+            targets=targets,
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
