@@ -220,8 +220,9 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             dim=1,
         )
         # we need to left pad our labels with -100 to match the new seq_len (so that we don't calculate loss on the image tokens)
+        left_pad = torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device)
         new_labels = torch.cat(
-            [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels.to(device)],
+            [left_pad, labels.to(device)],
             dim=1,
         )
 
@@ -300,14 +301,17 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             results["labels"] = labels
 
         if not self.already_logged_text:
+            torch.set_printoptions(threshold=10000)
             first_text = prompt_texts[0]
-            print(f"First text: {first_text}")
+            # print(f"First text: {first_text}")
             # print(f"First input_ids: {input_ids[0]}")
             # print(f"First attention_mask: {attention_mask[0]}")
-            # print(f"First labels: {results["labels"][0]}")
+            print(f"First labels: {results["labels"][0]}")
+            print(f"Second labels: {results["labels"][1]}")
             # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
             # non_minus_100_text = self.tokenizer.decode(non_minus_100)
             # print(f"Example text that we calculate loss on: {non_minus_100_text}")
+            torch.set_printoptions(profile='default')
             self.already_logged_text = True
 
         return results
