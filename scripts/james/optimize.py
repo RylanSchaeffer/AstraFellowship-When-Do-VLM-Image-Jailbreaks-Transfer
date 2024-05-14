@@ -91,7 +91,6 @@ def optimize_vlm_adversarial_examples():
         ]
     )
     print("GPUs available: ", devices)
-    models_to_attack: set[str] = wandb_config["models_to_attack"]
     num_attacking = len(wandb_config["models_to_attack"])
     torch.cuda.device_count()
     assert devices >= num_attacking

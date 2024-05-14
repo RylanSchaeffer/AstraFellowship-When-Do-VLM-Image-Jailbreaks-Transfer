@@ -1,15 +1,11 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
-from email.mime import image
 from deepseek_vl.models.image_processing_vlm import (
     VLMImageProcessor,
     VLMImageProcessorConfig,
 )
-from transformers import AutoImageProcessor, PretrainedConfig
+from transformers import AutoImageProcessor
 import lightning
 import torch
-import torchvision
-import torchvision.transforms
-import torchvision.transforms.functional
 from typing import Any, Callable, Dict, List, Optional
 from make_labels import make_labels
 
@@ -113,7 +109,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # not sure why we need to register the image processor manually
         print(f"Using DeepSeek model: {model_path}")
         AutoImageProcessor.register(VLMImageProcessorConfig, VLMImageProcessor)
-        self.processor: VLChatProcessor = VLChatProcessor.from_pretrained(model_path) # type: ignore
+        self.processor: VLChatProcessor = VLChatProcessor.from_pretrained(model_path)  # type: ignore
         self.model = MultiModalityCausalLM.from_pretrained(
             model_path,
             torch_dtype=self.precision_dtype,
@@ -236,7 +232,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
 
         if not self.already_logged_text:
             torch.set_printoptions(threshold=10000)
-            first_text = prompt_texts[0]
+            # first_text = prompt_texts[0]
             # print(f"First text: {first_text}")
             print(f"First input_ids: {input_ids[0]}")
             print(f"First attention_mask: {attention_mask[0]}")
@@ -262,27 +258,20 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         model_generations = []
         for prompt in prompts:
             conversation = conversation = [
-                {
-                    "role": "User",
-                    "content": prompt,
-                    "images": ["not used"]
-                },
-                {
-                    "role": "Assistant",
-                    "content": ""
-                }
+                {"role": "User", "content": prompt, "images": ["not used"]},
+                {"role": "Assistant", "content": ""},
             ]
 
             # todo: tihs can be batched
             input_1 = self.processor(
-                conversations=conversation,
-                images=image,
-                force_batchify=True
+                conversations=conversation, images=image, force_batchify=True
             ).to(self.model.device)
 
             # run image encoder to get the image embeddings
             inputs_embeds = self.model.prepare_inputs_embeds(**input_1)
-            do_sample=True if self.generation_kwargs.get("temperature", 0) > 0 else False
+            do_sample = (
+                True if self.generation_kwargs.get("temperature", 0) > 0 else False
+            )
             # # run the model to get the response
             outputs = self.model.language_model.generate(
                 inputs_embeds=inputs_embeds,
@@ -293,9 +282,11 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
                 # max_new_tokens=512,
                 do_sample=do_sample,
                 **self.generation_kwargs,
-                use_cache=True
+                use_cache=True,
             )
-            out: str = self.tokenizer.decode(outputs.squeeze(), skip_special_tokens=True)
+            out: str = self.tokenizer.decode(
+                outputs.squeeze(), skip_special_tokens=True
+            )
 
             model_generations.append(out)
 

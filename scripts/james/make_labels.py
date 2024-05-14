@@ -1,6 +1,5 @@
 
 
-from deepseek_vl.models.processing_vlm import VLChatProcessor
 from transformers import LlamaTokenizerFast
 import torch
 
