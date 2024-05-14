@@ -4,7 +4,7 @@ default_attack_config = {
     "data": {
         "dataset": "generated",
         "batch_size": 8,
-        "num_workers": 1,
+        "num_workers": 4,
         "prefetch_factor": 4,
         "split": "train",
     },
