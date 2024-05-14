@@ -226,6 +226,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         )
 
         if not self.already_logged_new_mask:
+            torch.set_printoptions(threshold=10000)
             print(f"input_ids: {input_ids}")
             print(f"new_attention_mask: {new_attention_mask}")
             print(f"new_labels: {new_labels}")
@@ -234,6 +235,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             print(f"Example text that we calculate loss on: {non_minus_100_text}")
 
             self.already_logged_new_mask = True
+            torch.set_printoptions(profile='default')
         # TODO: check if this logic actually makes sense??
 
 
