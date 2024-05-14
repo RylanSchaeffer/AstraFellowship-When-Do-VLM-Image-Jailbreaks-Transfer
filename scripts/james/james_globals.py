@@ -73,7 +73,7 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'deepseek-vl-1.3b-chat'}",
+    "models_to_attack": "{'deepseek-vl-7b-chat'}",
     "model_generation_kwargs": {
         "deepseek-vl-1.3b-chat": {
             "temperature": 0.0,
