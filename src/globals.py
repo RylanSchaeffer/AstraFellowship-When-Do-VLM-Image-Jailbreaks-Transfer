@@ -17,9 +17,9 @@ default_attack_config = {
         "accumulate_grad_batches": 6,
         "gradient_clip_val": 10.0,
         # "limit_train_batches": 1.0,
-        "limit_train_batches": 0.05,  # Fast debugging.
+        # "limit_train_batches": 0.05,  # Fast debugging.
         "log_loss_every_n_steps": 1,
-        "log_image_every_n_steps": 1000,
+        "log_image_every_n_steps": 200,
         "precision": "bf16-mixed",
         # "precision": "bf16-true",
     },
@@ -44,10 +44,10 @@ default_attack_config = {
     "optimization": {
         "eps": 1e-4,
         "learning_rate": 0.001,
-        "momentum": 0.0,
-        # "momentum": 0.9,
-        # "optimizer": "adam",
-        "optimizer": "sgd",
+        # "momentum": 0.0,
+        "momentum": 0.9,
+        "optimizer": "adam",
+        # "optimizer": "sgd",
         "weight_decay": 0.00001,
     },
     "seed": 0,

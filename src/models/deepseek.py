@@ -91,8 +91,6 @@ def add_image_token(
         input_ids=input_ids,
     )
     
-    # shit, its a pil image! TODO: 
-    # we need to preprocess the image to pil_img (PIL.Image): [H, W, 3] in PIL.Image in RGB
     assert pixel_values.ndim == 4
     # remove the batch dim
     # we have (1, 3, h,w) , we want (3, H, W)
@@ -174,6 +172,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         self.tokenizer = self.processor.tokenizer
         # eos is the pad token
         self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.already_logged: bool = False # For print debugigng
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         raise NotImplementedError(
@@ -224,8 +223,16 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
             [torch.full(size=(bs, seq_len - labels.size(1)), fill_value=IGNORE_INDEX).to(device), labels.to(device)],
             dim=1,
         )
-        # print(f"new_attention_mask: {new_attention_mask}")
-        # print(f"new_labels: {new_labels}")
+
+        if not self.already_logged:
+            print(f"input_ids: {input_ids}")
+            print(f"new_attention_mask: {new_attention_mask}")
+            print(f"new_labels: {new_labels}")
+            non_minus_100 = [r for r in new_labels[0] if r != IGNORE_INDEX]
+            non_minus_100_text = self.tokenizer.decode(non_minus_100)
+            print(f"Example text that we calculate loss on: {non_minus_100_text}")
+
+            self.already_logged = True
         # TODO: check if this logic actually makes sense??
 
 
@@ -354,7 +361,7 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         if device is not None:
             self.model = self.model.to(device=device)
             # No idea why we need to do this, shouldn't the MultiModalityCausalLM.to already do this???
-            print(f"moving the vision model to {device}")
+            # print(f"moving the vision model to {device}")
             self.model.vision_model = self.model.vision_model.to(device=device)
             self.model.aligner = self.model.aligner.to(device=device)
             self.model.language_model = self.model.language_model.to(device=device)
