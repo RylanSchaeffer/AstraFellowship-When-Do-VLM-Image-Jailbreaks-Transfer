@@ -11,7 +11,7 @@ import pprint
 import torch
 import wandb
 from typing import Any, Dict
-
+import pandas as pd
 
 import src.data
 import src.globals
@@ -139,6 +139,7 @@ def evaluate_vlm_adversarial_examples():
 
     model_name_str = list(wandb_config["model_to_eval"])[0]
     print(f"Eval Model: {model_name_str}")
+    to_log: list[dict] = []
     for run_jailbreak_dict in runs_jailbreak_dict_list:
         # Read image from disk. This image data should match the uint8 images.
         # Shape: Batch-Channel-Height-Width
@@ -194,6 +195,12 @@ def evaluate_vlm_adversarial_examples():
             )
 
         run_jailbreak_dict["generations_prompts_targets_evals"] = model_generations_dict
+        merged_dict = {**wandb_additional_data, **model_generations_dict}
+        to_log.append(merged_dict)
+        wandb.log(merged_dict)
+    # make a pd dataframe
+    df = pd.DataFrame(to_log)
+    wandb.log({"evaluations": wandb.Table(dataframe=df)})
 
     # # Delete the VLM because we no longer need it and we want to reclaim the memory for
     # # the evaluation VLM.
