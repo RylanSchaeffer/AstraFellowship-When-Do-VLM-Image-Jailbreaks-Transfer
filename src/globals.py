@@ -118,7 +118,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "n_generations": 5,
+    "n_generations": 100,
     "seed": 0,
     "wandb_attack_run_id": "bnynjfog",
     # "wandb_sweep_id": "yvqszl4d",
