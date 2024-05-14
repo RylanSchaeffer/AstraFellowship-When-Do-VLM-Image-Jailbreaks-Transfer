@@ -3,8 +3,8 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "generated",
-        "batch_size": 8,
-        "num_workers": 4,
+        "batch_size": 16,
+        "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
     },
