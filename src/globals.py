@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "wealth",
-        "batch_size": 4,
+        "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
@@ -43,7 +43,7 @@ default_attack_config = {
     "n_generations": 2,
     "optimization": {
         "eps": 1e-4,
-        "learning_rate": 0.001,
+        "learning_rate": 0.005,
         # "momentum": 0.0,
         "momentum": 0.9,
         "optimizer": "adam",
