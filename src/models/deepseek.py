@@ -295,6 +295,12 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
     def disable_model_gradients(self):
         self.model.requires_grad_(False)
         self.model.eval()
+        self.model.vision_model.requires_grad_(False)
+        self.model.vision_model.eval()
+        self.model.aligner.requires_grad_(False)
+        self.model.aligner.eval()
+        self.model.language_model.requires_grad_(False)
+        self.model.language_model.eval()
 
     def to(
         self,
