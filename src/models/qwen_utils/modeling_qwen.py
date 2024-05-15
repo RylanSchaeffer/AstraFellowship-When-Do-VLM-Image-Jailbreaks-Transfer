@@ -1124,7 +1124,10 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else self.generation_config
         )
         image_embeds=self.transformer.visual.forward(images) if images is not None else None
-        
+        if image_embeds is not None:
+            print(f"Got image_embeds of shape {image_embeds.shape}")
+        else:
+            print(f"Did not get image_embeds")
 
         # Process stop_words_ids.
         stop_words_ids = kwargs.pop("stop_words_ids", None)
