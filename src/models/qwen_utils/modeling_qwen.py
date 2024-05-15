@@ -991,11 +991,12 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         stop_words_ids.extend(
             get_stop_words_ids(generation_config.chat_format, tokenizer)
         )
-        images = 
+        if image:
+            assert image.ndim == 4, f"Expected (1, 3, H, W), got {image.shape}"
         input_ids = torch.tensor([context_tokens]).to(self.device)
         outputs = self.generate(
             input_ids,
-            images=images,
+            images=image,
             stop_words_ids=stop_words_ids,
             return_dict_in_generate=False,
             generation_config=generation_config,
@@ -1119,7 +1120,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             if generation_config is not None
             else self.generation_config
         )
-        image_embeds=self.transformer.visual.transform_and_forward(images) if images is not None else None
+        image_embeds=self.transformer.visual.forward(images) if images is not None else None
         
 
         # Process stop_words_ids.

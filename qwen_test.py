@@ -1,3 +1,4 @@
+from sympy import Q
 from src.models.qwen_utils.modeling_qwen import QWenLMHeadModel
 
 import os
@@ -20,7 +21,7 @@ tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code
 # use cpu only
 # model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cpu", trust_remote_code=True).eval()
 # use cuda device
-model = QWenLMHeadModel.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cuda", trust_remote_code=True).eval()
+model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cuda", trust_remote_code=True).eval()
 # model = AutoModelForCausalLM.from_pretrained(
 #     "Qwen/Qwen-VL-Chat-Int4",
 #     device_map="auto",
@@ -37,6 +38,7 @@ query = tokenizer.from_list_format([
 ])
 
 image = load_pil_image_from_url(url)
-response, history = model.chat(tokenizer=tokenizer, query=query, image=image, history=None)
+transformed_image: torch.Tensor = model.transformer.visual.image_transform(image)
+response, history = model.chat(tokenizer=tokenizer, query=query, image=transformed_image, history=None)
 print(response)
 # 图中是一名女子在沙滩上和狗玩耍，旁边是一只拉布拉多犬，它们处于沙滩上。
