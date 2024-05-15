@@ -2,7 +2,7 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        "dataset": "wealth",
+        "dataset": "all_model_generated_evals",
         "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
@@ -29,12 +29,12 @@ default_attack_config = {
     # "models_to_attack": "{'idefics2-8b'}",
     # "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     # "models_to_attack": "{'deepseek-vl-7b-chat'}",
-    "models_to_attack": "{'Qwen-VL-Chat'}",
+    "models_to_attack": "{'Qwen-VL-Chat', 'prism-reproduction-llava-v15+7b', 'deepseek-vl-7b-chat', 'prism-clip+7b', 'prism-dinosiglip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
-    # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
+    
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
