@@ -1,3 +1,4 @@
+from email.mime import image
 from sympy import Q
 from src.models.qwen import QwenVisionLanguageModel
 from src.models.qwen_utils.modeling_qwen import QWenLMHeadModel
@@ -44,8 +45,9 @@ pad_height = (max_dim - height) // 2
 #     ]
 # )
 # image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
-image: torch.Tensor = model.model.transformer.visual.image_transform(pil_image)
+transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(pil_image)
 print(f"Transformed to image: {image}")
+image = transformed_image.unsqueeze(0)
 
 response = model.generate(image=image, prompts=["What animal is in this picture?"])
 print(response)
