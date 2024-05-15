@@ -183,7 +183,6 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
-                # attention_mask=inputs_embeds.attention_mask,
                 pad_token_id=self.tokenizer.eos_token_id,
                 bos_token_id=self.tokenizer.bos_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,

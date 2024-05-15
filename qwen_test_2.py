@@ -11,6 +11,7 @@ from PIL import Image
 
 import torchvision.transforms.v2
 from src.models.qwen_utils.qwen_load import load_pil_image_from_url
+
 os.environ["HF_HOME"] = "/workspace/huggingface_cache"
 os.environ["HF_HUB_CACHE"] = "/workspace/huggingface_cache/hub"
 
@@ -45,7 +46,9 @@ pad_height = (max_dim - height) // 2
 #     ]
 # )
 # image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
-transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(pil_image)
+transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(
+    pil_image
+) # type: ignore
 print(f"Transformed to image: {image}")
 image = transformed_image.unsqueeze(0).to(device)
 
@@ -57,6 +60,10 @@ batch = model.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
     prompts=["What is the first letter of the english alphabet?"],
     targets=["A"],
 )
-loss = model.compute_loss(image=image, input_ids=batch["input_ids"], attention_mask=batch["attention_mask"], labels=batch["labels"])
+loss = model.compute_loss(
+    image=image,
+    input_ids=batch["input_ids"].to(device=device),
+    attention_mask=batch["attention_mask"].to(device=device),
+    labels=batch["labels"].to(device=device),
+)
 print(f"Loss: {loss.item()}")
-

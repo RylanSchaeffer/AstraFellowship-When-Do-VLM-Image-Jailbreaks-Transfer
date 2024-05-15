@@ -1131,6 +1131,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         )
         if images is not None:
             print(f"Got images of shape {images.shape}")
+            print(f"Got image in LMHead {images}")
         else:
             print(f"Did not get images")
         # step 1: preprocess
