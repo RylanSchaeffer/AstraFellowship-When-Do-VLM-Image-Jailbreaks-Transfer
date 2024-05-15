@@ -574,12 +574,7 @@ class QWenModel(QWenPreTrainedModel):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
-    ):
-        if image_embeds is not None:
-            assert image_embeds.size(0) == image_embeds.size(0)
-            # assert image_embeds.ndim == 4
-            fake_images = None
-            images = image_embeds
+    ):            
         if past_key_values is None and torch.any(
             input_ids == self.config.visual["image_start_id"]
         ):
@@ -588,6 +583,11 @@ class QWenModel(QWenPreTrainedModel):
             assert (bos_pos[0] == eos_pos[0]).all()
             img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
             fake_images = None
+            assert image_embeds is not None
+            assert image_embeds.size(0) == image_embeds.size(0)
+            # assert image_embeds.ndim == 4
+            fake_images = None
+            images = image_embeds
         #     images = []
         #     for i, a, b in img_pos:
         #         image = input_ids[i][a + 1 : b - 1].tolist()
