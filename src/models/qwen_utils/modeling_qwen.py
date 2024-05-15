@@ -587,6 +587,7 @@ class QWenModel(QWenPreTrainedModel):
             eos_pos = torch.where(input_ids == self.config.visual["image_start_id"] + 1)
             assert (bos_pos[0] == eos_pos[0]).all()
             img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
+            fake_images = None
         #     images = []
         #     for i, a, b in img_pos:
         #         image = input_ids[i][a + 1 : b - 1].tolist()
