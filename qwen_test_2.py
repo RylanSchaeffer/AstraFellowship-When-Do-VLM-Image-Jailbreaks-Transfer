@@ -44,7 +44,7 @@ pad_height = (max_dim - height) // 2
 #     ]
 # )
 # image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
-image: torch.Tensor = model.transformer.visual.image_transform(pil_image)
+image: torch.Tensor = model.model.transformer.visual.image_transform(pil_image)
 print(f"Transformed to image: {image}")
 
 response = model.generate(image=image, prompts=["What animal is in this picture?"])
