@@ -387,16 +387,16 @@ class VisionTransformer(nn.Module):
                 transforms.Normalize(mean=mean, std=std),
             ]
         )
-        # Since in this attack repo the image is already in the scale 0-1 rather than 0-255, there is no need to ToTensor
-        # self.image_transform_no_scale = transforms.Compose(
-        #     [
-        #         transforms.Resize(
-        #             (image_size, image_size), interpolation=InterpolationMode.BICUBIC
-        #         ),
-        #         # transforms.ToTensor(),
-        #         transforms.Normalize(mean=mean, std=std),
-        #     ]
-        # )
+        # in this attack repo the image is already a tensor, not a PIL image.
+        self.image_transform_already_tensor = transforms.Compose(
+            [
+                transforms.Resize(
+                    (image_size, image_size), interpolation=InterpolationMode.BICUBIC
+                ),
+                # transforms.ToTensor(),
+                transforms.Normalize(mean=mean, std=std),
+            ]
+        )
 
         self.conv1 = nn.Conv2d(
             in_channels=3,
@@ -439,7 +439,7 @@ class VisionTransformer(nn.Module):
         assert x.dim() == 4, "Input must be a 4D tensor, (bs, c, h, w)"
         transformed = []
         for item in x:
-            transformed.append(self.image_transform(item))
+            transformed.append(self.image_transform_already_tensor(item))
         x = torch.stack(transformed, dim=0)
         return self.forward(x)
 
