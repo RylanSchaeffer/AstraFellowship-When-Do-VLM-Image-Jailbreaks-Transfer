@@ -1155,6 +1155,9 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else:
                 logits_processor.append(stop_words_logits_processor)
 
+        new_kwargs = kwargs
+        new_kwargs["image_embeds"] = image_embeds
+
         return super().generate(
             inputs,
             generation_config=generation_config,
@@ -1164,8 +1167,8 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             synced_gpus=synced_gpus,
             assistant_model=assistant_model,
             streamer=streamer,
-            image_embeds=image_embeds, # passed to forward of QWenModel
-            **kwargs,
+            **new_kwargs,
+            # **kwargs,
         )
 
 
