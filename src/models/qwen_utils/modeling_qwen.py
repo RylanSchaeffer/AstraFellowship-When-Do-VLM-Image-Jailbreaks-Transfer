@@ -561,7 +561,7 @@ class QWenModel(QWenPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
-        image_embeds: Optional[torch.FloatTensor] = None,
+        pixel_values: Optional[torch.FloatTensor] = None,
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
@@ -575,8 +575,8 @@ class QWenModel(QWenPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ):
-        if image_embeds is not None:
-            print("Qwenmodel: image_embeds", image_embeds.shape)
+        if pixel_values is not None:
+            print("Qwenmodel: image_embeds", pixel_values.shape)
         else:
             print("Qwenmodel: no image_embeds")
         if past_key_values is None and torch.any(
@@ -587,11 +587,11 @@ class QWenModel(QWenPreTrainedModel):
             assert (bos_pos[0] == eos_pos[0]).all()
             img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
             fake_images = None
-            assert image_embeds is not None
-            assert image_embeds.size(0) == image_embeds.size(0)
+            assert pixel_values is not None
+            assert pixel_values.size(0) == pixel_values.size(0)
             # assert image_embeds.ndim == 4
             fake_images = None
-            images = image_embeds
+            images = pixel_values
         #     images = []
         #     for i, a, b in img_pos:
         #         image = input_ids[i][a + 1 : b - 1].tolist()
@@ -882,7 +882,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
-        image_embeds: Optional[torch.FloatTensor] = None,
+        pixel_values: Optional[torch.FloatTensor] = None,
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
@@ -902,14 +902,14 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             return_dict if return_dict is not None else self.config.use_return_dict
         )
 
-        if image_embeds is not None:
-            print("lm head: image_embeds", image_embeds.shape)
+        if pixel_values is not None:
+            print("lm head: image_embeds", pixel_values.shape)
         else:
             print("lm head: no image_embeds")
 
         transformer_outputs = self.transformer(
             input_ids,
-            image_embeds=image_embeds,
+            pixel_values=pixel_values,
             past_key_values=past_key_values,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -1168,7 +1168,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             synced_gpus=synced_gpus,
             assistant_model=assistant_model,
             streamer=streamer,
-            image_embeds=image_embeds,
+            pixel_values=image_embeds,
         )
 
 
