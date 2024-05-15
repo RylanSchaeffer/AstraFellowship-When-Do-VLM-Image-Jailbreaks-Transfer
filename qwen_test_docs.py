@@ -41,6 +41,7 @@ image = load_pil_image_from_url(url)
 transformed_image: torch.Tensor = model.transformer.visual.image_transform(image)
 unsqueezed = transformed_image.unsqueeze(0)
 assert unsqueezed.ndim == 4, f"Expected 4D tensor., got {unsqueezed.shape}"
+print(f"Prompting with image: {unsqueezed}")
 response, history = model.chat(tokenizer=tokenizer, query=query, image=unsqueezed, history=None, do_sample=False)
 print(response)
 # 图中是一名女子在沙滩上和狗玩耍，旁边是一只拉布拉多犬，它们处于沙滩上。

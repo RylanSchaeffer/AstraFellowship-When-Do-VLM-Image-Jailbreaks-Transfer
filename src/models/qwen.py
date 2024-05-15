@@ -177,6 +177,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             )
             # # run the model to get the response
             print(f"Prompting the model with: {prompt}")
+            print(f"Prompting with image: {image}")
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
