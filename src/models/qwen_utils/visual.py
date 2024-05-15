@@ -388,15 +388,15 @@ class VisionTransformer(nn.Module):
             ]
         )
         # Since in this attack repo the image is already in the scale 0-1 rather than 0-255, there is no need to ToTensor
-        self.image_transform_attack = transforms.Compose(
-            [
-                transforms.Resize(
-                    (image_size, image_size), interpolation=InterpolationMode.BICUBIC
-                ),
-                # transforms.ToTensor(),
-                transforms.Normalize(mean=mean, std=std),
-            ]
-        )
+        # self.image_transform_no_scale = transforms.Compose(
+        #     [
+        #         transforms.Resize(
+        #             (image_size, image_size), interpolation=InterpolationMode.BICUBIC
+        #         ),
+        #         # transforms.ToTensor(),
+        #         transforms.Normalize(mean=mean, std=std),
+        #     ]
+        # )
 
         self.conv1 = nn.Conv2d(
             in_channels=3,

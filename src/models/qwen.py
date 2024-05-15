@@ -98,8 +98,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        transformed_image: torch.Tensor = self.vision_model.image_transform(image)
-        image_embeds = self.vision_model(transformed_image)
+        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(image)
 
         outputs = self.model(
             input_ids=input_ids,

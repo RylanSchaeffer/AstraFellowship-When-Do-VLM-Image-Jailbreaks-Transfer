@@ -1129,8 +1129,10 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             if generation_config is not None
             else self.generation_config
         )
+        # step 1: preprocess
+        # step 2: forward
         image_embeds = (
-            self.transformer.visual.forward(images) if images is not None else None
+            self.transformer.visual.transform_and_forward(images) if images is not None else None
         )
 
         # Process stop_words_ids.
