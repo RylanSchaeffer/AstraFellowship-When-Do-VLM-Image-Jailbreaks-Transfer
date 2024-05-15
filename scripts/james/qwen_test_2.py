@@ -48,7 +48,7 @@ pad_height = (max_dim - height) // 2
 # image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
 transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(
     pil_image
-) # type: ignore
+)  # type: ignore
 print(f"Transformed to image: {image}")
 image = transformed_image.unsqueeze(0).to(device)
 

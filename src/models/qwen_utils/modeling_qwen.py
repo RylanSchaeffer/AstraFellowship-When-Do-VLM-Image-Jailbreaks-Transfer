@@ -1148,9 +1148,9 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             stop_words_ids = getattr(generation_config, "stop_words_ids", None)
         if stop_words_ids is None:
             stop_words_ids = getattr(generation_config, "stop_words_ids", None)
-        
+
         stop_words_ids = stop_words_ids or []
-        
+
         if stop_words_ids:
             stop_words_logits_processor = StopWordsLogitsProcessor(
                 stop_words_ids=stop_words_ids,
@@ -1161,16 +1161,13 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else:
                 logits_processor.append(stop_words_logits_processor)
 
-        
-        
-
         # if image_embeds is not None:
         #     print(f"Got image_embeds of shape {image_embeds.shape}")
         # else:
         #     print(f"Did not get image_embeds")
         # new_kwargs = kwargs.copy()
         # new_kwargs["image_embeds"] = image_embeds
-        
+
         return super().generate(
             inputs=inputs,
             generation_config=generation_config,

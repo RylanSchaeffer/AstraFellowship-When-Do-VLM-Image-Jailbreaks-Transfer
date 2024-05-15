@@ -7,6 +7,7 @@ from transformers.generation import GenerationConfig
 import torch
 
 from src.models.qwen_utils.qwen_load import load_pil_image_from_url
+
 os.environ["HF_HOME"] = "/workspace/huggingface_cache"
 os.environ["HF_HUB_CACHE"] = "/workspace/huggingface_cache/hub"
 
@@ -21,7 +22,9 @@ tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code
 # use cpu only
 # model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cpu", trust_remote_code=True).eval()
 # use cuda device
-model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cuda", trust_remote_code=True).eval()
+model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
+    "Qwen/Qwen-VL-Chat", device_map="cuda", trust_remote_code=True
+).eval()
 # model = AutoModelForCausalLM.from_pretrained(
 #     "Qwen/Qwen-VL-Chat-Int4",
 #     device_map="auto",
@@ -29,20 +32,26 @@ model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained("Qwen/Qwen-VL-Chat", de
 # ).eval()
 
 # Specify hyperparameters for generation
-model.generation_config = GenerationConfig.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code=True)
-url = 'images/trina/000.jpg'
+model.generation_config = GenerationConfig.from_pretrained(
+    "Qwen/Qwen-VL-Chat", trust_remote_code=True
+)
+url = "images/trina/000.jpg"
 # 1st dialogue turn
-query = tokenizer.from_list_format([
-    {'image': url}, # Either a local path or an url
-    {'text': 'What animal is this??'},
-])
+query = tokenizer.from_list_format(
+    [
+        {"image": url},  # Either a local path or an url
+        {"text": "What animal is this??"},
+    ]
+)
 
 image = load_pil_image_from_url(url)
 transformed_image: torch.Tensor = model.transformer.visual.image_transform(image)
 unsqueezed = transformed_image.unsqueeze(0)
 assert unsqueezed.ndim == 4, f"Expected 4D tensor., got {unsqueezed.shape}"
 print(f"Prompting with image: {unsqueezed}")
-response, history = model.chat(tokenizer=tokenizer, query=query, image=unsqueezed, history=None, do_sample=False)
+response, history = model.chat(
+    tokenizer=tokenizer, query=query, image=unsqueezed, history=None, do_sample=False
+)
 print(response)
 # 图中是一名女子在沙滩上和狗玩耍，旁边是一只拉布拉多犬，它们处于沙滩上。
 # Prompting with image: tensor([[[[-1.0039, -0.9456, -0.9602,  ...,  1.2880,  1.3902,  1.4486],

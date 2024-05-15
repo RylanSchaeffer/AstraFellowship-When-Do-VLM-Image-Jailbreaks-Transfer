@@ -108,10 +108,13 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         bs = input_ids.size(0)
         assert image.ndim == 4, f"Expected 4 dims, got {image.ndim}"
         # assert that we only have one image here
-        assert image.size(0) == 1, f"Expected only 1 image that we repeat, got {image.size(0)}"
+        assert (
+            image.size(0) == 1
+        ), f"Expected only 1 image that we repeat, got {image.size(0)}"
 
-
-        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(image.to(device=device))
+        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(
+            image.to(device=device)
+        )
         # bs, num_image_tokens, dim
         assert image_embeds.ndim == 3, f"Expected 3 dims, got {image_embeds.ndim}"
 
@@ -211,10 +214,12 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             # print(f"Prompting with image: {image}")
 
             generation_config = self.model.generation_config
-            assert generation_config is not None, "Expected generation config to be set."
+            assert (
+                generation_config is not None
+            ), "Expected generation config to be set."
             # # run the model to get the response
             # these stop words are the im_end, so they are the REAL eos
-            stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer) # type: ignore
+            stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer)  # type: ignore
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
