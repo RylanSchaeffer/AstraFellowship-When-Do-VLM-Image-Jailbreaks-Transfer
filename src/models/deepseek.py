@@ -7,7 +7,7 @@ from transformers import AutoImageProcessor
 import lightning
 import torch
 from typing import Any, Callable, Dict, List, Optional
-from make_labels import make_labels
+from src.models.label_compute import make_labels
 
 from src.models.base import VisionLanguageModel
 from deepseek_vl.models import (
