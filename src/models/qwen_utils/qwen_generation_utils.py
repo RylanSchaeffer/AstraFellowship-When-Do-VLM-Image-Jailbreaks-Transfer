@@ -122,7 +122,7 @@ def make_context_assistant_completion(
     history: List[Tuple[str, str]] = None,
     system: str = "",
     max_window_size: int = 6144,
-):
+) -> list[int]:
     # bro idk wth this horrible chunk of code is, but the jist is that it will end with the assistant tag
     # e.g. '<|im_start|>system\n<|im_end|>\n<|im_start|>user\nPicture 1: <img>https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg</img>\n这是什么?<|im_end|>\n<|im_start|>assistant\n'
     if history is None:
@@ -155,10 +155,10 @@ def make_context_assistant_completion(
             )
             response_tokens = im_start_tokens + response_tokens_part + im_end_tokens
 
-            next_context_tokens = (
-                nl_tokens + query_tokens + nl_tokens + response_tokens
+            next_context_tokens = nl_tokens + query_tokens + nl_tokens + response_tokens
+            prev_chat = (
+                f"\n{im_start}{query_text}{im_end}\n{im_start}{response_text}{im_end}"
             )
-            prev_chat = f"\n{im_start}{query_text}{im_end}\n{im_start}{response_text}{im_end}"
         else:
             next_context_tokens = nl_tokens + query_tokens + nl_tokens
             prev_chat = f"\n{im_start}{query_text}{im_end}\n"
@@ -186,8 +186,8 @@ def make_context_assistant_completion(
     )
     raw_text += f"\n{im_start}user\n{query}{im_end}\n{im_start}assistant\n"
 
-
     return context_tokens
+
 
 def make_context_assistant_target(
     tokenizer: PreTrainedTokenizer,
@@ -196,7 +196,7 @@ def make_context_assistant_target(
     history: List[Tuple[str, str]] = None,
     system: str = "",
     max_window_size: int = 6144,
-):
+) -> list[int]:
     # bro idk wth this horrible chunk of code is, but the jist is that it will add the target to the end of the assistant tag
     # e.g. '<|im_start|>system\n<|im_end|>\n<|im_start|>user\nPicture 1: <img>https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg</img>\n这是什么?<|im_end|>\n<|im_start|>assistant\n{TARGET}'
     if history is None:
@@ -229,10 +229,10 @@ def make_context_assistant_target(
             )
             response_tokens = im_start_tokens + response_tokens_part + im_end_tokens
 
-            next_context_tokens = (
-                nl_tokens + query_tokens + nl_tokens + response_tokens
+            next_context_tokens = nl_tokens + query_tokens + nl_tokens + response_tokens
+            prev_chat = (
+                f"\n{im_start}{query_text}{im_end}\n{im_start}{response_text}{im_end}"
             )
-            prev_chat = f"\n{im_start}{query_text}{im_end}\n{im_start}{response_text}{im_end}"
         else:
             next_context_tokens = nl_tokens + query_tokens + nl_tokens
             prev_chat = f"\n{im_start}{query_text}{im_end}\n"
@@ -261,6 +261,7 @@ def make_context_assistant_target(
     )
 
     return context_tokens
+
 
 def make_context(
     tokenizer: PreTrainedTokenizer,

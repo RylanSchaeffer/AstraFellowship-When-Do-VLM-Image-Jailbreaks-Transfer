@@ -32,10 +32,6 @@ except ImportError:
     rearrange = None
 from torch import nn
 
-SUPPORT_CUDA = torch.cuda.is_available()
-SUPPORT_BF16 = SUPPORT_CUDA and torch.cuda.is_bf16_supported()
-SUPPORT_FP16 = SUPPORT_CUDA and torch.cuda.get_device_capability(0)[0] >= 7
-
 from .configuration_qwen import QWenConfig
 from .qwen_generation_utils import (
     HistoryType,
@@ -45,6 +41,11 @@ from .qwen_generation_utils import (
     StopWordsLogitsProcessor,
 )
 from .visual import VisionTransformer
+
+
+SUPPORT_CUDA = torch.cuda.is_available()
+SUPPORT_BF16 = SUPPORT_CUDA and torch.cuda.is_bf16_supported()
+SUPPORT_FP16 = SUPPORT_CUDA and torch.cuda.get_device_capability(0)[0] >= 7
 
 
 logger = logging.get_logger(__name__)
@@ -561,7 +562,7 @@ class QWenModel(QWenPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
-        image_embeds: Optional[torch.FloatTensor] = None, # actually embeds
+        image_embeds: Optional[torch.FloatTensor] = None,  # actually embeds
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
@@ -903,7 +904,6 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             return_dict if return_dict is not None else self.config.use_return_dict
         )
 
-
         transformer_outputs = self.transformer(
             input_ids,
             image_embeds=image_embeds,
@@ -1123,13 +1123,15 @@ class QWenLMHeadModel(QWenPreTrainedModel):
     ) -> Union[GenerateOutput, torch.LongTensor]:
         if images is not None:
             assert images.ndim == 4, f"Expected (bs, 3, H, W), got {images.shape}"
-            
+
         generation_config = (
             generation_config
             if generation_config is not None
             else self.generation_config
         )
-        image_embeds=self.transformer.visual.forward(images) if images is not None else None
+        image_embeds = (
+            self.transformer.visual.forward(images) if images is not None else None
+        )
 
         # Process stop_words_ids.
         stop_words_ids = kwargs.pop("stop_words_ids", None)
@@ -1155,7 +1157,6 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         # new_kwargs = kwargs.copy()
         # new_kwargs["image_embeds"] = image_embeds
 
-
         return super().generate(
             inputs=inputs,
             generation_config=generation_config,
@@ -1168,7 +1169,6 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             image_embeds=image_embeds,
             **kwargs,
         )
-
 
 
 class RotaryEmbedding(torch.nn.Module):

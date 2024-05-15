@@ -6,10 +6,9 @@
 from collections import OrderedDict
 import math
 import requests
-from io import BytesIO
 from functools import partial
 from PIL import Image
-from typing import Callable, Optional, Sequence, Tuple, List
+from typing import Callable, Optional, List
 import numpy as np
 
 import torch
@@ -443,7 +442,6 @@ class VisionTransformer(nn.Module):
             transformed.append(self.image_transform(item))
         x = torch.stack(transformed, dim=0)
         return self.forward(x)
-
 
     def forward(self, x: torch.Tensor):
         x = x.to(
