@@ -47,5 +47,6 @@ transform_pil_image = torchvision.transforms.v2.Compose(
     ]
 )
 image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
+print(f"Transformed to image: {image}")
 response = model.generate(image=image, prompts=["What is animal is in this picture??"])
 print(response)
