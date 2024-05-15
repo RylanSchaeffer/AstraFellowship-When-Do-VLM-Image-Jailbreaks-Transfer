@@ -75,15 +75,17 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # not sure why we need to register the image processor manually
         print(f"Using Qwen model: {model_path}")
 
-        # self.processor: VLChatProcessor = VLChatProcessor.from_pretrained(model_path)  # type: ignore
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code=True)  # type: ignore
+        # qwen doesn't have a specific pad token, but since we mask it out we can use any token
+        # see https://github.com/QwenLM/Qwen/blob/main/tokenization_note.md
+
+        self.pad_token_id = 55
         self.model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
             model_path,
             torch_dtype=self.precision_dtype,
         ).to(self.precision_dtype)
         self.vision_model: VisionTransformer = self.model.transformer.visual
-        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code=True)  # type: ignore
-        # eos is the pad token
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        
         self.already_logged_new_mask: bool = False  # For print debugigng
         self.already_logged_text: bool = False  # For print debugigng
 
@@ -123,7 +125,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             )
             for prompt, target in zip(prompts, targets)
         ]
-        pad_token_id = self.tokenizer.eos_token_id
+        pad_token_id = self.pad_token_id
         assert pad_token_id is not None, "Expected pad token id to be set."
         results = pad_and_make_attention_masks(
             input_ids=[self.tokenizer.encode(text) for text in prompt_texts],
