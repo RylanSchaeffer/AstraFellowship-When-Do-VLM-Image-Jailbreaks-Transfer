@@ -1133,10 +1133,6 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else self.generation_config
         )
         image_embeds=self.transformer.visual.forward(images) if images is not None else None
-        if image_embeds is not None:
-            print(f"Got image_embeds of shape {image_embeds.shape}")
-        else:
-            print(f"Did not get image_embeds")
 
         # Process stop_words_ids.
         stop_words_ids = kwargs.pop("stop_words_ids", None)
@@ -1155,8 +1151,13 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else:
                 logits_processor.append(stop_words_logits_processor)
 
-        new_kwargs = kwargs
-        new_kwargs["image_embeds"] = image_embeds
+        if image_embeds is not None:
+            print(f"Got image_embeds of shape {image_embeds.shape}")
+        else:
+            print(f"Did not get image_embeds")
+        # new_kwargs = kwargs.copy()
+        # new_kwargs["image_embeds"] = image_embeds
+
 
         return super().generate(
             inputs,
@@ -1167,8 +1168,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             synced_gpus=synced_gpus,
             assistant_model=assistant_model,
             streamer=streamer,
-            **new_kwargs,
-            # **kwargs,
+            image_embeds=image_embeds,
         )
 
 
