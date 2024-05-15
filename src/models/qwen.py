@@ -9,6 +9,7 @@ from transformers import PreTrainedTokenizer
 
 from src.models.base import VisionLanguageModel
 from src.models.qwen_utils.qwen_generation_utils import (
+    get_stop_words_ids,
     make_context_assistant_completion,
     make_context_assistant_target,
 )
@@ -195,6 +196,11 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             # # run the model to get the response
 
             # print(f"Prompting with image: {image}")
+
+            generation_config = self.model.generation_config
+            assert generation_config is not None, "Expected generation config to be set."
+            # # run the model to get the response
+            stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer) # type: ignore
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
@@ -203,8 +209,9 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 eos_token_id=self.tokenizer.eos_token_id,
                 # max_new_tokens=512,
                 do_sample=do_sample,
-                **self.generation_kwargs,
                 use_cache=True,
+                stop_words_ids=stop_words,
+                **self.generation_kwargs,
             )
             # print(f"Got type: {type(outputs)}")
             out: str = self.tokenizer.decode(

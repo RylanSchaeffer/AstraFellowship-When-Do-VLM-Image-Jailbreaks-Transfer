@@ -1150,16 +1150,16 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             stop_words_ids = getattr(generation_config, "stop_words_ids", None)
         
         stop_words_ids = stop_words_ids or []
-        stop_words_ids.extend(get_stop_words_ids(generation_config.chat_format, self.tokenizer))
         
-        stop_words_logits_processor = StopWordsLogitsProcessor(
-            stop_words_ids=stop_words_ids,
-            eos_token_id=generation_config.eos_token_id,
-        )
-        if logits_processor is None:
-            logits_processor = LogitsProcessorList([stop_words_logits_processor])
-        else:
-            logits_processor.append(stop_words_logits_processor)
+        if stop_words_ids:
+            stop_words_logits_processor = StopWordsLogitsProcessor(
+                stop_words_ids=stop_words_ids,
+                eos_token_id=generation_config.eos_token_id,
+            )
+            if logits_processor is None:
+                logits_processor = LogitsProcessorList([stop_words_logits_processor])
+            else:
+                logits_processor.append(stop_words_logits_processor)
 
         
         
