@@ -3,6 +3,8 @@ from transformers import AutoTokenizer
 
 
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code=True)
+im_end_id = tokenizer.im_end_id
+print(tokenizer.decode([im_end_id]))
 # pad_token = tokenizer.eos_token_id
 # pad_token_id = tokenizer.pad_token_id
 pad_token_id = 55

@@ -182,7 +182,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                     {"text": prompt},
                 ]
             )
-            print(f"Prompting the model with: {new_prompt}")
+            # print(f"Prompting the model with: {new_prompt}")
             context: list[int] = make_context_assistant_completion(
                 tokenizer=self.tokenizer, query=new_prompt
             )
@@ -194,7 +194,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
 
             # # run the model to get the response
 
-            print(f"Prompting with image: {image}")
+            # print(f"Prompting with image: {image}")
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
@@ -206,7 +206,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 **self.generation_kwargs,
                 use_cache=True,
             )
-            print(f"Got type: {type(outputs)}")
+            # print(f"Got type: {type(outputs)}")
             out: str = self.tokenizer.decode(
                 outputs.squeeze(), skip_special_tokens=True
             )

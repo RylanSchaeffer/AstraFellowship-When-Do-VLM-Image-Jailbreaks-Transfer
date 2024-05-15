@@ -1129,11 +1129,11 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             if generation_config is not None
             else self.generation_config
         )
-        if images is not None:
-            print(f"Got images of shape {images.shape}")
-            print(f"Got image in LMHead {images}")
-        else:
-            print("Did not get images")
+        # if images is not None:
+        #     print(f"Got images of shape {images.shape}")
+        #     print(f"Got image in LMHead {images}")
+        # else:
+        #     print("Did not get images")
         # step 1: preprocess
         # step 2: forward
         image_embeds = (
@@ -1148,16 +1148,21 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             stop_words_ids = getattr(generation_config, "stop_words_ids", None)
         if stop_words_ids is None:
             stop_words_ids = getattr(generation_config, "stop_words_ids", None)
+        
+        stop_words_ids = stop_words_ids or []
+        stop_words_ids.extend(get_stop_words_ids(generation_config.chat_format, self.tokenizer))
+        
+        stop_words_logits_processor = StopWordsLogitsProcessor(
+            stop_words_ids=stop_words_ids,
+            eos_token_id=generation_config.eos_token_id,
+        )
+        if logits_processor is None:
+            logits_processor = LogitsProcessorList([stop_words_logits_processor])
+        else:
+            logits_processor.append(stop_words_logits_processor)
 
-        if stop_words_ids is not None:
-            stop_words_logits_processor = StopWordsLogitsProcessor(
-                stop_words_ids=stop_words_ids,
-                eos_token_id=generation_config.eos_token_id,
-            )
-            if logits_processor is None:
-                logits_processor = LogitsProcessorList([stop_words_logits_processor])
-            else:
-                logits_processor.append(stop_words_logits_processor)
+        
+        
 
         # if image_embeds is not None:
         #     print(f"Got image_embeds of shape {image_embeds.shape}")
@@ -1165,7 +1170,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         #     print(f"Did not get image_embeds")
         # new_kwargs = kwargs.copy()
         # new_kwargs["image_embeds"] = image_embeds
-
+        
         return super().generate(
             inputs=inputs,
             generation_config=generation_config,
