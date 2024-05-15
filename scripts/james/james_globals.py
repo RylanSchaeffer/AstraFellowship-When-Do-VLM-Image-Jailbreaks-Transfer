@@ -74,8 +74,14 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'deepseek-vl-7b-chat'}",
+    "model_to_eval": "{'Qwen-VL-Chat'}",
     "model_generation_kwargs": {
+        "Qwen-VL-Chat": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "deepseek-vl-1.3b-chat": {
             "temperature": 0.0,
             "top_p": 0.0,
@@ -127,6 +133,6 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    "wandb_attack_run_id": "ff12eqh1",
+    "wandb_attack_run_id": "w47wb99d",
     # "wandb_sweep_id": "yvqszl4d",
 }
