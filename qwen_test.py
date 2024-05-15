@@ -4,7 +4,7 @@ import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation import GenerationConfig
 import torch
-os.environ["HF_HUB"] = "/workspace/huggingface_cache"
+os.environ["HF_HOME"] = "/workspace/huggingface_cache"
 os.environ["HF_HUB_CACHE"] = "/workspace/huggingface_cache/hub"
 
 torch.manual_seed(1234)
