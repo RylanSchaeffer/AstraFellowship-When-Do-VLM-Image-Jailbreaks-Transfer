@@ -575,10 +575,10 @@ class QWenModel(QWenPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ):
-        if pixel_values is not None:
-            print("Qwenmodel: image_embeds", pixel_values.shape)
-        else:
-            print("Qwenmodel: no image_embeds")
+        # if pixel_values is not None:
+        #     print("Qwenmodel: image_embeds", pixel_values.shape)
+        # else:
+        #     print("Qwenmodel: no image_embeds")
         if past_key_values is None and torch.any(
             input_ids == self.config.visual["image_start_id"]
         ):
@@ -903,10 +903,6 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             return_dict if return_dict is not None else self.config.use_return_dict
         )
 
-        if pixel_values is not None:
-            print("lm head: image_embeds", pixel_values.shape)
-        else:
-            print("lm head: no image_embeds")
 
         transformer_outputs = self.transformer(
             input_ids,
@@ -1152,10 +1148,10 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             else:
                 logits_processor.append(stop_words_logits_processor)
 
-        if image_embeds is not None:
-            print(f"Got image_embeds of shape {image_embeds.shape}")
-        else:
-            print(f"Did not get image_embeds")
+        # if image_embeds is not None:
+        #     print(f"Got image_embeds of shape {image_embeds.shape}")
+        # else:
+        #     print(f"Did not get image_embeds")
         # new_kwargs = kwargs.copy()
         # new_kwargs["image_embeds"] = image_embeds
 
