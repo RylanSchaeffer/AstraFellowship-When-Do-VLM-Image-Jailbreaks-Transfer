@@ -1133,11 +1133,13 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             print(f"Got images of shape {images.shape}")
             print(f"Got image in LMHead {images}")
         else:
-            print(f"Did not get images")
+            print("Did not get images")
         # step 1: preprocess
         # step 2: forward
         image_embeds = (
-            self.transformer.visual.transform_and_forward(images) if images is not None else None
+            self.transformer.visual.transform_and_forward(images)
+            if images is not None
+            else None
         )
 
         # Process stop_words_ids.

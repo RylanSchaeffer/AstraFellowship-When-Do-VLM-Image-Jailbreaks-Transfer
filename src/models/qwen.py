@@ -176,13 +176,13 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # we have (1, 3, h,w) , we want (3, H, W)
         model_generations = []
         for prompt in prompts:
-            print(f"Prompting the model with: {new_prompt}")
             new_prompt = self.tokenizer.from_list_format(
                 [  # type: ignore
                     {"image": "image_url"},  # needed to make them image tokens
                     {"text": prompt},
                 ]
             )
+            print(f"Prompting the model with: {new_prompt}")
             context: list[int] = make_context_assistant_completion(
                 tokenizer=self.tokenizer, query=new_prompt
             )
