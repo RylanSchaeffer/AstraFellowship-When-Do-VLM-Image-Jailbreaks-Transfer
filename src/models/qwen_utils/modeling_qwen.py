@@ -877,6 +877,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
+        image_embeds: Optional[torch.FloatTensor] = None,
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
@@ -898,6 +899,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
 
         transformer_outputs = self.transformer(
             input_ids,
+            image_embeds=image_embeds,
             past_key_values=past_key_values,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
