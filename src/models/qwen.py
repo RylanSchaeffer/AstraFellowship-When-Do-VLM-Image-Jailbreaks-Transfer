@@ -175,6 +175,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 True if self.generation_kwargs.get("temperature", 0) > 0 else False
             )
             # # run the model to get the response
+            print(f"Prompting the model with: {prompt}")
             outputs = self.model.generate(
                 inputs=input_ids,
                 images=image,
@@ -187,6 +188,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 **self.generation_kwargs,
                 use_cache=True,
             )
+            print(f"Got type: {type(outputs)}")
             out: str = self.tokenizer.decode(
                 outputs.squeeze(), skip_special_tokens=True
             )
