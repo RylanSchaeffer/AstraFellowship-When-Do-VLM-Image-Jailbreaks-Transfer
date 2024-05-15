@@ -561,6 +561,7 @@ class QWenModel(QWenPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
+        image_embeds: Optional[torch.FloatTensor] = None,
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         token_type_ids: Optional[torch.LongTensor] = None,
@@ -574,22 +575,27 @@ class QWenModel(QWenPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ):
-        if past_key_values is None and torch.any(
-            input_ids == self.config.visual["image_start_id"]
-        ):
-            bos_pos = torch.where(input_ids == self.config.visual["image_start_id"])
-            eos_pos = torch.where(input_ids == self.config.visual["image_start_id"] + 1)
-            assert (bos_pos[0] == eos_pos[0]).all()
-            img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
-            images = []
-            for i, a, b in img_pos:
-                image = input_ids[i][a + 1 : b - 1].tolist()
-                image = image[: image.index(self.config.visual["image_start_id"] + 2)]
-                images.append(bytes(image).decode("utf-8"))
-
-            images = self.visual.encode(images)
-            assert images.shape[0] == len(images)
+        if image_embeds is not None:
+            assert image_embeds.size(0) == image_embeds.size(0)
+            # assert image_embeds.ndim == 4
             fake_images = None
+            images = image_embeds
+        # if past_key_values is None and torch.any(
+        #     input_ids == self.config.visual["image_start_id"]
+        # ):
+        #     bos_pos = torch.where(input_ids == self.config.visual["image_start_id"])
+        #     eos_pos = torch.where(input_ids == self.config.visual["image_start_id"] + 1)
+        #     assert (bos_pos[0] == eos_pos[0]).all()
+        #     img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
+        #     images = []
+        #     for i, a, b in img_pos:
+        #         image = input_ids[i][a + 1 : b - 1].tolist()
+        #         image = image[: image.index(self.config.visual["image_start_id"] + 2)]
+        #         images.append(bytes(image).decode("utf-8"))
+
+        #     images = self.visual.encode(images)
+        #     assert images.shape[0] == len(images)
+        #     fake_images = None
         elif self.training:
             fake_images = torch.zeros(1, 3, 224, 224).to(
                 dtype=self.visual.conv1.weight.dtype,
@@ -948,6 +954,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         self,
         tokenizer: PreTrainedTokenizer,
         query: str,
+        image: torch.Tensor | None,
         history: Optional[HistoryType],
         system: str = "You are a helpful assistant.",
         append_history: bool = True,
@@ -959,7 +966,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         generation_config = (
             generation_config
             if generation_config is not None
-            else self.generation_config
+            else selffgeneration_config
         )
 
         assert stream is _SENTINEL, _ERROR_STREAM_IN_CHAT
@@ -984,9 +991,11 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         stop_words_ids.extend(
             get_stop_words_ids(generation_config.chat_format, tokenizer)
         )
+        images = 
         input_ids = torch.tensor([context_tokens]).to(self.device)
         outputs = self.generate(
             input_ids,
+            images=images,
             stop_words_ids=stop_words_ids,
             return_dict_in_generate=False,
             generation_config=generation_config,
@@ -1090,6 +1099,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
     def generate(
         self,
         inputs: Optional[torch.Tensor] = None,
+        images: Optional[torch.Tensor] = None,
         generation_config: Optional[GenerationConfig] = None,
         logits_processor: Optional[LogitsProcessorList] = None,
         stopping_criteria: Optional[StoppingCriteriaList] = None,
@@ -1101,11 +1111,16 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         streamer: Optional["BaseStreamer"] = None,
         **kwargs,
     ) -> Union[GenerateOutput, torch.LongTensor]:
+        if images is not None:
+            assert images.ndim == 4, f"Expected (bs, 3, H, W), got {images.shape}"
+            
         generation_config = (
             generation_config
             if generation_config is not None
             else self.generation_config
         )
+        image_embeds=self.transformer.visual.transform_and_forward(images) if images is not None else None
+        
 
         # Process stop_words_ids.
         stop_words_ids = kwargs.pop("stop_words_ids", None)
@@ -1133,6 +1148,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             synced_gpus=synced_gpus,
             assistant_model=assistant_model,
             streamer=streamer,
+            image_embeds=image_embeds, # passed to forward of QWenModel
             **kwargs,
         )
 

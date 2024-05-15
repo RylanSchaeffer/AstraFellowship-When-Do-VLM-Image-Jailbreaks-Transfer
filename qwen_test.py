@@ -4,6 +4,8 @@ import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation import GenerationConfig
 import torch
+
+from src.models.qwen_utils.qwen_load import load_pil_image_from_url
 os.environ["HF_HOME"] = "/workspace/huggingface_cache"
 os.environ["HF_HUB_CACHE"] = "/workspace/huggingface_cache/hub"
 
@@ -27,12 +29,14 @@ model = QWenLMHeadModel.from_pretrained("Qwen/Qwen-VL-Chat", device_map="cuda", 
 
 # Specify hyperparameters for generation
 model.generation_config = GenerationConfig.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code=True)
-
+url = 'https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg'
 # 1st dialogue turn
 query = tokenizer.from_list_format([
-    {'image': 'https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg'}, # Either a local path or an url
+    {'image': url}, # Either a local path or an url
     {'text': '这是什么?'},
 ])
-response, history = model.chat(tokenizer, query=query, history=None)
+
+image = load_pil_image_from_url(url)
+response, history = model.chat(tokenizer=tokenizer, query=query, image=image, history=None)
 print(response)
 # 图中是一名女子在沙滩上和狗玩耍，旁边是一只拉布拉多犬，它们处于沙滩上。

@@ -426,6 +426,15 @@ class VisionTransformer(nn.Module):
             (output_dim**-0.5) * torch.randn(output_dim, output_dim)
         )
 
+    def transform_and_forward(self, x: torch.Tensor):
+        assert x.dim() == 4, "Input must be a 4D tensor, (bs, c, h, w)"
+        transformed = []
+        for item in x:
+            transformed.append(self.image_transform(item))
+        x = torch.stack(transformed, dim=0)
+        return self.forward(x)
+
+
     def forward(self, x: torch.Tensor):
         x = x.to(
             dtype=self.transformer.get_cast_dtype(),
