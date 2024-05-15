@@ -1160,7 +1160,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
 
 
         return super().generate(
-            inputs,
+            inputs=inputs,
             generation_config=generation_config,
             logits_processor=logits_processor,
             stopping_criteria=stopping_criteria,
@@ -1169,6 +1169,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             assistant_model=assistant_model,
             streamer=streamer,
             pixel_values=image_embeds,
+            **kwargs,
         )
 
 
