@@ -574,7 +574,11 @@ class QWenModel(QWenPreTrainedModel):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
-    ):            
+    ):
+        if image_embeds is not None:
+            print("Qwenmodel: image_embeds", image_embeds.shape)
+        else:
+            print("Qwenmodel: no image_embeds")
         if past_key_values is None and torch.any(
             input_ids == self.config.visual["image_start_id"]
         ):
@@ -897,6 +901,11 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         return_dict = (
             return_dict if return_dict is not None else self.config.use_return_dict
         )
+
+        if image_embeds is not None:
+            print("lm head: image_embeds", image_embeds.shape)
+        else:
+            print("lm head: no image_embeds")
 
         transformer_outputs = self.transformer(
             input_ids,
