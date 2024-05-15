@@ -102,13 +102,14 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         attention_mask: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(image)
+        device = self.model.device
+        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(image.to(device=device))
 
         outputs = self.model(
-            input_ids=input_ids,
-            image_embeds=image_embeds,
-            attention_mask=attention_mask,
-            labels=labels,
+            input_ids=input_ids.to(device=device),
+            image_embeds=image_embeds.to(device=device),
+            attention_mask=attention_mask.to(device=device),
+            labels=labels.to(device=device),
         )
         return outputs.loss
 
@@ -200,7 +201,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             generation_config = self.model.generation_config
             assert generation_config is not None, "Expected generation config to be set."
             # # run the model to get the response
-            # these stop words are the im_end
+            # these stop words are the im_end, so they are the REAL eos
             stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer) # type: ignore
             outputs = self.model.generate(
                 inputs=input_ids,
