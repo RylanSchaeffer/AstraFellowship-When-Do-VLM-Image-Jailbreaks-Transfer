@@ -1129,6 +1129,10 @@ class QWenLMHeadModel(QWenPreTrainedModel):
             if generation_config is not None
             else self.generation_config
         )
+        if images is not None:
+            print(f"Got images of shape {images.shape}")
+        else:
+            print(f"Did not get images")
         # step 1: preprocess
         # step 2: forward
         image_embeds = (

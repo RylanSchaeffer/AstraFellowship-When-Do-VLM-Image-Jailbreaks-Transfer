@@ -45,5 +45,15 @@ transform_pil_image = torchvision.transforms.v2.Compose(
 )
 image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
 print(f"Transformed to image: {image}")
+
 response = model.generate(image=image, prompts=["What animal is in this picture?"])
 print(response)
+
+
+batch = model.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+    prompts=["What is the first letter of the english alphabet?"],
+    targets=["A"],
+)
+loss = model.compute_loss(image=image, input_ids=batch["input_ids"], attention_mask=batch["attention_mask"], labels=batch["labels"])
+print(f"Loss: {loss.item()}")
+
