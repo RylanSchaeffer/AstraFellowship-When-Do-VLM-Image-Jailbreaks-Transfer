@@ -7,7 +7,7 @@ from transformers import AutoImageProcessor
 import lightning
 import torch
 from typing import Any, Callable, Dict, List, Optional
-from make_labels import make_labels
+from src.models.label_compute import make_labels
 
 from src.models.base import VisionLanguageModel
 from deepseek_vl.models import (
@@ -17,6 +17,8 @@ from deepseek_vl.models import (
 from deepseek_vl.models.processing_vlm import (
     VLChatProcessorOutput,
 )
+
+from src.models.qwen_utils.qwen_generation_utils import get_stop_words_ids
 
 
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
@@ -257,8 +259,12 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # we have (1, 3, h,w) , we want (3, H, W)
         model_generations = []
         for prompt in prompts:
-            conversation = conversation = [
-                {"role": "User", "content": prompt, "images": ["not used"]},
+            conversation = [
+                {
+                    "role": "User",
+                    "content": f"<image_placeholder>{prompt}",
+                    "images": ["doesn't matter"],
+                },
                 {"role": "Assistant", "content": ""},
             ]
 

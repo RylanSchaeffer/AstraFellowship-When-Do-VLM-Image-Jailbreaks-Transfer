@@ -38,7 +38,7 @@ Adding `--config-settings editable_mode=compat` is optionable - its for your vsc
 
 10. Manually install a few additional packages:
 
-`conda install joblib pandas matplotlib seaborn black -y`
+`conda install joblib pandas matplotlib seaborn black tiktoken -y`
 
 11. Install more stuff. 
 
