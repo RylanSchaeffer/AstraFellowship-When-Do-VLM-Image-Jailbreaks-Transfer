@@ -103,7 +103,14 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         labels: torch.Tensor,
     ) -> torch.Tensor:
         device = self.model.device
+
+        # Since we only get a single image, we need to repeat it for the batch size.
+        bs = input_ids.size(0)
         image_embeds: torch.Tensor = self.vision_model.transform_and_forward(image.to(device=device))
+        assert image_embeds.ndim == 4, f"Expected 4 dims, got {image_embeds.ndim}"
+        # assert that we only have one image here
+        assert image_embeds.size(0) == 1, f"Expected only 1 image that we repeat, got {image_embeds.size(0)}"
+        image_embeds = image_embeds.repeat(bs, 1, 1, 1)
 
         outputs = self.model(
             input_ids=input_ids.to(device=device),
