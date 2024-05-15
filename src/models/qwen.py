@@ -12,6 +12,7 @@ from src.models.qwen_utils.qwen_generation_utils import (
     make_context_assistant_completion,
     make_context_assistant_target,
 )
+from src.models.qwen_utils.qwen_load import only_assistant_response
 
 from src.models.qwen_utils.visual import VisionTransformer
 
@@ -192,8 +193,9 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             out: str = self.tokenizer.decode(
                 outputs.squeeze(), skip_special_tokens=True
             )
+            clean_out = only_assistant_response(initial_prompt=prompt, response=out)
 
-            model_generations.append(out)
+            model_generations.append(clean_out)
 
         return model_generations
 
