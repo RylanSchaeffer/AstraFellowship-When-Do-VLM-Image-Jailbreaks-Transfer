@@ -3,7 +3,7 @@ default_attack_config = {
     "compile": False,
     "data": {
         "dataset": "generated",
-        "batch_size": 4,
+        "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
         "split": "train",
@@ -28,7 +28,8 @@ default_attack_config = {
     # "models_to_attack": "{'llava-v1.6-vicuna13b'}",
     # "models_to_attack": "{'idefics2-8b'}",
     # "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
-    "models_to_attack": "{'deepseek-vl-7b-chat'}",
+    # "models_to_attack": "{'deepseek-vl-7b-chat'}",
+    "models_to_attack": "{'Qwen-VL-Chat'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",

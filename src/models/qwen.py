@@ -200,6 +200,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             generation_config = self.model.generation_config
             assert generation_config is not None, "Expected generation config to be set."
             # # run the model to get the response
+            # these stop words are the im_end
             stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer) # type: ignore
             outputs = self.model.generate(
                 inputs=input_ids,
