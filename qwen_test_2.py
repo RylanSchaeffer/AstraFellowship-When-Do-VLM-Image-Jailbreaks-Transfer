@@ -57,8 +57,8 @@ print(response)
 
 
 batch = model.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-    prompts=["What is the first letter of the english alphabet?"],
-    targets=["A"],
+    prompts=["What animal is this?\nA - Fish\nB - Cat\nC - Dog\nD - Whale"],
+    targets=["C"],
 )
 loss = model.compute_loss(
     image=image,

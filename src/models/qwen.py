@@ -85,7 +85,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             torch_dtype=self.precision_dtype,
         ).to(self.precision_dtype)
         self.vision_model: VisionTransformer = self.model.transformer.visual
-        
+
         self.already_logged_new_mask: bool = False  # For print debugigng
         self.already_logged_text: bool = False  # For print debugigng
 
@@ -121,7 +121,14 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         prompt_texts = [
             # make context adds the assistant token in to continue
             make_context_assistant_target(
-                tokenizer=self.tokenizer, query=prompt, target=target
+                tokenizer=self.tokenizer,
+                query=self.tokenizer.from_list_format(
+                    [  # type: ignore
+                        {"image": "image_url"},  # needed to make them image tokens
+                        {"text": prompt},
+                    ]
+                ),
+                target=target,
             )
             for prompt, target in zip(prompts, targets)
         ]
@@ -169,16 +176,24 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # we have (1, 3, h,w) , we want (3, H, W)
         model_generations = []
         for prompt in prompts:
+            print(f"Prompting the model with: {new_prompt}")
+            new_prompt = self.tokenizer.from_list_format(
+                [  # type: ignore
+                    {"image": "image_url"},  # needed to make them image tokens
+                    {"text": prompt},
+                ]
+            )
             context: list[int] = make_context_assistant_completion(
-                tokenizer=self.tokenizer, query=prompt
+                tokenizer=self.tokenizer, query=new_prompt
             )
             input_ids = torch.tensor(context).unsqueeze(0).to(self.model.device)
 
             do_sample = (
                 True if self.generation_kwargs.get("temperature", 0) > 0 else False
             )
+
             # # run the model to get the response
-            print(f"Prompting the model with: {prompt}")
+
             print(f"Prompting with image: {image}")
             outputs = self.model.generate(
                 inputs=input_ids,
