@@ -18,6 +18,8 @@ from deepseek_vl.models.processing_vlm import (
     VLChatProcessorOutput,
 )
 
+from src.models.qwen_utils.qwen_generation_utils import get_stop_words_ids
+
 
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
 IGNORE_INDEX = -100
