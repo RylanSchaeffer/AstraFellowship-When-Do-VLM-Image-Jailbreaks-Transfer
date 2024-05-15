@@ -179,7 +179,7 @@ class QWenAttention(nn.Module):
                 device=attn_weights.device,
             )
 
-        query_length, key_length = query.size(-2), key.size(-2)
+        # query_length, key_length = query.size(-2), key.size(-2)
         # causal_mask = self.bias[
         #     :, :, key_length - query_length : key_length, :key_length
         # ]
@@ -580,13 +580,13 @@ class QWenModel(QWenPreTrainedModel):
             # assert image_embeds.ndim == 4
             fake_images = None
             images = image_embeds
-        # if past_key_values is None and torch.any(
-        #     input_ids == self.config.visual["image_start_id"]
-        # ):
-        #     bos_pos = torch.where(input_ids == self.config.visual["image_start_id"])
-        #     eos_pos = torch.where(input_ids == self.config.visual["image_start_id"] + 1)
-        #     assert (bos_pos[0] == eos_pos[0]).all()
-        #     img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
+        if past_key_values is None and torch.any(
+            input_ids == self.config.visual["image_start_id"]
+        ):
+            bos_pos = torch.where(input_ids == self.config.visual["image_start_id"])
+            eos_pos = torch.where(input_ids == self.config.visual["image_start_id"] + 1)
+            assert (bos_pos[0] == eos_pos[0]).all()
+            img_pos = torch.stack((bos_pos[0], bos_pos[1], eos_pos[1]), dim=1)
         #     images = []
         #     for i, a, b in img_pos:
         #         image = input_ids[i][a + 1 : b - 1].tolist()
@@ -966,7 +966,7 @@ class QWenLMHeadModel(QWenPreTrainedModel):
         generation_config = (
             generation_config
             if generation_config is not None
-            else selffgeneration_config
+            else self.generation_config
         )
 
         assert stream is _SENTINEL, _ERROR_STREAM_IN_CHAT
