@@ -257,8 +257,12 @@ class DeepSeekVisionLanguageModel(VisionLanguageModel, lightning.LightningModule
         # we have (1, 3, h,w) , we want (3, H, W)
         model_generations = []
         for prompt in prompts:
-            conversation = conversation = [
-                {"role": "User", "content": prompt, "images": ["not used"]},
+            conversation = [
+                {
+                    "role": "User",
+                    "content": f"<image_placeholder>{prompt}",
+                    "images": ["doesn't matter"],
+                },
                 {"role": "Assistant", "content": ""},
             ]
 
