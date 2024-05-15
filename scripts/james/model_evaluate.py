@@ -14,7 +14,7 @@ from typing import Any, Dict
 import pandas as pd
 import numpy as np
 import src.data
-from scripts.james.james_globals import default_attack_config
+from scripts.james.james_globals import default_eval_config
 import src.systems
 import src.utils
 
@@ -26,13 +26,13 @@ os.environ["MKL_NUM_THREADS"] = n_threads_str
 os.environ["VECLIB_MAXIMUM_THREADS"] = n_threads_str
 os.environ["NUMEXPR_NUM_THREADS"] = n_threads_str
 
-config = default_attack_config
+config = default_eval_config
 
 
 def evaluate_vlm_adversarial_examples():
     run = wandb.init(
         project="universal-vlm-jailbreak-eval",
-        config=default_attack_config,
+        config=default_eval_config,
         entity=src.utils.retrieve_wandb_username(),
     )
     wandb_config: Dict[str, Any] = dict(wandb.config)
