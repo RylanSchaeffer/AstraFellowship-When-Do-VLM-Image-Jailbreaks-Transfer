@@ -155,6 +155,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
         repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        image_size = [tuple(image.shape[2:])] * bs
 
 
         outputs = self.model.vlm(
@@ -162,6 +163,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             lang_x=input_ids.to(device),
             attention_mask=attention_mask.to(device),
             labels=labels.to(device),
+            image_size=image_size,
         )
         return outputs.loss
 
