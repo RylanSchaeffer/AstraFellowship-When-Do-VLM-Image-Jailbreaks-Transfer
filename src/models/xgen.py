@@ -1,4 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
+from regex import F
 from src.models.xgen_utils.image_processing_blip_3 import Blip3ImageProcessor
 from transformers import AutoTokenizer, StoppingCriteria
 import lightning
@@ -151,6 +152,8 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
         )["pixel_values"]
+
+        print(f"Image inputs: {image_inputs}")
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
         # repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
