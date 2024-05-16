@@ -117,13 +117,16 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             image.size(0) == 1
         ), f"Expected only 1 image that we repeat, got {image.size(0)}"
 
-
         # image_embeds = image_embeds.repeat(bs, 1, 1)
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
-        )
+        )["pixel_values"]
+        # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
+        bs = input_ids.size(0)
+        repeated =image_inputs.repeat(bs, 1, 1, 1, 1, 1)
+
         merged_inputs = {
-            **image_inputs,
+            "pixel_values": repeated,
             "input_ids": input_ids,
             "attention_mask": attention_mask,
             "labels": labels,
@@ -254,6 +257,9 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
     ):
         if device is not None:
             self.model = self.model.to(device=device)
+            self.model.vlm = self.model.vlm.to(device=device)
+            self.model.vlm.vision_encoder = self.model.vlm.vision_encoder.to(device=device)
+            self.model.vlm.lang_model = self.model.vlm.lang_model.to(device=device)
         if dtype is not None:
             self.model = self.model.to(dtype=dtype)
             self.precision_dtype = dtype

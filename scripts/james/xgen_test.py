@@ -29,7 +29,8 @@ torch.manual_seed(1234)
 # use cuda device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-model = XgenVisionLanguageModel().to(device)
+dtype = torch.bfloat16
+model = XgenVisionLanguageModel().to(device).to(dtype=dtype).eval()
 tokenizer = model.tokenizer
 model.disable_model_gradients()
 
