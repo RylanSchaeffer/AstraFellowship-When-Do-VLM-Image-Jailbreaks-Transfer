@@ -150,16 +150,16 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         bs = input_ids.size(0)
 
         image_size = [tuple(image.shape[2:])] * bs
-        # image_embeds = image_embeds.repeat(bs, 1, 1)
+        
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
         )["pixel_values"]
 
-        print(f"Image inputs: {image_inputs}")
+        # print(f"Image inputs: {image_inputs}")
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
-        # repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
-        repeated_pixels = image_inputs.to(self.precision_dtype)
+        repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        # repeated_pixels = image_inputs.to(self.precision_dtype)
 
 
         outputs = self.model.vlm(
@@ -169,14 +169,14 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             labels=labels.to(device),
             image_size=image_size,
         )
-        logits = outputs.logits
-        second_last_logit = logits[:, -2, :]
-        # take the argmax of the second last logits
-        arg_max = torch.argmax(second_last_logit, dim=-1)
-        # print(f"Argmax: {arg_max}")
-        # decode it
-        decoded = self.tokenizer.decode(arg_max)
-        print(f"Decoded argmax: {decoded}")
+        # logits = outputs.logits
+        # second_last_logit = logits[:, -2, :]
+        # # take the argmax of the second last logits
+        # arg_max = torch.argmax(second_last_logit, dim=-1)
+        # # print(f"Argmax: {arg_max}")
+        # # decode it
+        # decoded = self.tokenizer.decode(arg_max)
+        # print(f"Decoded argmax: {decoded}")
 
         return outputs.loss
 
