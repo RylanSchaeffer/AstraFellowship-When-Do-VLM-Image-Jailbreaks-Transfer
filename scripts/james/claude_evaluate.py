@@ -19,7 +19,7 @@ import src.data
 import src.globals
 from src.openai_utils.shared import ChatMessage, InferenceConfig
 from scripts.james.loading import PromptAndTarget
-from scripts.james.james_globals import default_attack_config
+from scripts.james.james_globals import default_eval_config
 import src.systems
 import src.utils
 
@@ -105,7 +105,7 @@ def evaluate_vlm_adversarial_examples():
     # model="claude-3-opus-20240229" #
     # model_to_eval="claude-3-sonnet-20240229"  #
     model_to_eval = "claude-3-haiku-20240307"
-    config = default_attack_config
+    config = default_eval_config
     config["model_to_eval"] = model_to_eval
     wandb.init(
         project="universal-vlm-jailbreak-eval",
@@ -131,10 +131,10 @@ def evaluate_vlm_adversarial_examples():
     wandb_config["wandb_run_dir"] = wandb_run_dir
     with open(os.path.join(wandb_run_dir, "wandb_config.json"), "w") as fp:
         json.dump(obj=wandb_config, fp=fp)
-
+    attack_run_id = wandb_config["wandb_attack_run_id"]
     # Load jailbreak images' paths.
     runs_jailbreak_list: list[JailbreakData] = load_jailbreak_list_v2(
-        wandb_run_id=wandb_config["wandb_run_id"],
+        wandb_run_id=attack_run_id,
         wandb_sweep_id=None,
     )
     # skip steps < 400

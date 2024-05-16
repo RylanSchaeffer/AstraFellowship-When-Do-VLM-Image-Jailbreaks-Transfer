@@ -7,7 +7,6 @@ IGNORE_INDEX = -100
 def make_labels(
     input_ids: torch.Tensor, pad_token_id: int, targets: list[str], tokenizer
 ):
-
     labels = input_ids.clone()
     last_nonpadding_indices = torch.argmin((labels != pad_token_id).float(), axis=1)
     # print(f"{last_nonpadding_indices=}")

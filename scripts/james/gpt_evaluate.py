@@ -20,7 +20,7 @@ from scripts.james.loading import PromptAndTarget
 import src.systems
 import src.utils
 from src.openai_utils.client import OpenAICachedCaller, OpenaiResponse
-from scripts.james.james_globals import default_attack_config
+from scripts.james.james_globals import default_eval_config
 import os
 import time
 import dotenv
@@ -122,7 +122,7 @@ def evaluate_vlm_adversarial_examples():
     dotenv.load_dotenv()
     openai_key = os.getenv("OPENAI_API_KEY")
     assert openai_key, "Please provide an OpenAI API Key"
-    config = default_attack_config
+    config = default_eval_config
     config["model_to_eval"] = model_to_eval
     wandb.init(
         project="universal-vlm-jailbreak-eval",
