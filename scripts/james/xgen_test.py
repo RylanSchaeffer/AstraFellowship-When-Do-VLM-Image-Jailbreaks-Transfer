@@ -1,16 +1,10 @@
 from email.mime import image
-from sympy import Q
-from src.models.qwen import QwenVisionLanguageModel
-from src.models.qwen_utils.modeling_qwen import QWenLMHeadModel
 
 import os
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers.generation import GenerationConfig
 import torch
 from PIL import Image
 
 import torchvision.transforms.v2
-from src.models.qwen_utils.qwen_load import load_pil_image_from_url
 from src.models.xgen import XgenVisionLanguageModel
 
 os.environ["HF_HOME"] = "/workspace/huggingface_cache"
@@ -34,7 +28,7 @@ model = XgenVisionLanguageModel().to(device).to(dtype=dtype).eval()
 tokenizer = model.tokenizer
 model.disable_model_gradients()
 
-image_path = f"images/trina/000.jpg"
+image_path = "images/trina/000.jpg"
 pil_image = Image.open(image_path, mode="r")
 width, height = pil_image.size
 max_dim = max(width, height)

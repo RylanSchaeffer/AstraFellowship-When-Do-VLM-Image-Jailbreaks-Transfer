@@ -153,7 +153,8 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         )["pixel_values"]
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
-        repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        # repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        repeated_pixels = image_inputs
         image_size = [tuple(image.shape[2:])] * bs
 
 
