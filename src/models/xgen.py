@@ -100,6 +100,8 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
 
         self.already_logged_new_mask: bool = False  # For print debugigng
         self.already_logged_text: bool = False  # For print debugigng
+        self.pad_token_id = self.tokenizer.pad_token_id
+        assert self.pad_token_id is not None, "Expected pad token id to be set."
 
     def compute_loss(
         self,
