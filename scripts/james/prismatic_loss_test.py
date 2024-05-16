@@ -29,7 +29,7 @@ torch.manual_seed(1234)
 # use cuda device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-model: PrismaticVisionLanguageModel = PrismaticVisionLanguageModel().to(device)
+model: PrismaticVisionLanguageModel = PrismaticVisionLanguageModel().to(device).to(dtype=torch.bfloat16)
 tokenizer = model.model.llm_backbone.tokenizer
 model.disable_model_gradients()
 
