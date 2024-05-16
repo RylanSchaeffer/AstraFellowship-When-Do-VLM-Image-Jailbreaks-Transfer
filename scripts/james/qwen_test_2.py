@@ -23,7 +23,7 @@ tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen-VL-Chat", trust_remote_code
 # use cuda device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-model: QwenVisionLanguageModel = QwenVisionLanguageModel(device=device)
+model: QwenVisionLanguageModel = QwenVisionLanguageModel().to(device)
 model.disable_model_gradients()
 
 image_path = "images/trina/000.jpg"

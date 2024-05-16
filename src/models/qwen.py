@@ -45,7 +45,6 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         model_str: str = "Qwen-VL-Chat",
         generation_kwargs: Mapping[str, Any] | None = None,
         precision: str = "bf16-mixed",
-        device: torch.device | str | None = None,
     ):
         super().__init__()
 
@@ -82,11 +81,9 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # see https://github.com/QwenLM/Qwen/blob/main/tokenization_note.md
 
         self.pad_token_id = 55
-        device_map = device if device is not None else None
         self.model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
             model_path,
             torch_dtype=self.precision_dtype,
-            device_map=device_map,
         ).to(self.precision_dtype)
         self.vision_model: VisionTransformer = self.model.transformer.visual
 
