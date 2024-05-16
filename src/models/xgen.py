@@ -123,7 +123,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         )["pixel_values"]
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
-        repeated =image_inputs.repeat(bs, 1, 1, 1, 1, 1)
+        repeated =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
 
         merged_inputs = {
             "pixel_values": repeated,
@@ -197,7 +197,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         device = self.model.device
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
-        )
+        ).to(self.precision_dtype)
 
         for prompt in prompts:
             new_prompt = apply_xgen_prompt_template(prompt)
