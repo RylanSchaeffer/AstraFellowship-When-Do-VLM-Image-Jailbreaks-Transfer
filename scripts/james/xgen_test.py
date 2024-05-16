@@ -53,7 +53,7 @@ transformed_image: torch.Tensor = transform_pil_image(pil_image)
 #     pil_image
 # )  # type: ignore
 # print(f"Transformed to image: {image}")
-image = transformed_image.unsqueeze(0).to(device)
+image = transformed_image.unsqueeze(0)
 
 response = model.generate(image=image, prompts=["What animal is in this picture?"])
 print(response)
