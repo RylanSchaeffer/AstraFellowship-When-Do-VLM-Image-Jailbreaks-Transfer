@@ -10,8 +10,8 @@ default_attack_config = {
     },
     "image_kwargs": {
         "image_size": 512,
-        # "image_initialization": "random",
-        "image_initialization": "trina",
+        "image_initialization": "random",
+        # "image_initialization": "trina",
     },
     "lightning_kwargs": {
         "accumulate_grad_batches": 6,
@@ -29,10 +29,10 @@ default_attack_config = {
     # "models_to_attack": "{'idefics2-8b'}",
     # "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     # "models_to_attack": "{'deepseek-vl-7b-chat'}",
-    # "models_to_attack": "{'Qwen-VL-Chat', 'prism-reproduction-llava-v15+7b', 'deepseek-vl-7b-chat', 'prism-clip+7b', 'prism-dinosiglip+7b', 'prism-siglip+7b'}",
+    "models_to_attack": "{'Qwen-VL-Chat', 'prism-reproduction-llava-v15+7b', 'deepseek-vl-7b-chat', 'prism-clip+7b', 'prism-dinosiglip+7b', 'prism-siglip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
-    "models_to_attack": "{'prism-clip+7b'}",
+    # "models_to_attack": "{'prism-clip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
