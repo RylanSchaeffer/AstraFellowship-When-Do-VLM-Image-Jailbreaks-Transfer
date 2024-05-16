@@ -1,7 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
-from sys import last_traceback
 from src.models.xgen_utils.image_processing_blip_3 import Blip3ImageProcessor
-from src.models.label_compute import make_labels
 from transformers import AutoTokenizer, StoppingCriteria
 import lightning
 import torch
