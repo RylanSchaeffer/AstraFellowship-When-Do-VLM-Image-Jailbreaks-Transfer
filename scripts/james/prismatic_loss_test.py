@@ -1,4 +1,3 @@
-from email.mime import image
 from sympy import Q
 from src.models.prismatic import PrismaticVisionLanguageModel
 from src.models.qwen import QwenVisionLanguageModel
@@ -51,7 +50,7 @@ transformed_fn = torchvision.transforms.v2.Compose(
 # transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(
 #     pil_image
 # )  # type: ignore
-print(f"Transformed to image: {image}")
+# print(f"Transformed to image: {image}")
 model_dtype = torch.bfloat16
 image = transformed_fn(pil_image).unsqueeze(0).to(device).to(dtype=model_dtype)
 

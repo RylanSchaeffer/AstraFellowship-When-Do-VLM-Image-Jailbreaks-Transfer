@@ -194,7 +194,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
                 zip(last_nonpadding_indices, tokenized_labels)
             ):
-                target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
+                target_start_idx = last_nonpadding_idx - len(tokenized_label)
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
                 # Exclude the EOS token, if it exists.
                 if (
