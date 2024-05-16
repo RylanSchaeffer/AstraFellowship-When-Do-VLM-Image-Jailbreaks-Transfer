@@ -109,7 +109,15 @@ class VLMEnsemble(lightning.LightningModule):
                     generation_kwargs=generation_kwargs,
                     precision=precision,
                 )
+            elif model_str.startswith("xgen"):
+                from src.models.xgen import XgenVisionLanguageModel
+                vlm = XgenVisionLanguageModel(
+                    model_str=model_str,
+                    generation_kwargs=generation_kwargs,
+                    precision=precision,
+                )
 
+                
             else:
                 raise ValueError("Invalid model_str: {}".format(model_str))
 
