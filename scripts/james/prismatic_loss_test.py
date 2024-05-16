@@ -52,7 +52,8 @@ transformed_fn = torchvision.transforms.v2.Compose(
 #     pil_image
 # )  # type: ignore
 print(f"Transformed to image: {image}")
-image = transformed_fn(pil_image).unsqueeze(0).to(device)
+model_dtype = torch.bfloat16
+image = transformed_fn(pil_image).unsqueeze(0).to(device).to(dtype=model_dtype)
 
 response = model.generate(image=image, prompts=["What animal is in this picture?"])
 print(response)
