@@ -1,0 +1,133 @@
+program: optimize_jailbreak_attacks_against_vlms.py
+project: universal-vlm-jailbreak
+method: grid
+parameters:
+  compile:
+    values: [False]
+  data:
+    parameters:
+      batch_size:
+        values: [2]
+      dataset:
+        values: ["generated"]
+      subset:
+        values:
+          [
+            "Cybercrime",
+            "Violating Labor Laws and Rights",
+            "Intellectual property crimes",
+            "Inchoate crimes",
+            "Terrorism",
+            "Theft",
+            "Stalking and harassment",
+            "Unsafe or Unregulated Medical Practices",
+            "Smuggling",
+            "Drug crimes",
+            "Harmful or Dangerous Advice",
+            "Hate crimes",
+            "Election crimes",
+            "Kidnapping and false imprisonment",
+            "Bullying",
+            "Espionage and treason",
+            "Vigilantism",
+            "Bribery and corruption",
+            "Controversial research",
+            "Organized crime",
+            "Sensitive Information",
+            "Environmental crimes",
+            "Fraud",
+            "Generating explicit or obscene content",
+            "Spreading misinformation and disinformation",
+            "Enabling dangerous individuals and groups",
+            "Facilitating human rights abuses by authoritarian regimes",
+            "Obstruction of justice",
+            "Scams and fraud schemes",
+            "Invasion of privacy",
+            "White-collar crimes",
+            "Unethical Experimentation",
+            "Misdemeanors and petty offenses",
+            "Violent crimes",
+            "Black Market Activities",
+            "Traffic offenses",
+            "Immigration crimes",
+            "Crimes against the government",
+            "Drug Misuse",
+            "Counterfeiting and Forgery",
+            "Controversial uses in warfare",
+            "Property crimes",
+            "Prostitution and solicitation",
+            "Facilitating academic dishonesty",
+            "Malicious chatbots and virtual assistants",
+            "Weapons offenses",
+            "Probation and parole violations",
+            "Corporate crimes",
+            "Generating deepfakes and synthetic media",
+            "Public order crimes",
+            "Blackmail and extortion",
+          ]
+
+      portion:
+        values: [1.0]
+      target_len:
+        values: [250]
+      num_workers:
+        values: [2]
+      prefetch_factor:
+        values: [4]
+      split:
+        values: ["train"]
+  image_kwargs:
+    parameters:
+      image_size:
+        values: [512]
+      image_initialization:
+        values: ["random"]
+  lightning_kwargs:
+    parameters:
+      accumulate_grad_batches:
+        values: [6]
+      gradient_clip_val:
+        values: [10.0]
+      limit_train_batches:
+        values: [1.0]
+      log_loss_every_n_steps:
+        values: [1]
+      log_image_every_n_steps:
+        values: [250]
+      precision:
+        values: ["bf16-mixed"]
+  models_to_attack:
+    values: [
+        # "{'prism-reproduction-llava-v15+7b'}",
+        "{'prism-reproduction-llava-v15+13b'}",
+        # "{'prism-clip+7b'}",
+        "{'prism-clip+13b'}",
+        # "{'prism-siglip+7b'}",
+        # "{'prism-siglip+13b'}",
+        # "{'prism-dinosiglip+7b'}",
+        # "{'prism-dinosiglip+13b'}",
+        # "{'prism-clip-controlled+7b'}",
+        # "{'prism-clip-controlled+13b'}",
+        # "{'prism-siglip-controlled+7b'}",
+        # "{'prism-siglip-controlled+13b'}",
+        # "{'prism-dinosiglip-controlled+7b'}",
+        # "{'prism-dinosiglip-controlled+13b'}",
+      ]
+  n_generations:
+    values: [30]
+  n_grad_steps:
+    values: [25000]
+  optimization:
+    parameters:
+      eps:
+        values: [0.0001]
+      learning_rate:
+        values: [0.001]
+      momentum:
+        values: [0.9]
+      optimizer:
+        values: ["adam"]
+      weight_decay:
+        values: [0.00001]
+  seed:
+    values: [0]

@@ -1,12 +1,17 @@
 import lightning
+from dataclasses import asdict
 import numpy as np
 import os
 import pandas as pd
 import torch
 import torch.utils.data
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lightning.pytorch.utilities.types import EVAL_DATALOADERS
+
+from prompts_and_targets.generated.generated_dataset import (
+    GeneratedPromptResponseDataset,
+)
 
 
 class VLMEnsembleTextDataModule(lightning.LightningDataModule):
@@ -109,11 +114,13 @@ class VLMEnsembleTextDataset(torch.utils.data.Dataset):
 
 
 def load_prompts_and_targets(
-    dataset: str,
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
 ) -> Dict[str, List[str]]:
+    dataset = data_kwargs.get("dataset")
+    df = None
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -123,9 +130,19 @@ def load_prompts_and_targets(
             prompts_and_targets_dir, "anthropic_hhh", f"{split}.csv"
         )
     elif dataset == "generated":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "generated", f"{split}.csv"
+        generated_dataset = GeneratedPromptResponseDataset.from_file(
+            "./prompts_and_targets/generated/generated_dataset.csv"
         )
+        train, eval = generated_dataset.create_splits(
+            subset=data_kwargs.get("subset"),
+            portion=data_kwargs.get("portion", 1),
+            split=0.8,
+            target_len=data_kwargs.get("target_len"),
+        )
+        if split == "train":
+            df = pd.DataFrame([asdict(item) for item in train.items])
+        else:
+            df = pd.DataFrame([asdict(item) for item in eval.items])
     elif dataset == "power_seeking":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "power_seeking", f"{split}.csv"
@@ -141,7 +158,9 @@ def load_prompts_and_targets(
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
 
-    df = pd.read_csv(prompts_and_targets_path)
+    if df is None:
+        df = pd.read_csv(prompts_and_targets_path)
+
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
 
     assert len(prompts) == len(targets)
@@ -155,13 +174,13 @@ def load_prompts_and_targets(
 
 
 def get_dataset_length(
-    dataset: str,
+    data_kwargs: Dict[str, Any],
     prompts_and_targets_dir: str = "prompts_and_targets",
     split: str = "train",
     **kwargs,
 ) -> int:
     prompts_and_targets_dict = load_prompts_and_targets(
-        dataset=dataset,
+        data_kwargs=data_kwargs,
         prompts_and_targets_dir=prompts_and_targets_dir,
         split=split,
         **kwargs,
@@ -176,7 +195,8 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     split: str = "train",
     **kwargs,
 ) -> str:
-    dataset = data_kwargs[f"dataset"]
+    dataset = data_kwargs.get("dataset")
+    df = None
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -192,12 +212,30 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
     elif dataset == "generated":
-        prompts_and_targets_path = os.path.join(
-            prompts_and_targets_dir, "generated", f"{split}.csv"
-        )
+        target_str = (
+            "All" if not data_kwargs.get("subset") else data_kwargs.get("subset")
+        )  # "_".join(subsets)
         tokenized_dir_path = os.path.join(
-            prompts_and_targets_dir, "generated", "tokenized"
+            prompts_and_targets_dir,
+            "generated",
+            "tokenized",
+            f"targets={target_str}",
+            str(data_kwargs.get("portion")),
+            str(data_kwargs.get("target_len")),
         )
+        generated_dataset = GeneratedPromptResponseDataset.from_file(
+            "./prompts_and_targets/generated/generated_dataset.csv"
+        )
+        train, eval = generated_dataset.create_splits(
+            subset=data_kwargs.get("subset"),
+            portion=data_kwargs.get("portion", 1),
+            split=0.8,
+            target_len=data_kwargs.get("target_len"),
+        )
+        if split == "train":
+            df = pd.DataFrame([asdict(item) for item in train.items])
+        else:
+            df = pd.DataFrame([asdict(item) for item in eval.items])
 
     elif dataset == "power_seeking":
         prompts_and_targets_path = os.path.join(
@@ -222,11 +260,14 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
         )
     else:
         raise ValueError("Invalid prompts_and_targets_str: {}".format(dataset))
+
+    if df is None:
+        df = pd.read_csv(prompts_and_targets_path)
+
     # If we're attacking, we want the targets to be included. If we are evaluating, we do not.
     tokenized_dir_path = os.path.join(tokenized_dir_path, split)
     os.makedirs(tokenized_dir_path, exist_ok=True)
 
-    df = pd.read_csv(prompts_and_targets_path)
     prompts, targets = df["prompt"].tolist(), df["target"].tolist()
     assert len(prompts) == len(targets)
     assert len(prompts) > 0
@@ -234,11 +275,11 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
         vlm_tokenized_data_path = os.path.join(tokenized_dir_path, vlm_name)
         os.makedirs(vlm_tokenized_data_path, exist_ok=True)
-        tokenized_data: Dict[
-            str, torch.Tensor
-        ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-            prompts=prompts,
-            targets=targets,
+        tokenized_data: Dict[str, torch.Tensor] = (
+            vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=targets,
+            )
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
