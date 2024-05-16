@@ -123,7 +123,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 torch_dtype=self.precision_dtype,
             ).to(self.precision_dtype)
         )
-        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)  # type: ignore
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True, use_fast=False, legacy=False)
         self.model.update_special_tokens(self.tokenizer)
         self.image_processor = Blip3ImageProcessor.from_pretrained(model_path)
 
