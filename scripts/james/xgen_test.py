@@ -47,7 +47,7 @@ transform_pil_image = torchvision.transforms.v2.Compose(
         torchvision.transforms.v2.ToTensor(),  # This divides by 255.
     ]
 )
-transformed_image: torch.Tensor = transform_pil_image(pil_image).unsqueeze(0)
+transformed_image: torch.Tensor = transform_pil_image(pil_image)
 # transformed_image: torch.Tensor = model.model.transformer.visual.image_transform(
 #     pil_image
 # )  # type: ignore
