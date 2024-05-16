@@ -11,8 +11,8 @@ default_attack_config = {
     },
     "image_kwargs": {
         "image_size": 512,
-        # "image_initialization": "random",
-        "image_initialization": "trina",
+        "image_initialization": "random",
+        # "image_initialization": "trina",
     },
     "lightning_kwargs": {
         "accumulate_grad_batches": 6,
@@ -30,8 +30,8 @@ default_attack_config = {
     # "models_to_attack": "{'idefics2-8b'}",
     # "models_to_attack": "{'deepseek-vl-1.3b-chat'}",
     # "models_to_attack": "{'deepseek-vl-7b-chat'}",
-    "models_to_attack": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
-    # "models_to_attack": "{'Qwen-VL-Chat', 'prism-reproduction-llava-v15+7b', 'deepseek-vl-7b-chat', 'prism-clip+7b', 'prism-dinosiglip+7b', 'prism-siglip+7b'}",
+    # "models_to_attack": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
+    "models_to_attack": "{'Qwen-VL-Chat', 'prism-reproduction-llava-v15+7b', 'deepseek-vl-7b-chat', 'prism-clip+7b', 'prism-dinosiglip+7b', 'prism-siglip+7b', 'xgen-mm-phi3-mini-instruct-r-v1'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'prism-clip+7b'}",
@@ -41,7 +41,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
-    "n_grad_steps": 20000,
+    "n_grad_steps": 30000,
     "n_generations": 2,
     "optimization": {
         "eps": 1e-4,
@@ -75,8 +75,14 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'Qwen-VL-Chat'}",
+    "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
     "model_generation_kwargs": {
+        "xgen-mm-phi3-mini-instruct-r-v1": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "Qwen-VL-Chat": {
             "temperature": 0.0,
             "top_p": 0.0,
@@ -134,6 +140,6 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    "wandb_attack_run_id": "w47wb99d",
+    "wandb_attack_run_id": "g0jubjzl",
     # "wandb_sweep_id": "yvqszl4d",
 }
