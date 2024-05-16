@@ -148,6 +148,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             image.size(0) == 1
         ), f"Expected only 1 image that we repeat, got {image.size(0)}"
 
+        image_size = [tuple(image.shape[2:])] * bs
         # image_embeds = image_embeds.repeat(bs, 1, 1)
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
@@ -158,7 +159,6 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         bs = input_ids.size(0)
         # repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
         repeated_pixels = image_inputs.to(self.precision_dtype)
-        image_size = [tuple(image.shape[2:])] * bs
 
 
         outputs = self.model.vlm(
@@ -169,9 +169,9 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             image_size=image_size,
         )
         logits = outputs.logits
-        last_logits = logits[:, -1, :]
-        # take the argmax of the last logits
-        arg_max = torch.argmax(last_logits, dim=-1)
+        second_last_logit = logits[:, -2, :]
+        # take the argmax of the second last logits
+        arg_max = torch.argmax(second_last_logit, dim=-1)
         # print(f"Argmax: {arg_max}")
         # decode it
         decoded = self.tokenizer.decode(arg_max)
