@@ -50,7 +50,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
         self.generation_kwargs = generation_kwargs
 
         hf_token = (
-            Path(os.path.expandvars("$HF_HOME/token"))
+            Path(os.path.expandvars("$LFS_HOME/.cache/huggingface/token"))
             .read_text()
             .strip()
         )
@@ -78,8 +78,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             self.precision_dtype
         )
         self.images_transform_fn = self.create_images_transform_fn(model_str)
-        self.already_logged_new_mask: bool = False  # For print debugigng
-        self.already_logged_text: bool = False  # For print debugigng
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
@@ -194,7 +192,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
                 zip(last_nonpadding_indices, tokenized_labels)
             ):
-                target_start_idx = last_nonpadding_idx - len(tokenized_label)
+                target_start_idx = last_nonpadding_idx - len(tokenized_label) - 1
                 labels[batch_idx, :target_start_idx] = IGNORE_INDEX
                 # Exclude the EOS token, if it exists.
                 if (
@@ -206,23 +204,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             # Also mask out the padding tokens.
             labels[labels == pad_token_input_id] = IGNORE_INDEX
             results["labels"] = labels
-            
-        if not self.already_logged_text:
-            torch.set_printoptions(threshold=10000)
-            # first_text = prompt_texts[0]
-            # print(f"First text: {first_text}")
-            print(f"First input_ids: {input_ids[0]}")
-            print(f"First attention_mask: {attention_mask[0]}")
-            print(f"First labels: {results['labels'][0]}")
-            if len(input_ids) > 1:
-                print(f"Second input ids: {input_ids[1]}")
-                print(f"Second attention_mask: {attention_mask[1]}")
-                print(f"Second labels: {results['labels'][1]}")
-            # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
-            # non_minus_100_text = self.tokenizer.decode(non_minus_100)
-            # print(f"Example text that we calculate loss on: {non_minus_100_text}")
-            torch.set_printoptions(profile="default")
-            self.already_logged_text = True
 
         return results
 
