@@ -147,6 +147,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         assert (
             image.size(0) == 1
         ), f"Expected only 1 image that we repeat, got {image.size(0)}"
+        bs = input_ids.size(0)
 
         image_size = [tuple(image.shape[2:])] * bs
         # image_embeds = image_embeds.repeat(bs, 1, 1)
