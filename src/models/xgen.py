@@ -225,7 +225,6 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 pad_token_id=self.tokenizer.pad_token_id,
                 do_sample=do_sample,
                 stopping_criteria=[EosListStoppingCriteria()],
-                use_cache=True,
                 **self.generation_kwargs,
             )
             # print(f"Got type: {type(outputs)}")
