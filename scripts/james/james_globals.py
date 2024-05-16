@@ -75,7 +75,7 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'Qwen-VL-Chat'}",
+    "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
     "model_generation_kwargs": {
         "Qwen-VL-Chat": {
             "temperature": 0.0,
@@ -134,6 +134,6 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    "wandb_attack_run_id": "psv0v1qu",
+    "wandb_attack_run_id": "g0jubjzl",
     # "wandb_sweep_id": "yvqszl4d",
 }
