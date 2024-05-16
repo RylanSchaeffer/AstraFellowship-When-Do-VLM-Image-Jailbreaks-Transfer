@@ -77,6 +77,12 @@ default_eval_config = {
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
     "model_generation_kwargs": {
+        "xgen-mm-phi3-mini-instruct-r-v1": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "Qwen-VL-Chat": {
             "temperature": 0.0,
             "top_p": 0.0,

@@ -40,6 +40,15 @@ Adding `--config-settings editable_mode=compat` is optionable - its for your vsc
 
 `conda install joblib pandas matplotlib seaborn black tiktoken -y`
 
+10a. For running salesforce's xgen
+```
+# Needs the latest dev version("4.41.0.dev0") 
+pip uninstall -y transformers && pip install git+https://github.com/huggingface/pip
+pip install open_clip_torch==2.24.0
+pip install einops
+pip install einops-exts
+```
+
 11. Install more stuff. 
 
 `pip install nvidia-htop sentencepiece`
