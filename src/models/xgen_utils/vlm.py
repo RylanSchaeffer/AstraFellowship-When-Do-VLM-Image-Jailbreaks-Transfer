@@ -679,13 +679,13 @@ class VLM(nn.Module):
         image = torch.cat(images, dim=0)  # [\sum{B}{N_patch_i}, C, H, W]
         image = image.to(device)
 
-        with torch.no_grad():
-            if self.vision_encoder.__class__.__name__ == "TimmModel":
-                image_embeds = self.vision_encoder.trunk.forward_features(image)
-            elif self.vision_encoder.__class__.__name__ == "CLIPVisionModel":
-                image_embeds = self.vision_encoder(image).last_hidden_state
-            else:
-                image_embeds = self.vision_encoder(image)[1]  # OpenCLIP returns tuples
+        # with torch.no_grad():
+        if self.vision_encoder.__class__.__name__ == "TimmModel":
+            image_embeds = self.vision_encoder.trunk.forward_features(image)
+        elif self.vision_encoder.__class__.__name__ == "CLIPVisionModel":
+            image_embeds = self.vision_encoder(image).last_hidden_state
+        else:
+            image_embeds = self.vision_encoder(image)[1]  # OpenCLIP returns tuples
 
         if isinstance(self.vision_encoder, CLIPVisionModel):
             base_img_size = self.vision_encoder.config.image_size
@@ -857,13 +857,13 @@ class VLM(nn.Module):
         b, T, F = vision_x.shape[:3]
 
         vision_x = rearrange(vision_x, "b T F c h w -> (b T F) c h w")
-        with torch.no_grad():
-            if self.vision_encoder.__class__.__name__ == "TimmModel":
-                vision_x = self.vision_encoder.trunk.forward_features(vision_x)
-            elif self.vision_encoder.__class__.__name__ == "CLIPVisionModel":
-                vision_x = self.vision_encoder(vision_x).last_hidden_state
-            else:
-                vision_x = self.vision_encoder(vision_x)[1]  # OpenCLIP returns tuples
+        # with torch.no_grad():
+        if self.vision_encoder.__class__.__name__ == "TimmModel":
+            vision_x = self.vision_encoder.trunk.forward_features(vision_x)
+        elif self.vision_encoder.__class__.__name__ == "CLIPVisionModel":
+            vision_x = self.vision_encoder(vision_x).last_hidden_state
+        else:
+            vision_x = self.vision_encoder(vision_x)[1]  # OpenCLIP returns tuples
         vision_x = rearrange(vision_x, "(b T F) v d -> b T F v d", b=b, T=T, F=F)
         return vision_x
 
