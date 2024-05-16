@@ -78,6 +78,8 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             self.precision_dtype
         )
         self.images_transform_fn = self.create_images_transform_fn(model_str)
+        self.already_logged_new_mask: bool = False  # For print debugigng
+        self.already_logged_text: bool = False  # For print debugigng
 
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
