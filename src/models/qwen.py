@@ -45,7 +45,7 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         model_str: str = "Qwen-VL-Chat",
         generation_kwargs: Mapping[str, Any] | None = None,
         precision: str = "bf16-mixed",
-        device: str | None = None,
+        device: torch.device | str | None = None,
     ):
         super().__init__()
 
