@@ -3,6 +3,8 @@ import joblib
 import numpy as np
 import os
 import pandas as pd
+import pyarrow
+import requests
 from typing import Dict, List, Tuple
 import wandb
 from tqdm import tqdm
@@ -76,14 +78,19 @@ def download_wandb_project_runs_configs(
             runs_configs_df.reset_index(inplace=True, drop=True)
 
             # Save to disk.
-            if filetype == "csv":
-                runs_configs_df.to_csv(runs_configs_df_path, index=False)
-            elif filetype == "feather":
-                runs_configs_df.to_feather(runs_configs_df_path)
-            elif filetype == "parquet":
-                runs_configs_df.to_parquet(runs_configs_df_path, index=False)
-            else:
-                raise ValueError(f"Invalid filetype: {filetype}")
+            runs_configs_df.to_csv(
+                runs_configs_df_path.replace(filetype, "csv"), index=False
+            )
+            try:
+                runs_configs_df.to_feather(
+                    runs_configs_df_path.replace(filetype, "feather")
+                )
+            except pyarrow.lib.ArrowInvalid:
+                # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+                pass
+            runs_configs_df.to_parquet(
+                runs_configs_df_path.replace(filetype, "parquet"), index=False
+            )
             print(f"Wrote {runs_configs_df_path} to disk.")
     else:
         if filetype == "csv":
@@ -144,9 +151,15 @@ def download_wandb_project_runs_histories(
             sweep = api.sweep(f"{wandb_username}/{wandb_project_path}/{sweep_id}")
             for run in tqdm(sweep.runs):
                 # https://community.wandb.ai/t/run-history-returns-different-values-on-almost-each-call/2431/4
-                history = run.history(
-                    samples=wandb_run_history_samples,
-                )
+                successfully_downloaded = False
+                while not successfully_downloaded:
+                    try:
+                        history = run.history(
+                            samples=wandb_run_history_samples,
+                        )
+                        successfully_downloaded = True
+                    except requests.exceptions.HTTPError:
+                        print("Retrying...")
                 if history.empty:
                     continue
                 history["run_id"] = run.id
@@ -159,9 +172,19 @@ def download_wandb_project_runs_histories(
         runs_histories_df.reset_index(inplace=True, drop=True)
 
         # Save all three because otherwise this is a pain in the ass.
-        runs_histories_df.to_csv(runs_histories_df_path, index=False)
-        runs_histories_df.to_feather(runs_histories_df_path)
-        runs_histories_df.to_parquet(runs_histories_df_path, index=False)
+        runs_histories_df.to_csv(
+            runs_histories_df_path.replace(filetype, "csv"), index=False
+        )
+        try:
+            runs_histories_df.to_feather(
+                runs_histories_df_path.replace(filetype, "feather")
+            )
+        except pyarrow.lib.ArrowInvalid:
+            # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+            pass
+        runs_histories_df.to_parquet(
+            runs_histories_df_path.replace(filetype, "parquet"), index=False
+        )
         print(f"Wrote {runs_histories_df_path} to disk")
     else:
         if filetype == "csv":

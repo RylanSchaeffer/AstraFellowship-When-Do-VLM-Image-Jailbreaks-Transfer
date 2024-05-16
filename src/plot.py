@@ -24,7 +24,7 @@ def save_plot_with_multiple_extensions(plot_dir: str, plot_title: str):
     plt.gcf().tight_layout()
 
     extensions = [
-        "pdf",
+        # "pdf",
         "png",
     ]
     for extension in extensions:

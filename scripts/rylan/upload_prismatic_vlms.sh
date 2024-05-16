@@ -12,19 +12,30 @@
 #  --model_id "mistral-instruct-v0.2+7b+dinosiglip" \
 #  --run_dir "/workspace/prismatic-vlms/runs/mistral-instruct-v0.2+7b+dinosiglip+stage-finetune+x7"
 
-python -u upload.py \
-  --model_id "llama2-chat+7b+clip" \
-  --run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+clip+stage-finetune+x7"
+#python -u upload.py \
+#  --model_id "llama2-chat+7b+clip" \
+#  --run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+clip+stage-finetune+x7"
+
+#python -u upload.py \
+#--model_id "llama2-chat+7b+siglip" \
+#--run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+siglip+stage-finetune+x7"
+
+
+#python -u upload.py \
+#--model_id "llama2-chat+7b+dinosiglip" \
+#--run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+dinosiglip+stage-finetune+x7"
+
+#python -u upload.py \
+#--model_id "phi-instruct-3+4b+clip" \
+#--run_dir "/workspace/prismatic-vlms/runs/phi-instruct-3+4b+clip+stage-finetune+x7"
 
 python -u upload.py \
---model_id "llama2-chat+7b+siglip" \
---run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+siglip+stage-finetune+x7"
+--model_id "phi-instruct-3+4b+siglip" \
+--run_dir "/workspace/prismatic-vlms/runs/phi-instruct-3+4b+siglip+stage-finetune+x7"
 
-
-python -u upload.py \
---model_id "llama2-chat+7b+dinosiglip" \
---run_dir "/workspace/prismatic-vlms/runs/llama2-chat+7b+dinosiglip+stage-finetune+x7"
-
+#python -u upload.py \
+#--model_id "phi-instruct-3+4b+dinosiglip" \
+#--run_dir "/workspace/prismatic-vlms/runs/phi-instruct-3+4b+dinosiglip+stage-finetune+x7"
 
 
 ```python

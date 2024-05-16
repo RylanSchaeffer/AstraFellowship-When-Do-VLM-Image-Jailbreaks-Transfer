@@ -172,11 +172,11 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             # print(f"First text: {first_text}")
             print(f"First input_ids: {input_ids[0]}")
             print(f"First attention_mask: {attention_mask[0]}")
-            print(f"First labels: {results["labels"][0]}")
+            print(f"First labels: {results['labels'][0]}")
             if len(input_ids) > 1:
                 print(f"Second input ids: {input_ids[1]}")
                 print(f"Second attention_mask: {attention_mask[1]}")
-                print(f"Second labels: {results["labels"][1]}")
+                print(f"Second labels: {results['labels'][1]}")
             # non_minus_100 = [r for r in results["labels"][0] if r != IGNORE_INDEX]
             # non_minus_100_text = self.tokenizer.decode(non_minus_100)
             # print(f"Example text that we calculate loss on: {non_minus_100_text}")

@@ -66,7 +66,6 @@ def get_ltor_masks_and_position_ids(
     if reset_position_ids or reset_attention_mask:
         # Loop through the batches:
         for b in range(micro_batch_size):
-
             # Find indecies where EOD token is.
             eod_index = position_ids[b, data[b] == eod_token]
             # Detach indecies from positions if going to modify positions.
@@ -470,7 +469,6 @@ class StopWordsLogitsProcessor(LogitsProcessor):
     """
 
     def __init__(self, stop_words_ids: Iterable[Iterable[int]], eos_token_id: int):
-
         if not isinstance(stop_words_ids, List) or len(stop_words_ids) == 0:
             raise ValueError(
                 f"`stop_words_ids` has to be a non-emtpy list, but is {stop_words_ids}."

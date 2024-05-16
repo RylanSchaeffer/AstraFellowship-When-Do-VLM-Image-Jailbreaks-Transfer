@@ -138,7 +138,6 @@ class Resampler(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x, attn_mask=None):
-
         pos_embed = get_abs_pos(self.pos_embed, x.size(1))
 
         x = self.kv_proj(x)
@@ -357,7 +356,6 @@ class TransformerBlock(nn.Module):
 
 
 class VisionTransformer(nn.Module):
-
     def __init__(
         self,
         image_size: int,
