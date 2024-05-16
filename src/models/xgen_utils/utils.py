@@ -411,6 +411,7 @@ def apply_xgen_prompt_template(prompt: str):
 
 def apply_xgen_prompt_template_with_target(prompt: str, target: str):
     # Space infront of target
+    print(f"Got target: {target}")
     s = (
         "<|system|>\nA chat between a curious user and an artificial intelligence assistant. "
         "The assistant gives helpful, detailed, and polite answers to the user's questions.<|end|>\n"
