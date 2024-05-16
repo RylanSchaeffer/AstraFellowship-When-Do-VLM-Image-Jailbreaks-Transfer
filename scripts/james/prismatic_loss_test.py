@@ -30,7 +30,7 @@ torch.manual_seed(1234)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 model: PrismaticVisionLanguageModel = PrismaticVisionLanguageModel().to(device)
-tokenizer = model.llm_backbone.tokenizer
+tokenizer = model.model.llm_backbone.tokenizer
 model.disable_model_gradients()
 
 image_path = f"images/trina/000.jpg"
@@ -68,4 +68,4 @@ loss = model.compute_loss(
     attention_mask=batch["attention_mask"].to(device=device),
     labels=batch["labels"].to(device=device),
 )
-print(f"Loss: {loss.item()}")
+print(f"Loss: {loss}")
