@@ -131,10 +131,10 @@ def evaluate_vlm_adversarial_examples():
     wandb_config["wandb_run_dir"] = wandb_run_dir
     with open(os.path.join(wandb_run_dir, "wandb_config.json"), "w") as fp:
         json.dump(obj=wandb_config, fp=fp)
-
+    attack_run_id = wandb_config["wandb_attack_run_id"]
     # Load jailbreak images' paths.
     runs_jailbreak_list: list[JailbreakData] = load_jailbreak_list_v2(
-        wandb_run_id=wandb_config["wandb_run_id"],
+        wandb_run_id=attack_run_id,
         wandb_sweep_id=None,
     )
     # skip steps < 400

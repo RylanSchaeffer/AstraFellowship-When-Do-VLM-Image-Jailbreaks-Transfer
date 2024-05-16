@@ -1,25 +1,52 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
-from src.models.label_compute import make_labels
-from src.models.qwen_utils.modeling_qwen import QWenLMHeadModel
-from transformers import AutoTokenizer
+from regex import F
+from src.models.xgen_utils.image_processing_blip_3 import Blip3ImageProcessor
+from transformers import AutoTokenizer, StoppingCriteria
 import lightning
 import torch
-from typing import Any, Callable, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional
 from transformers import PreTrainedTokenizer
 
 from src.models.base import VisionLanguageModel
-from src.models.qwen_utils.qwen_generation_utils import (
-    get_stop_words_ids,
-    make_context_assistant_completion,
-    make_context_assistant_target,
-)
-from src.models.qwen_utils.qwen_load import only_assistant_response
 
-from src.models.qwen_utils.visual import VisionTransformer
+from src.models.xgen_utils.modeling_blip_3 import Blip3ModelForConditionalGeneration
+from src.models.xgen_utils.utils import (
+    apply_xgen_prompt_template,
+    apply_xgen_prompt_template_with_target,
+)
 
 
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
 IGNORE_INDEX = -100
+
+def make_labels_xgen(
+    input_ids: torch.Tensor, pad_token_id: int, targets: list[str], tokenizer
+):
+    labels = input_ids.clone()
+    last_nonpadding_indices = torch.argmin((labels != pad_token_id).float(), axis=1)
+    # print(f"{last_nonpadding_indices=}")
+    # If there are no padding tokens, then we want to set the last non-padding index to the length.
+    last_nonpadding_indices[last_nonpadding_indices == 0] = (
+        labels.shape[1] - 1
+    )  # Minus one!!
+    # print(f"{last_nonpadding_indices=}")
+
+    # Find the last non-zero token. Then set labels to ignore for anything
+    # before and before the targets (plus two).
+    tokenized_labels = tokenizer(targets).input_ids
+    for batch_idx, (last_nonpadding_idx, tokenized_label) in enumerate(
+        zip(last_nonpadding_indices, tokenized_labels)
+    ):
+        # + 2 that it does not incldue the assistant tag.
+        # TODO: check prism models?
+        target_start_idx = last_nonpadding_idx - len(tokenized_label) + 2
+        # print(f"{target_start_idx=}")
+        labels[batch_idx, :target_start_idx] = IGNORE_INDEX
+
+    # Also mask out the padding tokens.
+    labels[labels == pad_token_id] = IGNORE_INDEX
+    return labels
+
 
 
 def pad_and_make_attention_masks(
@@ -39,10 +66,21 @@ def pad_and_make_attention_masks(
     }
 
 
-class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
+class EosListStoppingCriteria(StoppingCriteria):
+    def __init__(self, eos_sequence=[32007]):
+        self.eos_sequence = eos_sequence
+
+    def __call__(
+        self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
+        last_ids = input_ids[:, -len(self.eos_sequence) :].tolist()
+        return self.eos_sequence in last_ids
+
+
+class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
     def __init__(
         self,
-        model_str: str = "Qwen-VL-Chat",
+        model_str: str = "xgen-mm-phi3-mini-instruct-r-v1",
         generation_kwargs: Mapping[str, Any] | None = None,
         precision: str = "bf16-mixed",
     ):
@@ -71,29 +109,28 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         else:
             raise ValueError(f"Invalid precision: {self.precision_str}")
 
-        model_path = f"Qwen/{model_str}"
+        model_path = f"Salesforce/{model_str}"
 
         # not sure why we need to register the image processor manually
-        print(f"Using Qwen model: {model_path}")
+        print(f"Using Salesforce model: {model_path}")
 
-        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)  # type: ignore
         # qwen doesn't have a specific pad token, but since we mask it out we can use any token
         # see https://github.com/QwenLM/Qwen/blob/main/tokenization_note.md
 
-        self.pad_token_id = 55
-        self.model: QWenLMHeadModel = QWenLMHeadModel.from_pretrained(
-            model_path,
-            torch_dtype=self.precision_dtype,
-        ).to(self.precision_dtype)
-        self.vision_model: VisionTransformer = self.model.transformer.visual
+        self.model: Blip3ModelForConditionalGeneration = (
+            Blip3ModelForConditionalGeneration.from_pretrained(
+                model_path,
+                torch_dtype=self.precision_dtype,
+            ).to(self.precision_dtype)
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, use_fast=False, legacy=False)
+        self.model.update_special_tokens(self.tokenizer)
+        self.image_processor = Blip3ImageProcessor.from_pretrained(model_path)
 
         self.already_logged_new_mask: bool = False  # For print debugigng
         self.already_logged_text: bool = False  # For print debugigng
-
-    def create_images_transform_fn(self, model_str: str) -> Callable:
-        raise NotImplementedError(
-            "create_images_transform_fn is not implemented for DeepSeek models."
-        )
+        self.pad_token_id = self.tokenizer.pad_token_id
+        assert self.pad_token_id is not None, "Expected pad token id to be set."
 
     def compute_loss(
         self,
@@ -105,27 +142,42 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         device = self.model.device
 
         # Since we only get a single image, we need to repeat it for the batch size.
-        bs = input_ids.size(0)
         assert image.ndim == 4, f"Expected 4 dims, got {image.ndim}"
         # assert that we only have one image here
         assert (
             image.size(0) == 1
         ), f"Expected only 1 image that we repeat, got {image.size(0)}"
+        bs = input_ids.size(0)
 
-        image_embeds: torch.Tensor = self.vision_model.transform_and_forward(
-            image.to(device=device)
+        image_size = [tuple(image.shape[2:])] * bs
+        
+        image_inputs = self.image_processor(
+            image, return_tensors="pt", image_aspect_ratio="anyres"
+        )["pixel_values"]
+
+        # print(f"Image inputs: {image_inputs}")
+        # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
+        bs = input_ids.size(0)
+        repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        # repeated_pixels = image_inputs.to(self.precision_dtype)
+
+
+        outputs = self.model.vlm(
+            vision_x=repeated_pixels.to(device),
+            lang_x=input_ids.to(device),
+            attention_mask=attention_mask.to(device),
+            labels=labels.to(device),
+            image_size=image_size,
         )
-        # bs, num_image_tokens, dim
-        assert image_embeds.ndim == 3, f"Expected 3 dims, got {image_embeds.ndim}"
+        # logits = outputs.logits
+        # second_last_logit = logits[:, -2, :]
+        # # take the argmax of the second last logits
+        # arg_max = torch.argmax(second_last_logit, dim=-1)
+        # # print(f"Argmax: {arg_max}")
+        # # decode it
+        # decoded = self.tokenizer.decode(arg_max)
+        # print(f"Decoded argmax: {decoded}")
 
-        image_embeds = image_embeds.repeat(bs, 1, 1)
-
-        outputs = self.model(
-            input_ids=input_ids.to(device=device),
-            image_embeds=image_embeds.to(device=device),
-            attention_mask=attention_mask.to(device=device),
-            labels=labels.to(device=device),
-        )
         return outputs.loss
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
@@ -137,30 +189,18 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
 
         prompt_texts = [
             # make context adds the assistant token in to continue
-            make_context_assistant_target(
-                tokenizer=self.tokenizer,
-                query=self.tokenizer.from_list_format(
-                    [  # type: ignore
-                        {"image": "image_url"},  # needed to make them image tokens
-                        {"text": prompt},
-                    ]
-                ),
-                target=target,
-            )
+            apply_xgen_prompt_template_with_target(prompt=prompt, target=target)
             for prompt, target in zip(prompts, targets)
         ]
         pad_token_id = self.pad_token_id
         assert pad_token_id is not None, "Expected pad token id to be set."
-        # todo: just call tokenizer directly? why did we do this?
-        results = pad_and_make_attention_masks(
-            input_ids=[self.tokenizer.encode(text) for text in prompt_texts],
-            pad_token_id=pad_token_id,
-        )
+
+        results = self.tokenizer(prompt_texts, return_tensors="pt", padding=True)
         input_ids = results["input_ids"]
         attention_mask = results["attention_mask"]
         if targets[0] is not None:
-            labels = make_labels(
-                input_ids=input_ids,
+            labels = make_labels_xgen(
+                input_ids=input_ids,  # type: ignore
                 pad_token_id=pad_token_id,
                 targets=targets,
                 tokenizer=self.tokenizer,
@@ -191,20 +231,22 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # We should only have a single image.
         assert image.shape[0] == 1
         assert image.ndim == 4, f"Expected (1, 3, H, W), got {image.shape}"
+
+        # get (H, W) from (1, 3, H, W)
+        image_size = [tuple(image.shape[2:])]
         # we have (1, 3, h,w) , we want (3, H, W)
         model_generations = []
+        device = self.model.device
+        image_inputs = self.image_processor(
+            image, return_tensors="pt", image_aspect_ratio="anyres"
+        ).to(self.precision_dtype)
+
         for prompt in prompts:
-            new_prompt = self.tokenizer.from_list_format(
-                [  # type: ignore
-                    {"image": "image_url"},  # needed to make them image tokens
-                    {"text": prompt},
-                ]
-            )
+            new_prompt = apply_xgen_prompt_template(prompt)
             # print(f"Prompting the model with: {new_prompt}")
-            context: list[int] = make_context_assistant_completion(
-                tokenizer=self.tokenizer, query=new_prompt
-            )
-            input_ids = torch.tensor(context).unsqueeze(0).to(self.model.device)
+            language_inputs = self.tokenizer([new_prompt], return_tensors="pt")
+            merged_inputs = {**image_inputs, **language_inputs}
+            final_inputs = {k: v.to(device) for k, v in merged_inputs.items()}
 
             do_sample = (
                 True if self.generation_kwargs.get("temperature", 0) > 0 else False
@@ -218,38 +260,35 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             assert (
                 generation_config is not None
             ), "Expected generation config to be set."
-            # # run the model to get the response
-            # these stop words are the im_end, so they are the REAL eos
-            stop_words = get_stop_words_ids(generation_config.chat_format, self.tokenizer)  # type: ignore
-            outputs = self.model.generate(
-                inputs=input_ids,
-                images=image,
-                pad_token_id=self.tokenizer.eos_token_id,
-                bos_token_id=self.tokenizer.bos_token_id,
-                eos_token_id=self.tokenizer.eos_token_id,
-                # max_new_tokens=512,
+
+            generated_text = self.model.generate(
+                **final_inputs,
+                image_size=image_size,
+                pad_token_id=self.tokenizer.pad_token_id,
                 do_sample=do_sample,
-                use_cache=True,
-                stop_words_ids=stop_words,
+                stopping_criteria=[EosListStoppingCriteria()],
                 **self.generation_kwargs,
             )
             # print(f"Got type: {type(outputs)}")
-            out: str = self.tokenizer.decode(
-                outputs.squeeze(), skip_special_tokens=True
-            )
-            clean_out = only_assistant_response(initial_prompt=prompt, response=out)
+            out = self.tokenizer.decode(
+                generated_text.squeeze(), skip_special_tokens=True
+            ).split("<|end|>")[0]
 
-            model_generations.append(clean_out)
+            model_generations.append(out)
 
         return model_generations
 
     def disable_model_gradients(self):
         self.model.requires_grad_(False)
         self.model.eval()
-        self.model.transformer.requires_grad_(False)
-        self.model.transformer.eval()
-        self.vision_model.requires_grad_(False)
-        self.vision_model.eval()
+        self.model.vlm.requires_grad_(False)
+        self.model.vlm.eval()
+        self.model.vlm.vision_encoder.requires_grad_(False)
+        self.model.vlm.vision_encoder.eval()
+        self.model.vlm.lang_model.requires_grad_(False)
+        self.model.vlm.lang_model.eval()
+        
+        
 
     def to(
         self,
@@ -258,14 +297,10 @@ class QwenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         non_blocking: bool = False,
     ):
         if device is not None:
-            self.model: QWenLMHeadModel = self.model.to(device=device)
-            self.model.lm_head = self.model.lm_head.to(device=device)
-            self.model.transformer = self.model.transformer.to(device=device)
-            # No idea why we need to do this, shouldn't the MultiModalityCausalLM.to already do this???
-            # print(f"moving the vision model to {device}")
-            # self.model.vision_model = self.model.vision_model.to(device=device)
-            # self.model.aligner = self.model.aligner.to(device=device)
-            # self.model.language_model = self.model.language_model.to(device=device)
+            self.model = self.model.to(device=device)
+            self.model.vlm = self.model.vlm.to(device=device)
+            self.model.vlm.vision_encoder = self.model.vlm.vision_encoder.to(device=device)
+            self.model.vlm.lang_model = self.model.vlm.lang_model.to(device=device)
         if dtype is not None:
             self.model = self.model.to(dtype=dtype)
             self.precision_dtype = dtype

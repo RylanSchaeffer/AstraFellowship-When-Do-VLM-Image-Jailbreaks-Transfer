@@ -1,8 +1,7 @@
-from sympy import Q
 from src.models.qwen_utils.modeling_qwen import QWenLMHeadModel
 
 import os
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
 from transformers.generation import GenerationConfig
 import torch
 
