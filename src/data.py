@@ -119,7 +119,8 @@ def load_prompts_and_targets(
     split: str = "train",
     **kwargs,
 ) -> Dict[str, List[str]]:
-    dataset = data_kwargs.get('dataset')
+    dataset = data_kwargs.get("dataset")
+    df = None
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -133,7 +134,10 @@ def load_prompts_and_targets(
             "./prompts_and_targets/generated/generated_dataset.csv"
         )
         train, eval = generated_dataset.create_splits(
-            subset=data_kwargs.get('subset'), portion=data_kwargs.get('portion'), split=0.8, target_len=data_kwargs.get('target_len')
+            subset=data_kwargs.get("subset"),
+            portion=data_kwargs.get("portion", 1),
+            split=0.8,
+            target_len=data_kwargs.get("target_len"),
         )
         if split == "train":
             df = pd.DataFrame([asdict(item) for item in train.items])
@@ -175,7 +179,6 @@ def get_dataset_length(
     split: str = "train",
     **kwargs,
 ) -> int:
-
     prompts_and_targets_dict = load_prompts_and_targets(
         data_kwargs=data_kwargs,
         prompts_and_targets_dir=prompts_and_targets_dir,
@@ -192,7 +195,8 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     split: str = "train",
     **kwargs,
 ) -> str:
-    dataset = data_kwargs.get('dataset')
+    dataset = data_kwargs.get("dataset")
+    df = None
     if dataset == "advbench":
         prompts_and_targets_path = os.path.join(
             prompts_and_targets_dir, "advbench", f"{split}.csv"
@@ -208,20 +212,25 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
             prompts_and_targets_dir, "anthropic_hhh", "tokenized"
         )
     elif dataset == "generated":
-        target_str = "All" if not data_kwargs.get('subset') else data_kwargs.get('subset') #"_".join(subsets)
+        target_str = (
+            "All" if not data_kwargs.get("subset") else data_kwargs.get("subset")
+        )  # "_".join(subsets)
         tokenized_dir_path = os.path.join(
             prompts_and_targets_dir,
             "generated",
             "tokenized",
             f"targets={target_str}",
-            str(data_kwargs.get('portion')),
-            str(data_kwargs.get('target_len')),
+            str(data_kwargs.get("portion")),
+            str(data_kwargs.get("target_len")),
         )
         generated_dataset = GeneratedPromptResponseDataset.from_file(
             "./prompts_and_targets/generated/generated_dataset.csv"
         )
         train, eval = generated_dataset.create_splits(
-            subset=data_kwargs.get('subset'), portion=data_kwargs.get('portion'), split=0.8, target_len=data_kwargs.get('target_len')
+            subset=data_kwargs.get("subset"),
+            portion=data_kwargs.get("portion", 1),
+            split=0.8,
+            target_len=data_kwargs.get("target_len"),
         )
         if split == "train":
             df = pd.DataFrame([asdict(item) for item in train.items])
@@ -266,11 +275,11 @@ def tokenize_prompts_and_targets_using_vlm_ensemble(
     for vlm_name, vlm_wrapper in vlm_ensemble.vlms_dict.items():
         vlm_tokenized_data_path = os.path.join(tokenized_dir_path, vlm_name)
         os.makedirs(vlm_tokenized_data_path, exist_ok=True)
-        tokenized_data: Dict[
-            str, torch.Tensor
-        ] = vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
-            prompts=prompts,
-            targets=targets,
+        tokenized_data: Dict[str, torch.Tensor] = (
+            vlm_wrapper.convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
+                prompts=prompts,
+                targets=targets,
+            )
         )
         num_data = tokenized_data["input_ids"].shape[0]
         for datum_idx in range(num_data):
