@@ -221,7 +221,6 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 image_size=image_size,
                 pad_token_id=self.tokenizer.pad_token_id,
                 do_sample=do_sample,
-                max_new_tokens=768,
                 stopping_criteria=[EosListStoppingCriteria()],
                 use_cache=True,
                 **self.generation_kwargs,
