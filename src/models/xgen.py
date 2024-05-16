@@ -1,4 +1,5 @@
 # Based on the models at https://github.com/TRI-ML/prismatic-vlms?tab=readme-ov-file.
+from sys import last_traceback
 from src.models.xgen_utils.image_processing_blip_3 import Blip3ImageProcessor
 from src.models.label_compute import make_labels
 from transformers import AutoTokenizer, StoppingCriteria
@@ -165,6 +166,15 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
             labels=labels.to(device),
             image_size=image_size,
         )
+        logits = outputs.logits
+        last_logits = logits[:, -1, :]
+        # take the argmax of the last logits
+        arg_max = torch.argmax(last_logits, dim=-1)
+        # print(f"Argmax: {arg_max}")
+        # decode it
+        decoded = self.tokenizer.decode(arg_max)
+        print(f"Decoded argmax: {decoded}")
+
         return outputs.loss
 
     def convert_prompts_and_maybe_targets_to_input_ids_and_attention_mask(
