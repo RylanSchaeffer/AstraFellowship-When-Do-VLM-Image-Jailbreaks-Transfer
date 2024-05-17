@@ -55,10 +55,10 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             .strip()
         )
 
-        # This incorrectly uses the data structure returned by available_model_names.
-        if model_str not in available_models():
-            pprint(available_models())
-            raise ValueError(f"Invalid model_str: {model_str}")
+        # # This incorrectly uses the data structure returned by available_model_names.
+        # if model_str not in available_models():
+        #     pprint(available_models())
+        #     raise ValueError(f"Invalid model_str: {model_str}")
 
         self.model = load(model_id_or_path=model_str, hf_token=hf_token)
         self.precision_str = precision
