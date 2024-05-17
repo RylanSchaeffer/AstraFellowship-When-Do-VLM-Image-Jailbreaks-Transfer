@@ -10,8 +10,8 @@ import torchvision.transforms.functional
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from prismatic import (
-    available_models,
-    get_model_description,
+    # available_models,
+    # get_model_description,
     load,
 )
 from prismatic.models.backbones.vision.base_vision import LetterboxPad

@@ -64,6 +64,7 @@ Note: You might need to subsequently run `conda install conda-forge::charset-nor
 
 ### Additional Modifications
 
+- I am using prismatic `41a93d1295ca18e593223f6cde50506db7728ec7`
 - Prismatic VLMs also disables gradients for the vision backbone. Comment out https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 to optimize attacks.
 - Prismatic VLMs also assumes a default `HF_HUB_REPO=TRI-ML/prismatic-vlms`. Until Sidd adds our models to his HF repo, we need to add a conditional to `prismatic/models/load.py` to handle our models. Go to line 58: 
 
