@@ -60,7 +60,8 @@ class SingleResult(BaseModel):
     time_taken: float
 
 
-model_to_eval = "gpt-4-turbo"
+# model_to_eval = "gpt-4-turbo"
+model_to_eval = "gpt-4o"
 config = InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
 
@@ -140,7 +141,7 @@ def evaluate_vlm_adversarial_examples():
 
     # Load jailbreak images' paths.
     runs_jailbreak_list: Slist[JailbreakData] = load_jailbreak_list_v2(
-        wandb_run_id=wandb_config["wandb_run_id"],
+        wandb_run_id=wandb_config["wandb_attack_run_id"],
         wandb_sweep_id=None,
         # Smallest to largest optimizer_step_counter.
     ).sort_by(lambda x: x.optimizer_step_counter)
@@ -150,7 +151,7 @@ def evaluate_vlm_adversarial_examples():
     prompts_and_targets = load_prompts_and_targets_v2(
         dataset=wandb_config["data"]["dataset"],
         split=wandb_config["data"]["split"],
-    )[:200]
+    )[:300]
 
     # model: str,
     to_log: list[dict] = []

@@ -2,8 +2,8 @@ default_attack_config = {
     # "compile": True,
     "compile": False,
     "data": {
-        # "dataset": "all_model_generated_evals",
-        "dataset": "wealth",
+        "dataset": "all_model_generated_evals",
+        # "dataset": "wealth",
         "batch_size": 2,
         "num_workers": 1,
         "prefetch_factor": 4,
@@ -140,6 +140,7 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    "wandb_attack_run_id": "g0jubjzl",
+    # "wandb_attack_run_id": "dh3sokts",
+    "wandb_attack_run_id": "1ghysasl",
     # "wandb_sweep_id": "yvqszl4d",
 }

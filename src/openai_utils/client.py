@@ -220,7 +220,7 @@ class OpenAICachedCaller:
         }
 
         payload = {
-            "model": "gpt-4-turbo",
+            "model": config.model,
             "messages": [m.to_openai_content() for m in messages],
             "max_tokens": config.max_tokens,
             "temperature": config.temperature,
