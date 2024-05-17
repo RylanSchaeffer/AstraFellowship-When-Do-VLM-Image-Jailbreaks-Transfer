@@ -78,6 +78,12 @@ default_eval_config = {
     # "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
     "model_to_eval": "{'prism-dinosiglip-controlled+13b'}",
     "model_generation_kwargs": {
+        "prism-dinosiglip-controlled+13b": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "prism-reproduction-llava-v15+13b": {
             "temperature": 0.0,
             "top_p": 0.0,
