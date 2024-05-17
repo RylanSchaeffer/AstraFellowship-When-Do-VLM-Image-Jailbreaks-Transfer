@@ -39,7 +39,7 @@ default_attack_config = {
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-clip+7b'}",
     # "models_to_attack": "{'prism-reproduction-llava-v15+7b', 'prism-reproduction-llava-v15+13b'}",
     # "models_to_attack": "{'prism-clip+7b', 'prism-siglip+7b'}",
-    "models_to_attack": "{'prism-phi-instruct-3+4b+clip', 'prism-llama3-instruct+8b+dinosiglip'}",
+    "models_to_attack": "{'prism-gemma-instruct+8b+siglip', 'prism-llama3-instruct+8b+dinosiglip'}",
     # "models_to_attack": "{'prism-dinosiglip+7b'}",
     # "models_to_attack": "{'llava-v1p5-vicuna7b', 'llava-v1p6-mistral7b'}",
     "model_generation_kwargs": {},
