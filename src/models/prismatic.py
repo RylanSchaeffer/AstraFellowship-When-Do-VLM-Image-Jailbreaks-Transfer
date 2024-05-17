@@ -82,21 +82,25 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
     def create_images_transform_fn(self, model_str: str) -> Callable:
         if "dinosiglip" in model_str:
             # Convert to float32, then remove the ToTensor transform because that is applicable to PIL Images.
+            # TODO: Decide what to do about that LetterboxPadding.
             dino_transforms = torchvision.transforms.Compose(
                 [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.dino_image_transform.transforms
                     if not isinstance(t, torchvision.transforms.ToTensor)
+                    and not isinstance(t, LetterboxPad)
                 ]
             )
 
+            # TODO: Decide what to do about that LetterboxPadding.
             siglip_transforms = torchvision.transforms.Compose(
                 [torchvision.transforms.ConvertImageDtype(self.precision_dtype)]
                 + [
                     t
                     for t in self.model.vision_backbone.image_transform.siglip_image_transform.transforms
                     if not isinstance(t, torchvision.transforms.ToTensor)
+                    and not isinstance(t, LetterboxPad)
                 ]
             )
 
@@ -116,7 +120,6 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
                     t
                     for t in self.model.vision_backbone.image_transform.transforms
                     if not isinstance(t, torchvision.transforms.ToTensor)
-                    and not isinstance(t, LetterboxPad)
                 ]
             )
 
