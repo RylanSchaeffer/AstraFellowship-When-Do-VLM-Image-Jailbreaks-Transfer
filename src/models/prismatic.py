@@ -120,6 +120,7 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
                     t
                     for t in self.model.vision_backbone.image_transform.transforms
                     if not isinstance(t, torchvision.transforms.ToTensor)
+                    and not isinstance(t, LetterboxPad)
                 ]
             )
 
