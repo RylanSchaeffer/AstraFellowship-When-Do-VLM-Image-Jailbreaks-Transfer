@@ -49,7 +49,6 @@ class Blip3Config(PretrainedConfig):
         text_config: dict = None,
         **kwargs,
     ):
-
         if vision_encoder_config is None:
             vision_encoder_config = {
                 "image_aspect_ratio": "anyres",
@@ -172,7 +171,6 @@ class Blip3Config(PretrainedConfig):
         text_config: PretrainedConfig,
         **kwargs,
     ):
-
         return cls(
             vision_encoder_config=vision_encoder_config.to_dict(),
             vision_tokenizer_config=vision_tokenizer_config.to_dict(),

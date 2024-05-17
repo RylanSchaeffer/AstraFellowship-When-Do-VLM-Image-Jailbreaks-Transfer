@@ -26,7 +26,8 @@
 
 `git submodule update --init --recursive`
 
-8a. Install Prismatic and Deepseek
+8. Install Prismatic and Deepseek
+
 Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
 `cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
 `cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
@@ -51,7 +52,7 @@ pip install einops-exts
 
 11. Install more stuff. 
 
-`pip install nvidia-htop sentencepiece`
+`pip install nvidia-htop sentencepiece hf_transfer`
 
 12. Make sure to log in to W&B by running `wandb login`
 13. Login to Huggingface with `huggingface-cli login`
@@ -63,7 +64,59 @@ Note: You might need to subsequently run `conda install conda-forge::charset-nor
 
 ### Additional Modifications
 
-- Prismatic VLMs also disables gradients for the vision backbone. Disabling https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 is necessary to optimize attacks.
+- Prismatic VLMs also disables gradients for the vision backbone. Comment out https://github.com/TRI-ML/prismatic-vlms/blob/main/prismatic/models/vlms/prismatic.py#L308 to optimize attacks.
+- Prismatic VLMs also assumes a default `HF_HUB_REPO=TRI-ML/prismatic-vlms`. Until Sidd adds our models to his HF repo, we need to add a conditional to `prismatic/models/load.py` to handle our models. Go to line 58: 
+
+```python
+        if model_id_or_path not in GLOBAL_REGISTRY:
+            raise ValueError(f"Couldn't find `{model_id_or_path = }; check `prismatic.available_model_names()`")
+
+        overwatch.info(f"Downloading `{(model_id := GLOBAL_REGISTRY[model_id_or_path]['model_id'])} from HF Hub")
+        config_json = hf_hub_download(repo_id=HF_HUB_REPO, filename=f"{model_id}/config.json", cache_dir=cache_dir)
+        checkpoint_pt = hf_hub_download(
+            repo_id=HF_HUB_REPO, filename=f"{model_id}/checkpoints/latest-checkpoint.pt", cache_dir=cache_dir
+        )
+```
+
+Replace the above python code with the below python code:
+
+```python
+        rylan_trained_models = {
+            "prism-gemma-instruct+2b+clip",
+            "prism-gemma-instruct+2b+siglip",
+            "prism-gemma-instruct+2b+dinosiglip",
+            "prism-gemma-instruct+8b+clip",
+            "prism-gemma-instruct+8b+siglip",
+            "prism-gemma-instruct+8b+dinosiglip",
+            "prism-llama2-chat+7b+clip",
+            "prism-llama2-chat+7b+siglip",
+            "prism-llama2-chat+7b+dinosiglip",
+            "prism-llama3-instruct+8b+clip",
+            "prism-llama3-instruct+8b+siglip",
+            "prism-llama3-instruct+8b+dinosiglip",
+            "prism-mistral-instruct-v0.2+7b+clip",
+            "prism-mistral-instruct-v0.2+7b+siglip",
+            "prism-mistral-instruct-v0.2+7b+dinosiglip",
+            "prism-phi-instruct-3+4b+clip",
+            "prism-phi-instruct-3+4b+siglip",
+            "prism-phi-instruct-3+4b+dinosiglip",
+        }
+        
+        if (model_id_or_path not in rylan_trained_models) and (model_id_or_path not in GLOBAL_REGISTRY):
+            raise ValueError(f"Couldn't find `{model_id_or_path = }; check `prismatic.available_model_names()`")
+
+        if model_id_or_path in rylan_trained_models:
+            HF_HUB_REPO = "RylanSchaeffer/prismatic-vlms"
+        else:
+            HF_HUB_REPO = "TRI-ML/prismatic-vlms"
+
+        overwatch.info(f"Downloading `{(model_id := GLOBAL_REGISTRY[model_id_or_path]['model_id'])} from HF Hub")
+        config_json = hf_hub_download(repo_id=HF_HUB_REPO, filename=f"{model_id}/config.json", cache_dir=cache_dir)
+        checkpoint_pt = hf_hub_download(
+            repo_id=HF_HUB_REPO, filename=f"{model_id}/checkpoints/latest-checkpoint.pt", cache_dir=cache_dir
+        )
+```
+
 - Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
   - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
 
