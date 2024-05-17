@@ -105,9 +105,18 @@ class PrismaticVisionLanguageModel(VisionLanguageModel, lightning.LightningModul
             )
 
             def images_transform_fn(images: torch.Tensor) -> Dict[str, torch.Tensor]:
+                dino_features = dino_transforms(images)
+                siglip_features = siglip_transforms(images)
+                # TODO: Figure out why (what I think is) the same code is sometimes returning a list and other times returning a tensor.
+                if isinstance(dino_features, list):
+                    assert len(dino_features) == 1
+                    dino_features = dino_features[0]
+                if isinstance(siglip_features, list):
+                    assert len(siglip_features) == 1
+                    siglip_features = siglip_features[0]
                 transformed_images = {
-                    "dino": dino_transforms(images),
-                    "siglip": siglip_transforms(images),
+                    "dino": dino_features,
+                    "siglip": siglip_features,
                 }
                 return transformed_images
 
