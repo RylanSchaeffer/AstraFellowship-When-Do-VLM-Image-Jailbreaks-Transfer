@@ -103,8 +103,8 @@ def parallel_generate(
 def evaluate_vlm_adversarial_examples():
     # Create a config
     # model="claude-3-opus-20240229" #
-    # model_to_eval="claude-3-sonnet-20240229"  #
-    model_to_eval = "claude-3-haiku-20240307"
+    model_to_eval="claude-3-sonnet-20240229"  #
+    # model_to_eval = "claude-3-haiku-20240307"
     config = default_eval_config
     config["model_to_eval"] = model_to_eval
     wandb.init(
@@ -158,7 +158,7 @@ def evaluate_vlm_adversarial_examples():
 
         wandb_additional_data = {
             "eval_model_str": model_to_eval,
-            "wandb_run_id": run_jailbreak_dict.wandb_run_id,
+            "wandb_attack_run_id": run_jailbreak_dict.wandb_run_id,
             "optimizer_step_counter": run_jailbreak_dict.optimizer_step_counter,
             "attack_models_str": run_jailbreak_dict.attack_models_str,
         }

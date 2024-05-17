@@ -75,8 +75,15 @@ default_eval_config = {
         "precision": "bf16-mixed",
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
-    "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
+    # "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
+    "model_to_eval": "{'prism-dinosiglip-controlled+13b'}",
     "model_generation_kwargs": {
+        "prism-reproduction-llava-v15+13b": {
+            "temperature": 0.0,
+            "top_p": 0.0,
+            "max_new_tokens": 1,
+            "min_new_tokens": 1,
+        },
         "xgen-mm-phi3-mini-instruct-r-v1": {
             "temperature": 0.0,
             "top_p": 0.0,
@@ -140,7 +147,7 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    # "wandb_attack_run_id": "dh3sokts",
-    "wandb_attack_run_id": "1ghysasl",
+    "wandb_attack_run_id": "dh3sokts", # 8 models 
+    # "wandb_attack_run_id": "1ghysasl", # 7 models
     # "wandb_sweep_id": "yvqszl4d",
 }
