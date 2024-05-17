@@ -146,7 +146,7 @@ def evaluate_vlm_adversarial_examples():
 
     # Load the raw prompts to use for generate.
     prompts_and_targets_dict = src.data.load_prompts_and_targets(
-        dataset=wandb_config["data"]["dataset"],
+        data_kwargs=wandb_config["data"],
         split=wandb_config["data"]["split"],
     )
     if wandb_config["n_generations"] == "None":
@@ -211,9 +211,9 @@ def evaluate_vlm_adversarial_examples():
             #     f"Prompt Idx: {prompt_idx}\nPrompt: {prompt}\nGeneration: {generation}\nGeneration Duration: {end_time - start_time} seconds\n\n"
             # )
 
-        run_jailbreak_dict[
-            "generations_prompts_targets_evals_dict"
-        ] = generations_prompts_targets_evals_dict
+        run_jailbreak_dict["generations_prompts_targets_evals_dict"] = (
+            generations_prompts_targets_evals_dict
+        )
         runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 
     # Free up memory.
@@ -243,12 +243,12 @@ def evaluate_vlm_adversarial_examples():
                     "generations_prompts_targets_evals_dict"
                 ]["generations"],
             )
-            run_jailbreak_dict[
-                f"loss/score_{eval_model_name}"
-            ] = eval_model.compute_score(
-                run_jailbreak_dict["generations_prompts_targets_evals_dict"][
-                    f"judgements_{eval_model_name}"
-                ]
+            run_jailbreak_dict[f"loss/score_{eval_model_name}"] = (
+                eval_model.compute_score(
+                    run_jailbreak_dict["generations_prompts_targets_evals_dict"][
+                        f"judgements_{eval_model_name}"
+                    ]
+                )
             )
             runs_jailbreak_dict_list[jailbreak_idx] = copy.deepcopy(run_jailbreak_dict)
 

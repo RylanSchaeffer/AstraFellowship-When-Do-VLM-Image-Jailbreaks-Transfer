@@ -79,7 +79,7 @@ def optimize_vlm_adversarial_examples():
 
     # Compute how many epochs we need, based on accumulate gradient steps and total steps and datset size.
     train_dataset_len = src.data.get_dataset_length(
-        dataset=wandb_config["data"]["dataset"],
+        data_kwargs=wandb_config["data"],
         split="train",  # Hard-code this.
     )
     n_train_epochs = math.ceil(
@@ -177,7 +177,7 @@ def optimize_vlm_adversarial_examples():
     # Load prompts for generation spot-checking.
     for split in ["train", "eval"]:
         prompts_and_targets_dict = src.data.load_prompts_and_targets(
-            dataset=wandb_config["data"]["dataset"],
+            data_kwargs=wandb_config["data"],
             split=split,
         )
 
