@@ -103,8 +103,8 @@ def parallel_generate(
 def evaluate_vlm_adversarial_examples():
     # Create a config
     # model="claude-3-opus-20240229" #
-    model_to_eval="claude-3-sonnet-20240229"  #
-    # model_to_eval = "claude-3-haiku-20240307"
+    # model_to_eval="claude-3-sonnet-20240229"  #
+    model_to_eval = "claude-3-haiku-20240307"
     config = default_eval_config
     config["model_to_eval"] = model_to_eval
     wandb.init(
