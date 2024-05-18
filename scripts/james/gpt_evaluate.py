@@ -60,8 +60,8 @@ class SingleResult(BaseModel):
     time_taken: float
 
 
-# model_to_eval = "gpt-4-turbo"
-model_to_eval = "gpt-4o"
+model_to_eval = "gpt-4-turbo"
+# model_to_eval = "gpt-4o"
 config = InferenceConfig(model=model_to_eval, temperature=0.0, max_tokens=1)
 
 
