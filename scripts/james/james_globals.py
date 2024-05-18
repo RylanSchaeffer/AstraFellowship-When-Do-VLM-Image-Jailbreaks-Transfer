@@ -76,7 +76,7 @@ default_eval_config = {
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
-    "model_to_eval": "{'prism-siglip-controlled'}",
+    "model_to_eval": "{'Qwen-VL-Chat'}",
     "model_generation_kwargs": {
         "prism-siglip-controlled": {
             "temperature": 0.0,
