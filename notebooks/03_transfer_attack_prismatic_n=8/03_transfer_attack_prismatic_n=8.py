@@ -230,7 +230,7 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
         col="models_to_attack",
         row="Evaluated Model",
         row_order=unique_and_ordered_eval_model_strs,
-        facet_kws={"margin_titles": True},
+        facet_kws={"margin_titles": True, "sharey": False},
     )
     # plt.show()
     g.set_axis_labels(

@@ -28,7 +28,9 @@ torch.manual_seed(1234)
 # use cuda device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-model: PrismaticVisionLanguageModel = PrismaticVisionLanguageModel().to(device).to(dtype=torch.bfloat16)
+model: PrismaticVisionLanguageModel = (
+    PrismaticVisionLanguageModel().to(device).to(dtype=torch.bfloat16)
+)
 tokenizer = model.model.llm_backbone.tokenizer
 model.disable_model_gradients()
 
@@ -40,9 +42,7 @@ pad_width = (max_dim - width) // 2
 pad_height = (max_dim - height) // 2
 transformed_fn = torchvision.transforms.v2.Compose(
     [
-        torchvision.transforms.v2.Resize(
-            (512, 512)
-        ),
+        torchvision.transforms.v2.Resize((512, 512)),
         torchvision.transforms.v2.ToTensor(),  # This divides by 255.
     ]
 )

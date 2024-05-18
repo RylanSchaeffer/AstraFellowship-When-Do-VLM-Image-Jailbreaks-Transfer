@@ -1,4 +1,5 @@
 import copy
+import re
 import asyncio
 from functools import partial
 import numpy as np
@@ -217,11 +218,12 @@ class Claude3OpusEvaluator(torch.nn.Module):
                 judgements.append("Error")
                 continue
             completion = response[0].completion
-            if "Rating:" not in completion:
+            match = re.search(r"Rating: (\d+)", completion)
+            if not match:
                 print(f"Rating not found! Completion: {completion}")
                 judgements.append("Error")
                 continue
-            judgement = completion.split("Rating:")[1].strip()
+            judgement = match.group(1)
             judgements.append(judgement)
         return judgements
 

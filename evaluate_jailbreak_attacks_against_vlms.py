@@ -146,7 +146,7 @@ def evaluate_vlm_adversarial_examples():
 
     # Load the raw prompts to use for generate.
     prompts_and_targets_dict = src.data.load_prompts_and_targets(
-        dataset=wandb_config["data"]["dataset"],
+        data_kwargs=wandb_config["data"],
         split=wandb_config["data"]["split"],
     )
     if wandb_config["n_generations"] == "None":
