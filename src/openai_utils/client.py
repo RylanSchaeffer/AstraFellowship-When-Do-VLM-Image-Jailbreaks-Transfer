@@ -234,7 +234,12 @@ class OpenAICachedCaller:
             json=payload,
             timeout=None,
         )
-        resp = OpenaiResponse.model_validate(response.json())
+        _json = response.json()
+        if "error" in _json:
+            print(f"Error in response: {_json}")
+            raise Exception("Error in response")
+        resp = OpenaiResponse.model_validate(_json)
+        
 
         if self.cache is not None:
             self.cache.add_model_call(messages, config, try_number, resp)
