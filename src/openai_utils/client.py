@@ -198,7 +198,7 @@ class OpenAICachedCaller:
         return result.choices[0]["message"]["content"]
 
     @retry(
-        exceptions=(ValidationError, requests.exceptions.JSONDecodeError, requests.exceptions.SSLError),
+        exceptions=(ValidationError, requests.exceptions.JSONDecodeError, requests.exceptions.SSLError, requests.exceptions.ConnectionError),
         tries=5,
         delay=5,
     )
