@@ -33,7 +33,6 @@ parameters:
       image_initialization:
         values:
           [
-            "random",
             "trina",
           ]
   lightning_kwargs:
@@ -59,11 +58,11 @@ parameters:
   models_to_attack:
     values:
       [
-        "{'prism-gemma-instruct+2b+clip', 'prism-gemma-instruct+8b+clip', 'prism-llama2-chat+7b+clip', 'prism-llama3-instruct+8b+clip', 'prism-mistral-instruct-v0.2+7b+clip', 'prism-reproduction-llava-v15+7b', 'prism-clip+7b', 'prism-clip+13b'}",
+        "{'prism-gemma-instruct+2b+clip', 'prism-gemma-instruct+8b+clip', 'prism-llama2-chat+7b+clip', 'prism-llama3-instruct+8b+clip', 'prism-mistral-instruct-v0.2+7b+clip', 'prism-reproduction-llava-v15+7b', 'prism-clip+7b', 'prism-clip-controlled+7b'}",
         "{'prism-gemma-instruct+2b+clip', 'prism-gemma-instruct+2b+siglip', 'prism-gemma-instruct+8b+clip', 'prism-gemma-instruct+8b+siglip', 'prism-llama2-chat+7b+clip', 'prism-llama2-chat+7b+siglip', 'prism-llama3-instruct+8b+clip', 'prism-llama3-instruct+8b+siglip'}",
         "{'prism-gemma-instruct+2b+clip', 'prism-gemma-instruct+2b+dinosiglip', 'prism-gemma-instruct+8b+clip', 'prism-gemma-instruct+8b+dinosiglip', 'prism-llama2-chat+7b+clip', 'prism-llama2-chat+7b+dinosiglip', 'prism-llama3-instruct+8b+clip', 'prism-llama3-instruct+8b+dinosiglip'}",
         "{'deepseek-vl-7b-chat', 'prism-gemma-instruct+2b+dinosiglip', 'prism-gemma-instruct+8b+clip', 'prism-gemma-instruct+8b+dinosiglip', 'prism-llama2-chat+7b+siglip', 'Qwen-VL-Chat', 'prism-llama3-instruct+8b+siglip', 'prism-llama3-instruct+8b+dinosiglip'}",
-        "{'prism-reproduction-llava-v15+13b', 'deepseek-vl-7b-chat', 'prism-gemma-instruct+2b+dinosiglip', 'prism-gemma-instruct+8b+clip', 'prism-gemma-instruct+8b+dinosiglip', 'prism-llama2-chat+7b+siglip', 'Qwen-VL-Chat', 'prism-llama3-instruct+8b+siglip'}",
+        "{'prism-reproduction-llava-v15+7b', 'prism-gemma-instruct+8b+clip', 'deepseek-vl-7b-chat', 'prism-gemma-instruct+2b+dinosiglip', 'prism-gemma-instruct+8b+dinosiglip', 'prism-llama2-chat+7b+siglip', 'Qwen-VL-Chat', 'prism-llama3-instruct+8b+siglip'}",
       ]
   n_generations:
     values:
