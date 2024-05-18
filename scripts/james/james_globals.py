@@ -76,9 +76,9 @@ default_eval_config = {
     },
     # "model_to_eval": "{'prism-reproduction-llava-v15+7b'}",
     # "model_to_eval": "{'xgen-mm-phi3-mini-instruct-r-v1'}",
-    "model_to_eval": "{'prism-gemma-instruct+8b+clip'}",
+    "model_to_eval": "{'prism-mistral-instruct-v0.2+7b+siglip'}",
     "model_generation_kwargs": {
-        "prism-gemma-instruct+8b+clip": {
+        "prism-mistral-instruct-v0.2+7b+siglip": {
             "temperature": 0.0,
             "top_p": 0.0,
             "max_new_tokens": 1,
