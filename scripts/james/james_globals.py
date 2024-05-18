@@ -59,7 +59,7 @@ default_attack_config = {
 default_eval_config = {
     "data": {
         "batch_size": 1,
-        "dataset": "wealth",
+        "dataset": "all_model_generated_evals",
         # "num_workers": 1,
         # "num_workers": 2,
         "num_workers": 4,
@@ -157,7 +157,7 @@ default_eval_config = {
         #     "min_new_tokens": 5,
         # },
     },
-    "n_generations": 200,
+    "n_generations": 300,
     "seed": 0,
     "wandb_attack_run_id": "1m9zx2gx", # 8 models , all_model_generated_evals
     # "wandb_attack_run_id": "1ghysasl", # 7 models
