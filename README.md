@@ -118,6 +118,7 @@ Replace the above python code with the below python code:
         )
 ```
 
+- `timm` must be version `0.9.16` not `1.0.3`
 - Llava disables gradients for the "vision tower"; see https://github.com/Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models/issues/9#issuecomment-1962315340 for the solution
   - Commenting off `llava/models/multimodal_encoder/clip_encoder/line39` should work
 
