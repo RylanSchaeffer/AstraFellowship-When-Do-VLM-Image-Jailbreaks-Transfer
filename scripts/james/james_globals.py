@@ -159,7 +159,7 @@ default_eval_config = {
     },
     "n_generations": 200,
     "seed": 0,
-    "wandb_attack_run_id": "dh3sokts", # 8 models 
+    "wandb_attack_run_id": "1m9zx2gx", # 8 models , all_model_generated_evals
     # "wandb_attack_run_id": "1ghysasl", # 7 models
     # "wandb_sweep_id": "yvqszl4d",
 }
