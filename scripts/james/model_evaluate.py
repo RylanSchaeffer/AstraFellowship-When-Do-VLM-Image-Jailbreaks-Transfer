@@ -121,18 +121,6 @@ def evaluate_vlm_adversarial_examples():
             tensor_image=placeholder_adv_image,
         )
 
-    # Ensure that the tokenized dataset exists.
-    tokenized_dir_path = src.data.tokenize_prompts_and_targets_using_vlm_ensemble(
-        vlm_ensemble=vlm_ensemble_system.vlm_ensemble,
-        data_kwargs=wandb_config["data"],
-        split=wandb_config["data"]["split"],
-    )
-
-    src.data.VLMEnsembleTextDataModule(
-        vlm_names=list(vlm_ensemble_system.vlm_ensemble.vlms_dict.keys()),
-        tokenized_dir_path=tokenized_dir_path,
-        wandb_config=wandb_config,
-    )
     limit = wandb_config["n_generations"]
     # Load the raw prompts to use for generate.
     prompts_and_targets = load_prompts_and_targets_v2(
@@ -188,7 +176,7 @@ def evaluate_vlm_adversarial_examples():
             start_time = time.time()
             model_generations = vlm_ensemble_system.vlm_ensemble.vlms_dict[
                 model_name_str
-            ].generate(image=adv_image, prompts=[prompt])
+            ].generate(adv_image, prompts=[prompt])
             model_generations_dict["generations"].extend(model_generations)
             model_generations_dict["prompts"].extend([prompt])
             model_generations_dict["targets"].extend([target])
