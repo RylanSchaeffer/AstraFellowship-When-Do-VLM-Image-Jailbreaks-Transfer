@@ -102,9 +102,9 @@ def parallel_generate(
 
 def evaluate_vlm_adversarial_examples():
     # Create a config
-    # model="claude-3-opus-20240229" #
-    model_to_eval="claude-3-sonnet-20240229"  #
-    # model_to_eval = "claude-3-haiku-20240307"
+    # model_to_eval="claude-3-opus-20240229" #
+    # model_to_eval="claude-3-sonnet-20240229"  #
+    model_to_eval = "claude-3-haiku-20240307"
     config = default_eval_config
     config["model_to_eval"] = model_to_eval
     wandb.init(
@@ -137,8 +137,8 @@ def evaluate_vlm_adversarial_examples():
         wandb_run_id=attack_run_id,
         wandb_sweep_id=None,
     )
-    # skip steps < 400
-    # runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter >= 400]
+    # steps every 300 i.e. 0, 300, 600, 900, 1200, 1500, 1800, 2100, 2400, 2700, 3000
+    runs_jailbreak_list = [run for run in runs_jailbreak_list if run.optimizer_step_counter % 300 == 0]
     int(wandb_config["n_generations"])
     # Load the raw prompts to use for generate.
     prompts_and_targets = load_prompts_and_targets_v2(

@@ -236,8 +236,8 @@ class OpenAICachedCaller:
         )
         _json = response.json()
         if "error" in _json:
-            print(f"Error in response: {_json}")
-            raise Exception("Error in response")
+            # print(f"Error in response: {_json}")
+            raise Exception(f"Error in response {_json}")
         resp = OpenaiResponse.model_validate(_json)
         
 
