@@ -42,6 +42,23 @@ parameters:
         "{'prism-siglip+13b'}",
         "{'prism-dinosiglip-controlled+13b'}",
         "{'prism-dinosiglip+13b'}",
+        "{'deepseek-vl-7b-chat'}",
+        "{'prism-gemma-instruct+2b+clip'}",
+        "{'prism-gemma-instruct+2b+siglip'}",
+        "{'prism-gemma-instruct+2b+dinosiglip'}",
+        "{'prism-gemma-instruct+8b+clip'}",
+        "{'prism-gemma-instruct+8b+siglip'}",
+        "{'prism-gemma-instruct+8b+dinosiglip'}",
+        "{'prism-llama2-chat+7b+clip'}",
+        "{'prism-llama2-chat+7b+siglip'}",
+        "{'prism-llama2-chat+7b+dinosiglip'}",
+        "{'prism-llama3-instruct+8b+clip'}",
+        "{'prism-llama3-instruct+8b+siglip'}",
+        "{'prism-llama3-instruct+8b+dinosiglip'}",
+        "{'prism-mistral-instruct-v0.2+7b+clip'}",
+        "{'prism-mistral-instruct-v0.2+7b+siglip'}",
+        "{'prism-mistral-instruct-v0.2+7b+dinosiglip'}",
+        "{'Qwen-VL-Chat'}"
       ]
   n_generations:
     values:
@@ -52,6 +69,15 @@ parameters:
   wandb_attack_run_id:
     values:
       [
-        "4x9ilwlg",
-        "qjy485fv",
+        "eir80lig",
+        "bllmozho",
+        "e0ykg2sx",
+        "msnnvv1n",
+        "bgoaycso",
+        "04a1fg0k",
+        "pbrbxdqr",
+        "f31rzwf5",
+        "a3yh3ard",
+        "1tck1pum",
+        "hyrgcong",
       ]

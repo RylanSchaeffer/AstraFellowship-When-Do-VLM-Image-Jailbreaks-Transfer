@@ -161,7 +161,7 @@ def load_jailbreak_dicts_list(
         print("Saved runs_jailbreak_dict_list to: ", runs_jailbreak_dict_list_path)
 
     else:
-        runs_jailbreak_dict_list = bljoblib.load(runs_jailbreak_dict_list_path)
+        runs_jailbreak_dict_list = joblib.load(runs_jailbreak_dict_list_path)
 
         print("Loaded runs_jailbreak_dict_list from: ", runs_jailbreak_dict_list_path)
 
