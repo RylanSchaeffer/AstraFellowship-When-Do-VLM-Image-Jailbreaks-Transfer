@@ -13,8 +13,8 @@ parameters:
       dataset:
         values:
           [
-            "generated",
             "advbench",
+            "generated",
             "rylan_anthropic_hhh",
           ]
       num_workers:
@@ -24,7 +24,7 @@ parameters:
         values: [ 4 ]
       split:
         values:
-          [ "train" ]
+          ["train"]
   image_kwargs:
     parameters:
       image_size:

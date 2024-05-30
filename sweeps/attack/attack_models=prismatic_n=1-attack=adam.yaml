@@ -14,11 +14,12 @@ parameters:
         values:
           [
             "advbench",
+            "generated",
             "rylan_anthropic_hhh",
           ]
       num_workers:
         values:
-          [2]
+          [4]
       prefetch_factor:
         values: [ 4 ]
       split:
@@ -72,13 +73,30 @@ parameters:
         "{'prism-siglip-controlled+13b'}",
         "{'prism-dinosiglip-controlled+7b'}",
         "{'prism-dinosiglip-controlled+13b'}",
+        "{'deepseek-vl-7b-chat'}",
+        "{'prism-gemma-instruct+2b+clip'}",
+        "{'prism-gemma-instruct+2b+siglip'}",
+        "{'prism-gemma-instruct+2b+dinosiglip'}",
+        "{'prism-gemma-instruct+8b+clip'}",
+        "{'prism-gemma-instruct+8b+siglip'}",
+        "{'prism-gemma-instruct+8b+dinosiglip'}",
+        "{'prism-llama2-chat+7b+clip'}",
+        "{'prism-llama2-chat+7b+siglip'}",
+        "{'prism-llama2-chat+7b+dinosiglip'}",
+        "{'prism-llama3-instruct+8b+clip'}",
+        "{'prism-llama3-instruct+8b+siglip'}",
+        "{'prism-llama3-instruct+8b+dinosiglip'}",
+        "{'prism-mistral-instruct-v0.2+7b+clip'}",
+        "{'prism-mistral-instruct-v0.2+7b+siglip'}",
+        "{'prism-mistral-instruct-v0.2+7b+dinosiglip'}",
+        "{'Qwen-VL-Chat'}"
       ]
   n_generations:
     values:
       [30]
   n_grad_steps:
     values:
-      [25000]
+      [50000]
   optimization:
     parameters:
       eps:
