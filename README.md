@@ -6,57 +6,26 @@
 
 `conda update -n base -c defaults conda -y`
 
-2. Create and activate the conda environment:
+2. Create a conda environment from the requirements file and activate it (will take a while to build the env):
 
-`conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
+`conda env create -f requirements.yml -n vlm -y && conda activate vlm`
 
-4. Update pip in preparation of the next step.
+3. Install packages not available on conda:
 
-`pip install --upgrade pip`
+`pip install open_clip_torch==2.24.0 nvidia-htop huggingface-cli hf_transfer einops-exts einops flash-attn anthropic termcolor`
 
-5. Install Pytorch:
-
-`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y`
-
-6. Install Lightning:
-
-`conda install lightning -c conda-forge -y`
-
-7. Grab the git submodules:
+4. Grab the git submodules:
 
 `git submodule update --init --recursive`
 
-8. Install Prismatic and Deepseek
+5. Install Prismatic and Deepseek
 
 Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
 `cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
 `cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
 
-
-9. Then follow their instructions:
-
-`pip install packaging ninja && pip install flash-attn --no-build-isolation`
-
-10. Manually install a few additional packages:
-
-`conda install joblib pandas matplotlib seaborn black tiktoken -y`
-
-10a. For running salesforce's xgen
-```
-# Needs the latest dev version("4.41.0.dev0") 
-pip uninstall -y transformers && pip install git+https://github.com/huggingface/pip
-pip install open_clip_torch==2.24.0
-pip install einops
-pip install einops-exts
-```
-
-11. Install more stuff. 
-
-`pip install nvidia-htop sentencepiece hf_transfer`
-
-12. Make sure to log in to W&B by running `wandb login`
-13. Login to Huggingface with `huggingface-cli login`
-
+6. Make sure to log in to W&B by running `wandb login`
+7. Login to Huggingface with `huggingface-cli login`
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
@@ -176,6 +145,5 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 ```
 
 
-1. `pip install anthropic termcolor`
-2. Make `SECRETS`"
-3. `export LFS_HOME=/workspace`
+1. Make `SECRETS`"
+2. `export LFS_HOME=/workspace`
