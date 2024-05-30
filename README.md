@@ -1,5 +1,37 @@
 # Perez Astra Fellowship Universal & Transferable VLM Jailbreaks
 
+## Runpod IO Setup
+
+
+```bash
+apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
+cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
+```
+
+Create SSH key and register it with GitHub:
+```bash
+ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
+mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
+eval "$(ssh-agent -s)"
+ssh-add /workspace/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
+
+`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
+
+Then modify your `.bashrc` to add:
+
+```
+conda activate universal_vlm_jailbreak_env
+cd PerezAstraFellowship-Universal-VLM-Jailbreak
+```
+
+
+1. Make `SECRETS`"
+2. `export LFS_HOME=/workspace`
+
 ## Setup
 
 1. (Optional) Update conda:
@@ -116,34 +148,3 @@ wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 ```
 
 
-## Runpod IO Setup
-
-
-```bash
-apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
-cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
-```
-
-Create SSH key and register it with GitHub:
-```bash
-ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
-mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
-eval "$(ssh-agent -s)"
-ssh-add /workspace/.ssh/id_ed25519
-cat ~/.ssh/id_ed25519.pub
-```
-
-Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
-
-`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
-
-Then modify your `.bashrc` to add:
-
-```
-conda activate universal_vlm_jailbreak_env
-cd PerezAstraFellowship-Universal-VLM-Jailbreak
-```
-
-
-1. Make `SECRETS`"
-2. `export LFS_HOME=/workspace`
