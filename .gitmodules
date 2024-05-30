@@ -12,7 +12,7 @@
 	url = git@github.com:Unispac/Visual-Adversarial-Examples-Jailbreak-Large-Language-Models.git
 [submodule "submodules/prismatic-vlms"]
 	path = submodules/prismatic-vlms
-	url = git@github.com:TRI-ML/prismatic-vlms.git
+	url = git@github.com:RylanSchaeffer/prismatic-vlms.git
 [submodule "submodules/DeepSeek-VL"]
 	path = submodules/DeepSeek-VL
 	url = https://github.com/deepseek-ai/DeepSeek-VL

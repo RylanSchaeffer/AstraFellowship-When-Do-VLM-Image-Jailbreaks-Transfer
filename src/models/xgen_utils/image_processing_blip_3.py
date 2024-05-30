@@ -19,7 +19,6 @@ from torchvision import transforms
 
 
 class Blip3ImageProcessor(BaseImageProcessor):
-
     def __init__(
         self,
         do_resize: bool = True,

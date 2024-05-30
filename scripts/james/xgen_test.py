@@ -36,9 +36,7 @@ pad_width = (max_dim - width) // 2
 pad_height = (max_dim - height) // 2
 transform_pil_image = torchvision.transforms.v2.Compose(
     [
-        torchvision.transforms.v2.Resize(
-            (512, 512)
-        ),
+        torchvision.transforms.v2.Resize((512, 512)),
         torchvision.transforms.v2.ToTensor(),  # This divides by 255.
     ]
 )
@@ -49,7 +47,9 @@ transformed_image: torch.Tensor = transform_pil_image(pil_image)
 # print(f"Transformed to image: {image}")
 image = transformed_image.unsqueeze(0)
 
-response = model.generate(image=image, prompts=["What animal is this?\nA - Fish\nB - Cat\nC - Dog\nD - Whale"])
+response = model.generate(
+    image=image, prompts=["What animal is this?\nA - Fish\nB - Cat\nC - Dog\nD - Whale"]
+)
 print(response)
 
 

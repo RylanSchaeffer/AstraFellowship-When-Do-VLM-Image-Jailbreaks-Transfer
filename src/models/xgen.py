@@ -19,6 +19,7 @@ from src.models.xgen_utils.utils import (
 # Labels with these indices will be ignored by cross entropy loss in PyTorch.
 IGNORE_INDEX = -100
 
+
 def make_labels_xgen(
     input_ids: torch.Tensor, pad_token_id: int, targets: list[str], tokenizer
 ):
@@ -46,7 +47,6 @@ def make_labels_xgen(
     # Also mask out the padding tokens.
     labels[labels == pad_token_id] = IGNORE_INDEX
     return labels
-
 
 
 def pad_and_make_attention_masks(
@@ -123,7 +123,9 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
                 torch_dtype=self.precision_dtype,
             ).to(self.precision_dtype)
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, use_fast=False, legacy=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_path, trust_remote_code=True, use_fast=False, legacy=False
+        )
         self.model.update_special_tokens(self.tokenizer)
         self.image_processor = Blip3ImageProcessor.from_pretrained(model_path)
 
@@ -150,7 +152,7 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         bs = input_ids.size(0)
 
         image_size = [tuple(image.shape[2:])] * bs
-        
+
         image_inputs = self.image_processor(
             image, return_tensors="pt", image_aspect_ratio="anyres"
         )["pixel_values"]
@@ -158,9 +160,10 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         # print(f"Image inputs: {image_inputs}")
         # we'll get back [1, 1, 5, 3, 378, 378], we need to repeat to get [bs, 1, 5, 3, 378, 378]
         bs = input_ids.size(0)
-        repeated_pixels =image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(self.precision_dtype)
+        repeated_pixels = image_inputs.repeat(bs, 1, 1, 1, 1, 1).to(
+            self.precision_dtype
+        )
         # repeated_pixels = image_inputs.to(self.precision_dtype)
-
 
         outputs = self.model.vlm(
             vision_x=repeated_pixels.to(device),
@@ -287,8 +290,6 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         self.model.vlm.vision_encoder.eval()
         self.model.vlm.lang_model.requires_grad_(False)
         self.model.vlm.lang_model.eval()
-        
-        
 
     def to(
         self,
@@ -299,7 +300,9 @@ class XgenVisionLanguageModel(VisionLanguageModel, lightning.LightningModule):
         if device is not None:
             self.model = self.model.to(device=device)
             self.model.vlm = self.model.vlm.to(device=device)
-            self.model.vlm.vision_encoder = self.model.vlm.vision_encoder.to(device=device)
+            self.model.vlm.vision_encoder = self.model.vlm.vision_encoder.to(
+                device=device
+            )
             self.model.vlm.lang_model = self.model.vlm.lang_model.to(device=device)
         if dtype is not None:
             self.model = self.model.to(dtype=dtype)
