@@ -1,7 +1,62 @@
 # Perez Astra Fellowship Universal & Transferable VLM Jailbreaks
 
-## Setup
+## Runpod IO Setup
 
+
+```bash
+apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
+cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
+```
+
+Create SSH key and register it with GitHub:
+```bash
+ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
+mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
+eval "$(ssh-agent -s)"
+ssh-add /workspace/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
+
+`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
+
+Then modify your `.bashrc` to add:
+
+```
+conda activate universal_vlm_jailbreak_env
+cd PerezAstraFellowship-Universal-VLM-Jailbreak
+```
+
+
+1. Make `SECRETS`"
+2. `export LFS_HOME=/workspace`
+
+## Setup Method 1 - install from env file
+- We have a conda environment file to pin package versions and make setup faster.
+
+1. (Optional) Update conda:
+
+`conda update -n base -c defaults conda -y`
+
+2. Create a conda environment from the env file and activate it (will take a while to build the env):
+
+`conda env create -f environment.yml -n vlm -y && conda activate vlm`
+
+3. Grab the git submodules:
+
+`git submodule update --init --recursive`
+
+4. Install Prismatic and Deepseek
+
+Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
+`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
+
+5. Make sure to log in to W&B by running `wandb login`
+6. Login to Huggingface with `huggingface-cli login`
+
+## Setup Method 2 - Manual
 1. (Optional) Update conda:
 
 `conda update -n base -c defaults conda -y`
@@ -52,7 +107,7 @@ pip install einops-exts
 
 11. Install more stuff. 
 
-`pip install nvidia-htop sentencepiece hf_transfer`
+`pip install nvidia-htop sentencepiece hf_transfer anthropic termcolor`
 
 12. Make sure to log in to W&B by running `wandb login`
 13. Login to Huggingface with `huggingface-cli login`
@@ -147,35 +202,3 @@ wandb agent rylan/universal-vlm-jailbreak-eval/jb02fx4o
 ```
 
 
-## Runpod IO Setup
-
-
-```bash
-apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get install tmux
-cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
-```
-
-Create SSH key and register it with GitHub:
-```bash
-ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
-mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
-eval "$(ssh-agent -s)"
-ssh-add /workspace/.ssh/id_ed25519
-cat ~/.ssh/id_ed25519.pub
-```
-
-Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
-
-`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
-
-Then modify your `.bashrc` to add:
-
-```
-conda activate universal_vlm_jailbreak_env
-cd PerezAstraFellowship-Universal-VLM-Jailbreak
-```
-
-
-1. `pip install anthropic termcolor`
-2. Make `SECRETS`"
-3. `export LFS_HOME=/workspace`
