@@ -211,4 +211,3 @@ dependencies:
       - transformers==4.41.2
       - typing-inspect==0.9.0
       - wandb==0.17.0
-prefix: /workspace/miniconda3/envs/vlm

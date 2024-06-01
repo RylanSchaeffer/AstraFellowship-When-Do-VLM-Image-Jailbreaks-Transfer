@@ -32,32 +32,86 @@ cd PerezAstraFellowship-Universal-VLM-Jailbreak
 1. Make `SECRETS`"
 2. `export LFS_HOME=/workspace`
 
-## Setup
+## Setup Method 1 - install from env file
+- We have a conda environment file to pin package versions and make setup faster.
 
 1. (Optional) Update conda:
 
 `conda update -n base -c defaults conda -y`
 
-2. Create a conda environment from the requirements file and activate it (will take a while to build the env):
+2. Create a conda environment from the env file and activate it (will take a while to build the env):
 
-`conda env create -f requirements.yml -n vlm -y && conda activate vlm`
+`conda env create -f environment.yml -n vlm -y && conda activate vlm`
 
-3. Install packages not available on conda:
-
-`pip install open_clip_torch==2.24.0 nvidia-htop huggingface-cli hf_transfer einops-exts einops flash-attn anthropic termcolor`
-
-4. Grab the git submodules:
+3. Grab the git submodules:
 
 `git submodule update --init --recursive`
 
-5. Install Prismatic and Deepseek
+4. Install Prismatic and Deepseek
 
 Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
 `cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
 `cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
 
-6. Make sure to log in to W&B by running `wandb login`
-7. Login to Huggingface with `huggingface-cli login`
+5. Make sure to log in to W&B by running `wandb login`
+6. Login to Huggingface with `huggingface-cli login`
+
+## Setup Method 2 - Manual
+1. (Optional) Update conda:
+
+`conda update -n base -c defaults conda -y`
+
+2. Create and activate the conda environment:
+
+`conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
+
+4. Update pip in preparation of the next step.
+
+`pip install --upgrade pip`
+
+5. Install Pytorch:
+
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y`
+
+6. Install Lightning:
+
+`conda install lightning -c conda-forge -y`
+
+7. Grab the git submodules:
+
+`git submodule update --init --recursive`
+
+8. Install Prismatic and Deepseek
+
+Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
+`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
+
+
+9. Then follow their instructions:
+
+`pip install packaging ninja && pip install flash-attn --no-build-isolation`
+
+10. Manually install a few additional packages:
+
+`conda install joblib pandas matplotlib seaborn black tiktoken -y`
+
+10a. For running salesforce's xgen
+```
+# Needs the latest dev version("4.41.0.dev0") 
+pip uninstall -y transformers && pip install git+https://github.com/huggingface/pip
+pip install open_clip_torch==2.24.0
+pip install einops
+pip install einops-exts
+```
+
+11. Install more stuff. 
+
+`pip install nvidia-htop sentencepiece hf_transfer anthropic termcolor`
+
+12. Make sure to log in to W&B by running `wandb login`
+13. Login to Huggingface with `huggingface-cli login`
+
 
 Note: To run on a CPU-only machine (e.g., for eval), use `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 
