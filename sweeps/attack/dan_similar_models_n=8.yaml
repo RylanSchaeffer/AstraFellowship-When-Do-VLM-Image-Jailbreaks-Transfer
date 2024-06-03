@@ -3,90 +3,69 @@ project: universal-vlm-jailbreak
 method: grid
 parameters:
   compile:
-    values:
-      - false
+    values: [False]
   data:
     parameters:
       batch_size:
-        values:
-          - 2
+        values: [2]
       dataset:
-        values:
-          - generated
+        values: ["generated"]
       target_len:
-        values:
-          - 250
+        values: [250]
       num_workers:
-        values:
-          - 4
+        values: [4]
       prefetch_factor:
-        values:
-          - 4
+        values: [4]
       split:
-        values:
-          - train
+        values: ["train"]
   image_kwargs:
     parameters:
-      image_initialization:
-        values:
-          - random
       image_size:
-        values:
-          - 512
+        values: [512]
+      image_initialization:
+        values: ["random"]
   lightning_kwargs:
     parameters:
       accumulate_grad_batches:
-        values:
-          - 4
+        values: [4]
       gradient_clip_val:
-        values:
-          - 10
+        values: [10.0]
       limit_train_batches:
-        values:
-          - 1
-      log_image_every_n_steps:
-        values:
-          - 250
+        values: [1.0]
       log_loss_every_n_steps:
-        values:
-          - 1
+        values: [1]
+      log_image_every_n_steps:
+        values: [250]
       precision:
-        values:
-          - bf16-mixed
+        values: ["bf16-mixed"]
   models_to_attack:
     values:
-      - "{'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b'}"
+      [
+        "{'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lvis4v-lrv+7b'}",
+        "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b'}",
+      ]
   n_generations:
-    values:
-      - 30
+    values: [30]
   n_grad_steps:
-    values:
-      - 50000
+    values: [50000]
   optimization:
     parameters:
       eps:
-        values:
-          - 0.0001
+        values: [0.0001]
       learning_rate:
-        values:
-          - 0.001
+        values: [0.001]
       momentum:
-        values:
-          - 0.9
+        values: [0.9]
       optimizer:
-        values:
-          - adam
+        values: ["adam"]
       weight_decay:
-        values:
-          - 1e-05
+        values: [0.00001]
   seed:
-    values:
-      - 0
+    values: [0]
