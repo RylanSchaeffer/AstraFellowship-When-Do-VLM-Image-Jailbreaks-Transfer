@@ -8,6 +8,19 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from src.models.base import VisionLanguageModel
 
+non_prism_prismatic_models = [
+    "reproduction-llava-v15+7b",
+    "reproduction-llava-v15+13b",
+    "one-stage+7b",
+    "train-1.25-epochs+7b",
+    "train-1.5-epochs+7b",
+    "train-2-epochs+7b",
+    "train-3-epochs+7b",
+    "llava-lvis4v+7b",
+    "llava-lrv+7b",
+    "llava-lvis4v-lrv+7b",
+]
+
 
 class VLMEnsemble(lightning.LightningModule):
     def __init__(
@@ -85,7 +98,9 @@ class VLMEnsemble(lightning.LightningModule):
                     generation_kwargs=generation_kwargs,
                 )
 
-            elif model_str.startswith("prism"):
+            elif (
+                model_str.startswith("prism") or model_str in non_prism_prismatic_models
+            ):
                 from src.models.prismatic import PrismaticVisionLanguageModel
 
                 vlm = PrismaticVisionLanguageModel(
