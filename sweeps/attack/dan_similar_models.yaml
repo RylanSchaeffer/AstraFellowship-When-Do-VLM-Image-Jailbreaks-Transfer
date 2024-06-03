@@ -1,0 +1,106 @@
+program: optimize_jailbreak_attacks_against_vlms.py
+project: universal-vlm-jailbreak
+method: grid
+parameters:
+  compile:
+    values:
+      - false
+  data:
+    parameters:
+      batch_size:
+        values:
+          - 2
+      dataset:
+        values:
+          - generated
+      target_len:
+        values:
+          - 250
+      num_workers:
+        values:
+          - 4
+      prefetch_factor:
+        values:
+          - 4
+      split:
+        values:
+          - train
+  image_kwargs:
+    parameters:
+      image_initialization:
+        values:
+          - random
+      image_size:
+        values:
+          - 512
+  lightning_kwargs:
+    parameters:
+      accumulate_grad_batches:
+        values:
+          - 4
+      gradient_clip_val:
+        values:
+          - 10
+      limit_train_batches:
+        values:
+          - 1
+      log_image_every_n_steps:
+        values:
+          - 250
+      log_loss_every_n_steps:
+        values:
+          - 1
+      precision:
+        values:
+          - bf16-mixed
+  models_to_attack:
+    values:
+      - "{'one-stage+7b'}"
+      - "{'reproduction-llava-v15+7b'}"
+      - "{'train-1.25-epochs+7b'}"
+      - "{'train-1.5-epochs+7b'}"
+      - "{'train-2-epochs+7b'}"
+      - "{'train-3-epochs+7b'}"
+      - "{'llava-lvis4v+7b'}"
+      - "{'llava-lrv+7b'}"
+      - "{'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'train-1.5-epochs+7b'}"
+      - "{'train-1.5-epochs+7b', 'train-3-epochs+7b'}"
+      - "{'one-stage+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'train-1.25-epochs+7b'}"
+      - "{'train-1.5-epochs+7b', 'train-2-epochs+7b'}"
+      - "{'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lvis4v-lrv+7b'}"
+      - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b'}"
+  n_generations:
+    values:
+      - 30
+  n_grad_steps:
+    values:
+      - 50000
+  optimization:
+    parameters:
+      eps:
+        values:
+          - 0.0001
+      learning_rate:
+        values:
+          - 0.001
+      momentum:
+        values:
+          - 0.9
+      optimizer:
+        values:
+          - adam
+      weight_decay:
+        values:
+          - 1e-05
+  seed:
+    values:
+      - 0
