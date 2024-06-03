@@ -90,14 +90,6 @@ class VLMEnsemble(lightning.LightningModule):
                     huggingface_name=huggingface_name,
                 )
 
-            elif model_str.startswith("llava"):
-                from src.models.llava import LlavaVisionLanguageModel
-
-                vlm = LlavaVisionLanguageModel(
-                    model_str=model_str,
-                    generation_kwargs=generation_kwargs,
-                )
-
             elif (
                 model_str.startswith("prism") or model_str in non_prism_prismatic_models
             ):
@@ -108,6 +100,14 @@ class VLMEnsemble(lightning.LightningModule):
                     generation_kwargs=generation_kwargs,
                     precision=precision,
                 )
+            elif model_str.startswith("llava"):
+                from src.models.llava import LlavaVisionLanguageModel
+
+                vlm = LlavaVisionLanguageModel(
+                    model_str=model_str,
+                    generation_kwargs=generation_kwargs,
+                )
+
             elif model_str.startswith("deepseek"):
                 from src.models.deepseek import DeepSeekVisionLanguageModel
 
