@@ -55,20 +55,6 @@ parameters:
           - bf16-mixed
   models_to_attack:
     values:
-      - "{'one-stage+7b'}"
-      - "{'reproduction-llava-v15+7b'}"
-      - "{'train-1.25-epochs+7b'}"
-      - "{'train-1.5-epochs+7b'}"
-      - "{'train-2-epochs+7b'}"
-      - "{'train-3-epochs+7b'}"
-      - "{'llava-lvis4v+7b'}"
-      - "{'llava-lrv+7b'}"
-      - "{'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'train-1.5-epochs+7b'}"
-      - "{'train-1.5-epochs+7b', 'train-3-epochs+7b'}"
-      - "{'one-stage+7b', 'llava-lvis4v-lrv+7b'}"
-      - "{'one-stage+7b', 'train-1.25-epochs+7b'}"
-      - "{'train-1.5-epochs+7b', 'train-2-epochs+7b'}"
       - "{'reproduction-llava-v15+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
       - "{'one-stage+7b', 'train-1.25-epochs+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
       - "{'one-stage+7b', 'reproduction-llava-v15+7b', 'train-1.5-epochs+7b', 'train-2-epochs+7b', 'train-3-epochs+7b', 'llava-lvis4v+7b', 'llava-lrv+7b', 'llava-lvis4v-lrv+7b'}"
