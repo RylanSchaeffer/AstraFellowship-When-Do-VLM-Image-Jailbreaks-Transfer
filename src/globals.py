@@ -1,3 +1,43 @@
+from collections import OrderedDict
+
+
+DATASETS_TO_NICE_STRINGS_DICT = {
+    "advbench": "AdvBench",
+    "rylan_anthropic_hhh": "Anthropic HHH",
+}
+
+METRICS_TO_TITLE_STRINGS_DICT = {
+    "loss/avg_epoch": "Cross Entropy",
+    "loss/score_model=claude3opus": "Claude 3 Opus",
+    "loss/score_model=harmbench": "HarmBench",
+    "loss/score_model=llamaguard2": "LlamaGuard2",
+    "one_minus_score_model=claude3opus": "Claude 3 Opus",
+    "one_minus_score_model=harmbench": "HarmBench",
+    "one_minus_score_model=llamaguard2": "LlamaGuard2",
+}
+
+METRICS_TO_LABELS_NICE_STRINGS_DICT = {
+    "loss/avg_epoch": "Loss",
+    "loss/score_model=claude3opus": r"\% of Harmful Responses",
+    "loss/score_model=harmbench": r"\% of Harmful Responses",
+    "loss/score_model=llamaguard2": r"\% of Harmful Responses",
+    "one_minus_score_model=claude3opus": r"1 - \% of Harmful Responses",
+    "one_minus_score_model=harmbench": r"1 - \% of Harmful Responses",
+    "one_minus_score_model=llamaguard2": r"1 - \% of Harmful Responses",
+}
+
+
+METRICS_TO_BOUNDS_DICT = {
+    "loss/avg_epoch": (0.0, None),
+    "loss/score_model=claude3opus": (0.0, 1.0),
+    "loss/score_model=harmbench": (0.0, 1.0),
+    "loss/score_model=llamaguard2": (0.0, 1.0),
+    "one_minus_score_model=claude3opus": (0.0, 1.0),
+    "one_minus_score_model=harmbench": (0.0, 1.0),
+    "one_minus_score_model=llamaguard2": (0.0, 1.0),
+}
+
+
 default_attack_config = {
     # "compile": True,
     "compile": False,

@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict
 import joblib
 import numpy as np
@@ -8,25 +9,6 @@ import requests
 from typing import Dict, List, Tuple
 import wandb
 from tqdm import tqdm
-
-
-metrics_to_nice_strings_dict = OrderedDict(
-    {
-        "loss/avg_epoch": "Cross Entropy of\n" + r"P(Target $\lvert$ Prompt, Image)",
-        "loss/score_model=harmbench": "HarmBench Score",
-        "loss/score_model=llamaguard2": "LlamaGuard2 Score",
-        "loss/score_model=claude3opus": "Claude 3 Opus",
-    }
-)
-
-metrics_to_bounds_dict = OrderedDict(
-    {
-        "loss/avg_epoch": (0.0, None),
-        "loss/score_model=harmbench": (0.0, 1.0),
-        "loss/score_model=llamaguard2": (0.0, 1.0),
-        "loss/score_model=claude3opus": (0.0, 1.0),
-    }
-)
 
 
 def download_wandb_project_runs_configs(
@@ -74,34 +56,44 @@ def download_wandb_project_runs_configs(
                 summary.update({"run_name": run.name})
                 sweep_results_list.append(summary)
 
-            runs_configs_df = pd.DataFrame(sweep_results_list)
-            runs_configs_df.reset_index(inplace=True, drop=True)
+        runs_configs_df = pd.DataFrame(sweep_results_list)
+        runs_configs_df.reset_index(inplace=True, drop=True)
 
-            # Save to disk.
-            runs_configs_df.to_csv(
-                runs_configs_df_path.replace(filetype, "csv"), index=False
+        # Save to disk.
+        runs_configs_df.to_csv(
+            runs_configs_df_path.replace(filetype, "csv"), index=False
+        )
+        try:
+            runs_configs_df.to_feather(
+                runs_configs_df_path.replace(filetype, "feather")
             )
-            try:
-                runs_configs_df.to_feather(
-                    runs_configs_df_path.replace(filetype, "feather")
-                )
-            except pyarrow.lib.ArrowInvalid:
-                # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
-                pass
-            runs_configs_df.to_parquet(
+        except pyarrow.lib.ArrowInvalid:
+            # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+            pass
+        try:
+            runs_configs_without_model_generations_kwargs_df = runs_configs_df.drop(
+                columns=["model_generation_kwargs"]
+            )
+            runs_configs_without_model_generations_kwargs_df.to_parquet(
                 runs_configs_df_path.replace(filetype, "parquet"), index=False
             )
-            print(f"Wrote {runs_configs_df_path} to disk.")
+        except pyarrow.lib.ArrowNotImplementedError:
+            # pyarrow.lib.ArrowNotImplementedError: Cannot write struct type 'model_generation_kwargs' with no child field to Parquet. Consider adding a dummy child field.
+            pass
+
+        print(f"Regenerated and wrote {runs_configs_df_path} to disk.")
+        del runs_configs_df
+
+    print(f"Reading {runs_configs_df_path} from disk.")
+    if filetype == "csv":
+        runs_configs_df = pd.read_csv(runs_configs_df_path)
+    elif filetype == "feather":
+        runs_configs_df = pd.read_feather(runs_configs_df_path)
+    elif filetype == "parquet":
+        runs_configs_df = pd.read_parquet(runs_configs_df_path)
     else:
-        if filetype == "csv":
-            runs_configs_df = pd.read_csv(runs_configs_df_path)
-        elif filetype == "feather":
-            runs_configs_df = pd.read_feather(runs_configs_df_path)
-        elif filetype == "parquet":
-            runs_configs_df = pd.read_parquet(runs_configs_df_path)
-        else:
-            raise ValueError(f"Invalid filetype: {filetype}")
-        print(f"Loaded {runs_configs_df_path} from disk.")
+        raise ValueError(f"Invalid filetype: {filetype}")
+    print(f"Loaded {runs_configs_df_path} from disk.")
 
     # Keep only finished runs
     finished_runs = runs_configs_df["State"] == "finished"
@@ -151,17 +143,27 @@ def download_wandb_project_runs_histories(
             sweep = api.sweep(f"{wandb_username}/{wandb_project_path}/{sweep_id}")
             for run in tqdm(sweep.runs):
                 # https://community.wandb.ai/t/run-history-returns-different-values-on-almost-each-call/2431/4
-                successfully_downloaded = False
-                while not successfully_downloaded:
+
+                history = None
+                for num_attempts in range(5):
                     try:
                         history = run.history(
                             samples=wandb_run_history_samples,
                         )
-                        successfully_downloaded = True
-                    except requests.exceptions.HTTPError:
+                        break
+                    except (requests.exceptions.HTTPError, wandb.errors.CommError):
                         print("Retrying...")
-                if history.empty:
+                        time.sleep(3)
+
+                # Skip this run.
+                if history is None or history.empty:
                     continue
+
+                # Drop generation columns because these are meaty.
+                generation_columns = [
+                    col for col in history.columns if "generation" in col
+                ]
+                history.drop(columns=generation_columns, inplace=True)
                 history["run_id"] = run.id
                 runs_histories_list.append(history)
 
@@ -186,16 +188,18 @@ def download_wandb_project_runs_histories(
             runs_histories_df_path.replace(filetype, "parquet"), index=False
         )
         print(f"Wrote {runs_histories_df_path} to disk")
+        del runs_histories_df
+
+    print(f"Loading {runs_histories_df_path} from disk.")
+    if filetype == "csv":
+        runs_histories_df = pd.read_csv(runs_histories_df_path)
+    elif filetype == "feather":
+        runs_histories_df = pd.read_feather(runs_histories_df_path)
+    elif filetype == "parquet":
+        runs_histories_df = pd.read_parquet(runs_histories_df_path)
     else:
-        if filetype == "csv":
-            runs_histories_df = pd.read_csv(runs_histories_df_path)
-        elif filetype == "feather":
-            runs_histories_df = pd.read_feather(runs_histories_df_path)
-        elif filetype == "parquet":
-            runs_histories_df = pd.read_parquet(runs_histories_df_path)
-        else:
-            raise ValueError(f"Invalid filetype: {filetype}")
-        print(f"Loaded {runs_histories_df_path} from disk.")
+        raise ValueError(f"Invalid filetype: {filetype}")
+    print(f"Loaded {runs_histories_df_path} from disk.")
 
     return runs_histories_df
 

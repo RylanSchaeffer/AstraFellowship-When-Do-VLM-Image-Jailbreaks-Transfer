@@ -131,7 +131,7 @@ eval_runs_histories_tall_df = eval_runs_histories_df.melt(
         "Same Data Distribution",
         "optimizer_step_counter_epoch",
     ],
-    value_vars=src.analyze.metrics_to_nice_strings_dict.keys(),
+    value_vars=src.analyze.METRICS_TO_NICE_STRINGS_DICT.keys(),
     var_name="Metric",
     value_name="Score",
 )
@@ -139,7 +139,7 @@ eval_runs_histories_tall_df = eval_runs_histories_df.melt(
 # Convert metrics to nice strings.
 eval_runs_histories_tall_df["Original Metric"] = eval_runs_histories_tall_df["Metric"]
 eval_runs_histories_tall_df["Metric"] = eval_runs_histories_tall_df["Metric"].replace(
-    src.analyze.metrics_to_nice_strings_dict
+    src.analyze.METRICS_TO_NICE_STRINGS_DICT
 )
 
 unique_and_ordered_eval_model_strs = np.sort(
@@ -154,7 +154,7 @@ g = sns.relplot(
     x="optimizer_step_counter_epoch",
     y="Score",
     col="Metric",
-    col_order=src.analyze.metrics_to_nice_strings_dict.values(),
+    col_order=src.analyze.METRICS_TO_NICE_STRINGS_DICT.values(),
     style="Same Data Distribution",
     style_order=[True, False],
     hue="Attack Dataset (Train Split)",
@@ -165,7 +165,7 @@ g.set_axis_labels("Gradient Step")
 g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
 g.set_titles(col_template="{col_name}")
 # Set the y-lim per axis
-for ax, ylim in zip(g.axes[0, :], src.analyze.metrics_to_bounds_dict.values()):
+for ax, ylim in zip(g.axes[0, :], src.analyze.METRICS_TO_BOUNDS_DICT.values()):
     ax.set_ylim(ylim)
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
 src.plot.save_plot_with_multiple_extensions(
@@ -195,7 +195,7 @@ for (
     g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
     g.set_titles(col_template="{col_name}")
     # Set the y-lim per axis
-    for ax, ylim in zip(g.axes[0, :], src.analyze.metrics_to_bounds_dict.values()):
+    for ax, ylim in zip(g.axes[0, :], src.analyze.METRICS_TO_BOUNDS_DICT.values()):
         ax.set_ylim(ylim)
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
     src.plot.save_plot_with_multiple_extensions(
@@ -210,7 +210,7 @@ learning_curves_by_attack_model_dir = os.path.join(
 os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
 
 
-for metric in src.analyze.metrics_to_nice_strings_dict:
+for metric in src.analyze.METRICS_TO_NICE_STRINGS_DICT:
     plt.close()
     # I stupidly used the wrong column name for the LM eval scoring. One has "epoch" and others do not.
     x = (
@@ -235,13 +235,13 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
     # plt.show()
     g.set_axis_labels(
         "Gradient Step",
-        src.analyze.metrics_to_nice_strings_dict[metric],
+        src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric],
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="", row_template="{row_name}")
     # g.set_titles(col_template="{col_name}", row_template="{row_name}")
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
         plot_title=f"{metric[5:]}_vs_gradient_step_cols=attack_models_rows=eval_models",
@@ -281,12 +281,12 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
     # plt.show()
     g.set_axis_labels(
         "Gradient Step",
-        src.analyze.metrics_to_nice_strings_dict[metric],
+        src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric],
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
         plot_title=f"{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models",
@@ -309,7 +309,7 @@ for (
     models_to_attack,
     eval_runs_histories_by_attack_df,
 ) in eval_runs_histories_df.groupby("models_to_attack"):
-    for metric in src.analyze.metrics_to_nice_strings_dict:
+    for metric in src.analyze.METRICS_TO_NICE_STRINGS_DICT:
         plt.close()
         g = sns.relplot(
             data=eval_runs_histories_by_attack_df,
@@ -325,13 +325,13 @@ for (
             facet_kws={"margin_titles": True},
         )
         g.set_axis_labels(
-            "Gradient Step", src.analyze.metrics_to_nice_strings_dict[metric]
+            "Gradient Step", src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric]
         )
         g.fig.suptitle("Attacked Model(s)", y=1.0)
         g.set_titles(col_template="{col_name}", row_template="{row_name}")
         # g._legend.set_title("Evaluated Model")
         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-        g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+        g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
         src.plot.save_plot_with_multiple_extensions(
             plot_dir=learning_curves_by_attack_model_dir,
             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}",

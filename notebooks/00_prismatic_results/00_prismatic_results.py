@@ -13,7 +13,7 @@ import src.plot
 
 refresh = True
 # refresh = False
-metrics = src.analyze.metrics_to_nice_strings_dict
+metrics = src.analyze.METRICS_TO_NICE_STRINGS_DICT
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -99,12 +99,12 @@ for metric_x in metrics:
             facet_kws={"margin_titles": True},
         )
         g.set(
-            xlim=src.analyze.metrics_to_bounds_dict[metric_x],
-            ylim=src.analyze.metrics_to_bounds_dict[metric_y],
+            xlim=src.analyze.METRICS_TO_BOUNDS_DICT[metric_x],
+            ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric_y],
         )
         g.set_axis_labels(
-            x_var=src.analyze.metrics_to_nice_strings_dict[metric_x],
-            y_var=src.analyze.metrics_to_nice_strings_dict[metric_y],
+            x_var=src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric_x],
+            y_var=src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric_y],
         )
         g.set_titles(
             col_template="Attack Dataset: {col_name}",
@@ -170,7 +170,7 @@ learning_curves_by_attack_model_dir = os.path.join(
 os.makedirs(learning_curves_by_attack_model_dir, exist_ok=True)
 
 
-for metric in src.analyze.metrics_to_nice_strings_dict:
+for metric in src.analyze.METRICS_TO_NICE_STRINGS_DICT:
     plt.close()
     # I stupidly used the wrong column name for the LM eval scoring. One has "epoch" and others do not.
     x = (
@@ -196,12 +196,12 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
     # plt.show()
     g.set_axis_labels(
         "Gradient Step",
-        src.analyze.metrics_to_nice_strings_dict[metric],
+        src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric],
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
         plot_title=f"{metric[5:]}_vs_gradient_step_cols=attack_models_rows=eval_models",
@@ -241,12 +241,12 @@ for metric in src.analyze.metrics_to_nice_strings_dict:
     # plt.show()
     g.set_axis_labels(
         "Gradient Step",
-        src.analyze.metrics_to_nice_strings_dict[metric],
+        src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric],
     )
     g.fig.suptitle("Attacked Model(s)", y=1.0)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
     sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+    g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
         plot_title=f"{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models",
@@ -268,7 +268,7 @@ for (
     models_to_attack,
     eval_runs_histories_by_attack_df,
 ) in eval_runs_histories_df.groupby("models_to_attack"):
-    for metric in src.analyze.metrics_to_nice_strings_dict:
+    for metric in src.analyze.METRICS_TO_NICE_STRINGS_DICT:
         plt.close()
         g = sns.relplot(
             data=eval_runs_histories_by_attack_df[
@@ -286,13 +286,13 @@ for (
             facet_kws={"margin_titles": True},
         )
         g.set_axis_labels(
-            "Gradient Step", src.analyze.metrics_to_nice_strings_dict[metric]
+            "Gradient Step", src.analyze.METRICS_TO_NICE_STRINGS_DICT[metric]
         )
         g.fig.suptitle("Attacked Model(s)", y=1.0)
         g.set_titles(col_template="{col_name}", row_template="{row_name}")
         # g._legend.set_title("Evaluated Model")
         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-        g.set(ylim=src.analyze.metrics_to_bounds_dict[metric])
+        g.set(ylim=src.analyze.METRICS_TO_BOUNDS_DICT[metric])
         src.plot.save_plot_with_multiple_extensions(
             plot_dir=learning_curves_by_attack_model_dir,
             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={models_to_attack}",
