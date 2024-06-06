@@ -21,7 +21,7 @@ parameters:
   lightning_kwargs:
     parameters:
       limit_eval_batches:
-        values: [1.0]
+        values: [0.05]
       precision:
         values: ["bf16-mixed"]
       log_loss_every_n_steps:
