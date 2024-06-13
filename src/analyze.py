@@ -67,7 +67,7 @@ def download_wandb_project_runs_configs(
             runs_configs_df.to_feather(
                 runs_configs_df_path.replace(filetype, "feather")
             )
-        except pyarrow.lib.ArrowInvalid:
+        except BaseException:
             # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
             pass
         try:
@@ -77,7 +77,108 @@ def download_wandb_project_runs_configs(
             runs_configs_without_model_generations_kwargs_df.to_parquet(
                 runs_configs_df_path.replace(filetype, "parquet"), index=False
             )
-        except pyarrow.lib.ArrowNotImplementedError:
+        except BaseException:
+            # pyarrow.lib.ArrowNotImplementedError: Cannot write struct type 'model_generation_kwargs' with no child field to Parquet. Consider adding a dummy child field.
+            pass
+
+        print(f"Regenerated and wrote {runs_configs_df_path} to disk.")
+        del runs_configs_df
+
+    print(f"Reading {runs_configs_df_path} from disk.")
+    if filetype == "csv":
+        runs_configs_df = pd.read_csv(runs_configs_df_path)
+    elif filetype == "feather":
+        runs_configs_df = pd.read_feather(runs_configs_df_path)
+    elif filetype == "parquet":
+        runs_configs_df = pd.read_parquet(runs_configs_df_path)
+    else:
+        raise ValueError(f"Invalid filetype: {filetype}")
+    print(f"Loaded {runs_configs_df_path} from disk.")
+
+    # Keep only finished runs
+    finished_runs = runs_configs_df["State"] == "finished"
+    print(
+        f"% of successfully finished runs: {100.0 * finished_runs.mean()} ({finished_runs.sum()} / {len(finished_runs)})"
+    )
+
+    if finished_only:
+        runs_configs_df = runs_configs_df[finished_runs]
+
+        # Check that we don't have an empty data frame.
+        assert len(runs_configs_df) > 0
+
+        # Ensure we aren't working with a slice.
+        runs_configs_df = runs_configs_df.copy()
+
+    return runs_configs_df
+
+
+def download_wandb_project_runs_configs_by_run_ids(
+    wandb_project_path: str,
+    data_dir: str,
+    run_ids: List[str] = None,
+    finished_only: bool = True,
+    refresh: bool = False,
+    wandb_username: str = None,
+    filetype: str = "csv",
+) -> pd.DataFrame:
+    assert filetype in {"csv", "feather", "parquet"}
+    runs_configs_df_path = os.path.join(
+        data_dir, "runs=" + ",".join(run_ids) + f"_runs_configs.{filetype}"
+    )
+    if refresh or not os.path.isfile(runs_configs_df_path):
+        # Download sweep results
+        api = wandb.Api(timeout=600)
+
+        if wandb_username is None:
+            wandb_username = api.viewer.username
+
+        run_results_list = []
+        for run_id in tqdm(run_ids):
+            run = api.run(f"{wandb_username}/{wandb_project_path}/{run_id}")
+            # .summary contains the output keys/values for metrics like accuracy.
+            #  We call ._json_dict to omit large files
+            summary = run.summary._json_dict
+
+            # .config contains the hyperparameters.
+            #  We remove special values that start with _.
+            summary.update(
+                {k: v for k, v in run.config.items() if not k.startswith("_")}
+            )
+
+            summary.update(
+                {
+                    "State": run.state,
+                    "Sweep": run.sweep.id if run.sweep is not None else None,
+                    "run_id": run.id,
+                }
+            )
+            # .name is the human-readable name of the run.
+            summary.update({"run_name": run.name})
+            run_results_list.append(summary)
+
+        runs_configs_df = pd.DataFrame(run_results_list)
+        runs_configs_df.reset_index(inplace=True, drop=True)
+
+        # Save to disk.
+        runs_configs_df.to_csv(
+            runs_configs_df_path.replace(filetype, "csv"), index=False
+        )
+        try:
+            runs_configs_df.to_feather(
+                runs_configs_df_path.replace(filetype, "feather")
+            )
+        except BaseException:
+            # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+            pass
+        try:
+            runs_configs_without_model_generations_kwargs_df = runs_configs_df.drop(
+                columns=["model_generation_kwargs"]
+            )
+            runs_configs_without_model_generations_kwargs_df.to_parquet(
+                runs_configs_df_path.replace(filetype, "parquet"), index=False
+            )
+        except BaseException:
             # pyarrow.lib.ArrowNotImplementedError: Cannot write struct type 'model_generation_kwargs' with no child field to Parquet. Consider adding a dummy child field.
             pass
 
@@ -181,7 +282,7 @@ def download_wandb_project_runs_histories(
             runs_histories_df.to_feather(
                 runs_histories_df_path.replace(filetype, "feather")
             )
-        except pyarrow.lib.ArrowInvalid:
+        except BaseException:
             # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
             pass
         runs_histories_df.to_parquet(
