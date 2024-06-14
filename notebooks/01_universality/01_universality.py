@@ -40,6 +40,13 @@ eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
 eval_runs_configs_df["eval_dataset"] = eval_runs_configs_df["data"].apply(
     lambda x: x["dataset"] if isinstance(x, dict) else ast.literal_eval(x)["dataset"]
 )
+eval_runs_configs_df = src.analyze.extract_key_value_from_df_col(
+    df=eval_runs_configs_df,
+    col_name="data",
+    key_in_dict="dataset",
+    new_col_name="eval_dataset",
+)
+
 eval_runs_configs_df.rename(
     columns={"run_id": "eval_run_id", "wandb_attack_run_id": "attack_run_id"},
     inplace=True,
@@ -206,6 +213,11 @@ universality_runs_histories_tall_df[
 ] = universality_runs_histories_tall_df["Attack Dataset (Train Split)"].map(
     lambda k: src.globals.DATASETS_TO_NICE_STRINGS_DICT.get(k, k)
 )
+universality_runs_histories_tall_df[
+    "Eval Dataset (Val Split)"
+] = universality_runs_histories_tall_df["Eval Dataset (Val Split)"].map(
+    lambda k: src.globals.DATASETS_TO_NICE_STRINGS_DICT.get(k, k)
+)
 
 
 plt.close()
@@ -217,8 +229,8 @@ g = sns.relplot(
     col="Metric",
     col_order=unique_metrics_nice_strings_order,
     col_wrap=2,
-    style="Same Data Distribution",
-    style_order=[True, False],
+    style="Eval Dataset (Val Split)",
+    style_order=unique_datasets_nice_strings_order,
     hue="Attack Dataset (Train Split)",
     hue_order=unique_datasets_nice_strings_order,
     facet_kws={"margin_titles": True, "sharey": False},
@@ -248,13 +260,12 @@ g = sns.relplot(
     col="Metric",
     col_order=unique_metrics_nice_strings_order,
     col_wrap=2,
-    style="Same Data Distribution",
-    style_order=[True, False],
+    style="Eval Dataset (Val Split)",
+    style_order=unique_datasets_nice_strings_order,
     hue="Attack Dataset (Train Split)",
     hue_order=unique_datasets_nice_strings_order,
     facet_kws={"margin_titles": True, "sharey": False},
 )
-g.set(xlim=(0, 50000))
 g.set_axis_labels("Gradient Step")
 # g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
 g.set_titles(col_template="{col_name}")

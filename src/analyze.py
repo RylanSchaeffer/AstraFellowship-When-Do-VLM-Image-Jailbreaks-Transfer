@@ -311,16 +311,19 @@ def download_wandb_project_runs_histories(
 
 
 # parse data config blob into cols
-def extract_field_from_df_col_of_dict(
-    df: pd.DataFrame, col_name: str, field_name: Optional[str] = None
+def extract_key_value_from_df_col(
+    df: pd.DataFrame,
+    col_name: str,
+    key_in_dict: Optional[str] = None,
+    new_col_name: Optional[str] = None,
 ):
-    if not field_name:
-        field_name = col_name
+    if new_col_name is None:
+        new_col_name = key_in_dict
 
-    df[col_name] = df["data"].apply(
-        lambda x: x[field_name]
+    df[new_col_name] = df[col_name].apply(
+        lambda x: x[key_in_dict]
         if isinstance(x, dict)
-        else ast.literal_eval(x)[field_name]
+        else ast.literal_eval(x)[key_in_dict]
     )
     return df
 
