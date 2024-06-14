@@ -162,6 +162,9 @@ eval_model_training_data = {
     "{'llava-lrv+7b'}": "LLaVa v1.5 Instruct\n+LRV-Instruct",
     "{'llava-lvis4v-lrv+7b'}": "LLaVa v1.5 Instruct\n+LVIS-Instruct-4V\n+LRV-Instruct",
 }
+eval_model_nice_strings_order = [
+    eval_model_training_data[model] for model in eval_model_order
+]
 
 additional_epochs_eval_runs_histories_df = eval_runs_histories_df[
     (eval_runs_histories_df["Attacked Model"] == "{'one-stage+7b'}")
@@ -218,6 +221,7 @@ g = sns.relplot(
     col_order=unique_metrics_nice_strings_order,
     col_wrap=2,
     hue="VLM Training Data",
+    hue_order=eval_model_nice_strings_order,
     palette=sns.color_palette("husl", len(eval_model_order)),
     linewidth=3,
     facet_kws={"margin_titles": True, "sharey": False},
