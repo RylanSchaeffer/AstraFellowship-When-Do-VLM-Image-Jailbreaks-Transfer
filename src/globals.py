@@ -18,12 +18,12 @@ METRICS_TO_TITLE_STRINGS_DICT = {
 
 METRICS_TO_LABELS_NICE_STRINGS_DICT = {
     "loss/avg_epoch": "Loss",
-    "loss/score_model=claude3opus": r"\% of Harmful Responses",
-    "loss/score_model=harmbench": r"\% of Harmful Responses",
-    "loss/score_model=llamaguard2": r"\% of Harmful Responses",
-    "one_minus_score_model=claude3opus": r"1 - \% of Harmful Responses",
-    "one_minus_score_model=harmbench": r"1 - \% of Harmful Responses",
-    "one_minus_score_model=llamaguard2": r"1 - \% of Harmful Responses",
+    "loss/score_model=claude3opus": "Attack Success Rate",
+    "loss/score_model=harmbench": "Attack Success Rate",
+    "loss/score_model=llamaguard2": "Attack Success Rate",
+    "one_minus_score_model=claude3opus": "Attack Failure Rate",
+    "one_minus_score_model=harmbench": "Attack Failure Rate",
+    "one_minus_score_model=llamaguard2": "Attack Failure Rate",
 }
 
 

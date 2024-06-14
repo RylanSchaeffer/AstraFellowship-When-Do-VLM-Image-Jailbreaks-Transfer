@@ -225,7 +225,7 @@ g = sns.relplot(
 )
 g.set(xlim=(0, 50000))
 g.set_axis_labels("Gradient Step")
-g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
+# g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
 g.set_titles(col_template="{col_name}")
 # Set the y-lim per axis
 for ax, key in zip(g.axes.flat, unique_metrics_order):
@@ -256,7 +256,7 @@ g = sns.relplot(
 )
 g.set(xlim=(0, 50000))
 g.set_axis_labels("Gradient Step")
-g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
+# g.fig.suptitle("Universality of Image Jailbreaks", y=1.0)
 g.set_titles(col_template="{col_name}")
 # Set the y-lim per axis
 for ax, key in zip(g.axes.flat, unique_metrics_order):
@@ -265,10 +265,6 @@ for ax, key in zip(g.axes.flat, unique_metrics_order):
     ax.set_yscale("log")
     ax.set_xscale("log")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-src.plot.save_plot_with_multiple_extensions(
-    plot_dir=results_dir,
-    plot_title=f"score_vs_optimizer_step_by_same_data_distribution_by_attack_dataset_split_metric_lineplot",
-)
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title=f"score_log_vs_optimizer_step_log_by_same_data_distribution_by_attack_dataset_split_metric_lineplot",

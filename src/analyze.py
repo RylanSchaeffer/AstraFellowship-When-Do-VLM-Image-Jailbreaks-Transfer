@@ -80,6 +80,9 @@ def download_wandb_project_runs_configs(
         except pyarrow.lib.ArrowNotImplementedError:
             # pyarrow.lib.ArrowNotImplementedError: Cannot write struct type 'model_generation_kwargs' with no child field to Parquet. Consider adding a dummy child field.
             pass
+        except pyarrow.lib.ArrowInvalid:
+            # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+            pass
 
         print(f"Regenerated and wrote {runs_configs_df_path} to disk.")
         del runs_configs_df
@@ -184,9 +187,13 @@ def download_wandb_project_runs_histories(
         except pyarrow.lib.ArrowInvalid:
             # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
             pass
-        runs_histories_df.to_parquet(
-            runs_histories_df_path.replace(filetype, "parquet"), index=False
-        )
+        try:
+            runs_histories_df.to_parquet(
+                runs_histories_df_path.replace(filetype, "parquet"), index=False
+            )
+        except pyarrow.lib.ArrowInvalid:
+            # pyarrow.lib.ArrowInvalid: ("Could not convert 'NaN' with type str: tried to convert to double", 'Conversion failed for column loss/score_model=claude3opus with type object')
+            pass
         print(f"Wrote {runs_histories_df_path} to disk")
         del runs_histories_df
 
