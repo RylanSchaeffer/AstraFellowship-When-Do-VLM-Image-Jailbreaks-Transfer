@@ -22,12 +22,7 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 )
 
 sweep_ids = [
-    "x714akbx",  # train-1.25-epochs+7b
-    "b5oob18s",  # train-2-epochs+7b
-    "wuxm0jp4",  # llava-lrv+7b, llava-lvis4v+7b
-    "x38im6cm",  # train-1.5-epochs+7b, train-2-epochs+7b, train-3-epochs+7b
-    "kkypbhgu",  # one-stage+7b, train-1.25-epochs+7b, train-3-epochs+7b
-    "u3bmmese",
+    "wkxrq2t2",
 ]
 
 
@@ -162,107 +157,90 @@ eval_model_order = [
     "{'train-2-epochs+7b'}",
     "{'train-3-epochs+7b'}",
 ]
+eval_model_num_epochs = {
+    "{'one-stage+7b'}": 1.0,
+    "{'train-1.25-epochs+7b'}": 1.25,
+    "{'train-1.5-epochs+7b'}": 1.5,
+    "{'train-2-epochs+7b'}": 2.0,
+    "{'train-3-epochs+7b'}": 3.0,
+}
 
-# TODO: We want to only attack the base model, but we didn't run the correct evals.
 additional_epochs_eval_runs_histories_df = eval_runs_histories_df[
-    # (
-    #     eval_runs_histories_df["Attacked Model"]
-    #     == "{'one-stage+7b', 'llava-lvis4v-lrv+7b'}"
-    # )
-    # & (
-    eval_runs_histories_df["Evaluated Model"].isin(eval_model_order)
-    # )
+    (eval_runs_histories_df["Attacked Model"] == "{'one-stage+7b'}")
+    & (eval_runs_histories_df["Evaluated Model"].isin(eval_model_order))
+].copy()
+additional_epochs_eval_runs_histories_df[
+    "VLM Training Epochs"
+] = additional_epochs_eval_runs_histories_df["Evaluated Model"].map(
+    eval_model_num_epochs
+)
+unique_metrics_order = [
+    "loss/avg_epoch",
+    "one_minus_score_model=claude3opus",
+    "one_minus_score_model=harmbench",
+    "one_minus_score_model=llamaguard2",
+]
+unique_metrics_nice_strings_order = [
+    src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric] for metric in unique_metrics_order
 ]
 
-# TODO: This is currently untested.
-# Create a colormap from the "coolwarm" palette
-cmap = sns.color_palette("coolwarm", as_cmap=True)
 
-# Define the values you want to map to colors
-values = [1, 1.25, 1.5, 2, 3]
-
-# Map the values to colors using the colormap
-colors = [cmap(val / max(values)) for val in values]
-
-# Create the custom palette
-custom_palette = sns.color_palette(colors)
-
-# Use the custom palette in your plot
-sns.set_palette(custom_palette)
-
-
-for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT:
-    plt.close()
-    g = sns.relplot(
-        data=additional_epochs_eval_runs_histories_df,
-        kind="line",
-        x="optimizer_step_counter_epoch",
-        y=metric,
-        hue="Evaluated Model",
-        hue_order=eval_model_order,
-        style="Same Model",
-        style_order=[False, True],
-        col="Attacked Model",
-        # row="Eval Dataset (Val Split)",
-        facet_kws={"margin_titles": True},
+additional_epochs_eval_runs_histories_tall_df = (
+    additional_epochs_eval_runs_histories_df.melt(
+        id_vars=[
+            "Attack Dataset (Train Split)",
+            "Eval Dataset (Val Split)",
+            "VLM Training Epochs",
+            "optimizer_step_counter_epoch",
+        ],
+        value_vars=unique_metrics_order,
+        var_name="Metric",
+        value_name="Score",
     )
-    g.set_axis_labels(
-        "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
-    )
-    g.fig.suptitle("Transfer Across VLM Training Checkpoints", y=1.0)
-    # g.set_titles(col_template="{col_name}", row_template="{row_name}")
-    # g._legend.set_title("Evaluated Model")
-    sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-    g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
-    src.plot.save_plot_with_multiple_extensions(
-        plot_dir=results_dir,
-        plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}_model_type={attack_models[:20]}",
-    )
-    g.set(
-        xscale="log",
-        yscale="log",
-        ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
-    )
-    src.plot.save_plot_with_multiple_extensions(
-        plot_dir=results_dir,
-        plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={idx}_model_type={attack_models[:20]}",
-    )
-    # plt.show()
-
-eval_runs_histories_tall_df = eval_runs_histories_df.melt(
-    id_vars=[
-        "Attack Dataset (Train Split)",
-        "Eval Dataset (Val Split)",
-        "Same Data Distribution",
-        # "Attack Topic (Train Split)",
-        # "Eval Topic (Val Split)",
-        # "Same Topic",
-        "optimizer_step_counter_epoch",
-    ],
-    value_vars=["loss/avg_epoch"],
-    var_name="Metric",
-    value_name="Score",
 )
 
 # Convert metrics to nice strings.
-eval_runs_histories_tall_df["Original Metric"] = eval_runs_histories_tall_df["Metric"]
-eval_runs_histories_tall_df["Metric"] = eval_runs_histories_tall_df["Metric"].replace(
-    src.globals.METRICS_TO_TITLE_STRINGS_DICT
+additional_epochs_eval_runs_histories_tall_df[
+    "Original Metric"
+] = additional_epochs_eval_runs_histories_tall_df["Metric"]
+additional_epochs_eval_runs_histories_tall_df[
+    "Metric"
+] = additional_epochs_eval_runs_histories_tall_df["Metric"].map(
+    lambda k: src.globals.METRICS_TO_TITLE_STRINGS_DICT.get(k, k)
 )
-models_to_types = {
-    "{'one-stage+7b'}": "Base",
-    "{'reproduction-llava-v15+7b'}": "2-stage training",
-    "{'train-1.25-epochs+7b'}": "Additional Epochs",
-    "{'train-1.5-epochs+7b'}": "Additional Epochs",
-    "{'train-2-epochs+7b'}": "Additional Epochs",
-    "{'train-3-epochs+7b'}": "Additional Epochs",
-    "{'llava-lvis4v+7b'}": "Additional Training Data",
-    "{'llava-lrv+7b'}": "Additional Training Data",
-    "{'llava-lvis4v-lrv+7b'}": "Additional Training Data",
-}
-eval_runs_histories_df["Eval Model Type"] = eval_runs_histories_df[
-    "Evaluated Model"
-].map(models_to_types)
-eval_runs_histories_df["Attack Model Type"] = eval_runs_histories_df[
-    "Attacked Model"
-].map(models_to_types)
+
+
+plt.close()
+g = sns.relplot(
+    data=additional_epochs_eval_runs_histories_tall_df,
+    kind="line",
+    x="optimizer_step_counter_epoch",
+    y="Score",
+    col="Metric",
+    col_order=unique_metrics_nice_strings_order,
+    col_wrap=2,
+    hue="VLM Training Epochs",
+    # palette=custom_palette,
+    palette="cool",
+    # palette="copper",
+    linewidth=2,
+    facet_kws={"margin_titles": True, "sharey": False},
+)
+g.set(xlim=(0, 50000))
+g.set_axis_labels("Gradient Step")
+g.fig.suptitle("Transfer Between VLM Training Checkpoints", y=1.0)
+g.set_titles(col_template="{col_name}")
+# Set the y-lim per axis
+for ax, key in zip(g.axes.flat, unique_metrics_order):
+    ax.set_ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[key])
+    ax.set_ylim(src.globals.METRICS_TO_BOUNDS_DICT[key])
+sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+g.legend._legend_box.align = "center"
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title=f"score_vs_optimizer_step_by_num_vlm_epoch_split_metric_lineplot",
+)
+# plt.show()
+
+
+print("Finished notebooks/04_additional_vlm_epochs!")

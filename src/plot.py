@@ -14,7 +14,7 @@ plt.rcParams["text.usetex"] = True
 preamble_commands = [r"\usepackage{amsmath}"]  # Can add more commands to this list
 plt.rcParams["text.latex.preamble"] = "\n".join(preamble_commands)
 # Increase font size.
-plt.rcParams.update({"font.size": 16})
+plt.rcParams.update({"font.size": 22})
 
 sns.set_style("whitegrid")
 
