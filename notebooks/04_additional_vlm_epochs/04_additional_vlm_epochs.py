@@ -223,7 +223,7 @@ g = sns.relplot(
     # palette=custom_palette,
     palette="cool",
     # palette="copper",
-    linewidth=2,
+    linewidth=3,
     facet_kws={"margin_titles": True, "sharey": False},
 )
 g.set(xlim=(0, 50000))
