@@ -37,6 +37,11 @@ METRICS_TO_BOUNDS_DICT = {
     "one_minus_score_model=llamaguard2": (0.0, 1.0),
 }
 
+MODELS_TO_NICE_STRINGS_DICT = {
+    "prism-reproduction-llava-v15+7b": "LLAVAv1.5+7B (Reproduction)",
+    "prism-reproduction-llava-v15+13b": "LLAVAv1.5+13B (Reproduction)",
+}
+
 
 default_attack_config = {
     # "compile": True,
