@@ -1,12 +1,10 @@
-import time
-from collections import OrderedDict
-import joblib
-import numpy as np
+import ast
 import os
 import pandas as pd
 import pyarrow
 import requests
-from typing import Dict, List, Tuple
+import time
+from typing import Dict, List, Optional, Tuple
 import wandb
 from tqdm import tqdm
 
@@ -310,6 +308,21 @@ def download_wandb_project_runs_histories(
     print(f"Loaded {runs_histories_df_path} from disk.")
 
     return runs_histories_df
+
+
+# parse data config blob into cols
+def extract_field_from_df_col_of_dict(
+    df: pd.DataFrame, col_name: str, field_name: Optional[str] = None
+):
+    if not field_name:
+        field_name = col_name
+
+    df[col_name] = df["data"].apply(
+        lambda x: x[field_name]
+        if isinstance(x, dict)
+        else ast.literal_eval(x)[field_name]
+    )
+    return df
 
 
 def setup_notebook_dir(

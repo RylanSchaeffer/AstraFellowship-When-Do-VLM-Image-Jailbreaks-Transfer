@@ -22,44 +22,35 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 )
 
 sweep_ids = [
-    "x714akbx",  # n=2
-    "b5oob18s",  # n=2
-    "wuxm0jp4",  # n=2
-    "x38im6cm",  # n=2
-    "kkypbhgu",  # n=2
-    "u3bmmese",  # n=8
+    "x714akbx",  # train-1.25-epochs+7b
+    "b5oob18s",  # train-2-epochs+7b
+    "wuxm0jp4",  # llava-lrv+7b, llava-lvis4v+7b
+    "x38im6cm",  # train-1.5-epochs+7b, train-2-epochs+7b, train-3-epochs+7b
+    "kkypbhgu",  # one-stage+7b, train-1.25-epochs+7b, train-3-epochs+7b
+    "u3bmmese",  #
 ]
 
 
 # Download wandb results for all runs in the given sweep.
+wandb_username = "danvalentine256"  # Hard coded because Dan ran these experiments.
+# wandb_username=src.utils.retrieve_wandb_username()
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,  # will use local cache if this is false
     finished_only=finished_only,
-    # wandb_username=src.utils.retrieve_wandb_username(),
-    wandb_username="danvalentine256",  # Hard coded.
+    wandb_username=wandb_username,
     filetype="csv",
 )
 
 
-# parse data config blob into cols
-def parse_data_col(df, col_name, config_name=None):
-    if not config_name:
-        config_name = col_name
-
-    df[col_name] = df["data"].apply(
-        lambda x: x[config_name]
-        if isinstance(x, dict)
-        else ast.literal_eval(x)[config_name]
-    )
-    return df
-
-
-eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "eval_dataset", "dataset")
-eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "split")
-# eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "eval_subset", "subset")
+eval_runs_configs_df = src.analyze.extract_field_from_df_col_of_dict(
+    df=eval_runs_configs_df, col_name="eval_dataset", field_name="dataset"
+)
+eval_runs_configs_df = src.analyze.extract_field_from_df_col_of_dict(
+    df=eval_runs_configs_df, col_name="split"
+)
 
 # Keep only the eval data (previously we measured train and eval).
 eval_runs_configs_df = eval_runs_configs_df[eval_runs_configs_df["split"] == "eval"]
@@ -69,7 +60,7 @@ attack_run_ids = eval_runs_configs_df["wandb_attack_run_id"].unique()
 
 attack_runs_configs_df = src.analyze.download_wandb_project_runs_configs_by_run_ids(
     wandb_project_path="universal-vlm-jailbreak",
-    wandb_username=wandb_user,
+    wandb_username=wandb_username,
     data_dir=data_dir,
     run_ids=attack_run_ids,
     refresh=refresh,
@@ -77,8 +68,8 @@ attack_runs_configs_df = src.analyze.download_wandb_project_runs_configs_by_run_
     filetype="csv",
 )
 
-attack_runs_configs_df = parse_data_col(
-    attack_runs_configs_df, "attack_dataset", "dataset"
+attack_runs_configs_df = src.analyze.extract_field_from_df_col_of_dict(
+    df=attack_runs_configs_df, col_name="attack_dataset", field_name="dataset"
 )
 # TODO: this will break if subset was not specified (ie on all non-topic exps)
 # attack_runs_configs_df = parse_data_col(
@@ -103,7 +94,7 @@ eval_runs_configs_df = eval_runs_configs_df.merge(
 # Not entirely sure on the specifics here - high level it is metric samples from the history of each eval run
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
-    wandb_username=wandb_user,
+    wandb_username=wandb_username,
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,

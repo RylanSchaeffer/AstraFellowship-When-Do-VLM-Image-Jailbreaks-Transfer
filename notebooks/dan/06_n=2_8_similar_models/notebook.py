@@ -44,19 +44,6 @@ eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
 )
 
 
-# parse data config blob into cols
-def parse_data_col(df, col_name, config_name=None):
-    if not config_name:
-        config_name = col_name
-
-    df[col_name] = df["data"].apply(
-        lambda x: x[config_name]
-        if isinstance(x, dict)
-        else ast.literal_eval(x)[config_name]
-    )
-    return df
-
-
 eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "eval_dataset", "dataset")
 eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "split")
 # eval_runs_configs_df = parse_data_col(eval_runs_configs_df, "eval_subset", "subset")
