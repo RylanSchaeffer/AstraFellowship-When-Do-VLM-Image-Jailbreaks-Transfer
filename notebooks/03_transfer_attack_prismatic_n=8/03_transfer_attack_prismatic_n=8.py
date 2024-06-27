@@ -96,20 +96,36 @@ eval_runs_configs_df["one_minus_score_model=llamaguard2"] = (
     1.0 - eval_runs_configs_df["loss/score_model=llamaguard2"]
 )
 
-eval_runs_configs_df = eval_runs_configs_df.melt(
-    id_vars=[
-        # "Attack Dataset (Train Split)",
-        # "Eval Dataset (Val Split)",
-        # "Same Data Distribution",
-        "Attack Topic (Train Split)",
-        "Eval Topic (Val Split)",
-        "Same Topic",
-        "optimizer_step_counter_epoch",
-    ],
-    value_vars=src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys(),
-    var_name="Metric",
-    value_name="Score",
-)
+for attack_dataset in eval_runs_configs_df["attack_dataset"].unique():
+    for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
+        for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys():
+            eval_runs_configs_subset_df = eval_runs_configs_df[
+                (eval_runs_configs_df["attack_dataset"] == attack_dataset)
+                & (eval_runs_configs_df["eval_dataset"] == eval_dataset)
+            ][["models_to_attack", "model_to_eval", metric]]
+
+            eval_runs_configs_subset_pivoted_df = eval_runs_configs_subset_df.pivot(
+                index="model_to_eval", columns="models_to_attack", values=metric
+            )
+
+            # Switch the rows (model_to_eval) to nice strings.
+            eval_runs_configs_subset_pivoted_df.index = (
+                eval_runs_configs_subset_pivoted_df.index.map(
+                    lambda k: src.globals.MODELS_TO_NICE_STRINGS_DICT.get(k, k)
+                )
+            )
+
+            plt.close()
+            sns.heatmap(
+                data=eval_runs_configs_subset_pivoted_df,
+                cmap="viridis",
+                annot=True,
+                fmt=".2f",
+            )
+            plt.tight_layout()
+            plt.show()
+
+            print()
 
 
 # Load the heftier runs' histories dataframe.
