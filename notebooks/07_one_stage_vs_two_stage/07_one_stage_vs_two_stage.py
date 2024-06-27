@@ -81,7 +81,6 @@ attack_runs_configs_df.rename(
     inplace=True,
 )
 
-
 # Join attack run data into to evals df.
 eval_runs_configs_df = eval_runs_configs_df.merge(
     right=attack_runs_configs_df[["attack_run_id", "attack_dataset"]],
@@ -91,7 +90,6 @@ eval_runs_configs_df = eval_runs_configs_df.merge(
 )
 
 # Load the heftier runs' histories dataframe.
-# Not entirely sure on the specifics here - high level it is metric samples from the history of each eval run
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
     wandb_username=wandb_username,

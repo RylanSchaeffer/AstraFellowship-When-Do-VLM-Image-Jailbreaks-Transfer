@@ -8,11 +8,13 @@ import seaborn as sns
 import wandb
 
 import src.analyze
+import src.globals
 import src.plot
 
 
 # refresh = True
 refresh = False
+finished_only = True
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -21,96 +23,134 @@ data_dir, results_dir = src.analyze.setup_notebook_dir(
 
 
 sweep_ids = [
-    "h6h5c4ag",  # Prismatic with N-Choose-8 Jailbreaks, AdvBench & Rylan Anthropic HHH
+    "tpyxrgxu",  # Prismatic with N-Choose-8 Jailbreaks, AdvBench & Rylan Anthropic HHH
 ]
 
+
+wandb_username = "rylan"
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    finished_only=True,
+    finished_only=finished_only,
+    wandb_username=wandb_username,
     filetype="csv",
 )
-# This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
-eval_runs_configs_df.drop(columns=["models_to_attack"], inplace=True)
-eval_runs_configs_df["eval_dataset"] = eval_runs_configs_df["data"].apply(
-    lambda x: x["dataset"] if isinstance(x, dict) else ast.literal_eval(x)["dataset"]
+eval_runs_configs_df = src.analyze.extract_key_value_from_df_col(
+    df=eval_runs_configs_df,
+    col_name="data",
+    key_in_dict="dataset",
+    new_col_name="eval_dataset",
 )
-eval_runs_configs_df["split"] = eval_runs_configs_df["data"].apply(
-    lambda x: x["split"] if isinstance(x, dict) else ast.literal_eval(x)["split"]
+eval_runs_configs_df = src.analyze.extract_key_value_from_df_col(
+    df=eval_runs_configs_df,
+    col_name="data",
+    key_in_dict="split",
+    new_col_name="eval_dataset_split",
 )
-# Keep only the eval data (previously we measured train and eval).
-eval_runs_configs_df = eval_runs_configs_df[eval_runs_configs_df["split"] == "eval"]
 
-attack_wandb_attack_run_ids = eval_runs_configs_df["wandb_attack_run_id"].unique()
-api = wandb.Api(timeout=600)
-attack_wandb_sweep_ids = np.unique(
-    [
-        api.run(f"rylan/universal-vlm-jailbreak/{run_id}").sweep.id
-        for run_id in attack_wandb_attack_run_ids
-    ]
-).tolist()
-attack_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
+eval_runs_configs_df.rename(
+    columns={"run_id": "eval_run_id", "wandb_attack_run_id": "attack_run_id"},
+    inplace=True,
+)
+
+# Download attack runs.
+attack_run_ids = eval_runs_configs_df["attack_run_id"].unique()
+print("Attack Run IDs: ", attack_run_ids.tolist())
+attack_runs_configs_df = src.analyze.download_wandb_project_runs_configs_by_run_ids(
     wandb_project_path="universal-vlm-jailbreak",
+    wandb_username=wandb_username,
     data_dir=data_dir,
-    sweep_ids=attack_wandb_sweep_ids,
+    run_ids=attack_run_ids,
     refresh=refresh,
-    finished_only=False,
+    finished_only=finished_only,
     filetype="csv",
 )
-attack_runs_configs_df["attack_dataset"] = attack_runs_configs_df["data"].apply(
-    lambda x: x["dataset"] if isinstance(x, dict) else ast.literal_eval(x)["dataset"]
+attack_runs_configs_df = src.analyze.extract_key_value_from_df_col(
+    df=attack_runs_configs_df,
+    col_name="data",
+    key_in_dict="dataset",
+    new_col_name="attack_dataset",
 )
 attack_runs_configs_df.rename(
     columns={"run_id": "attack_run_id"},
     inplace=True,
 )
 
-# Add metadata about evaluations.
-# TODO: Fix this shit naming of wandb_attack_run_id.
+# Join attack run data into to evals df.
 eval_runs_configs_df = eval_runs_configs_df.merge(
-    right=attack_runs_configs_df[
-        [
-            "attack_run_id",
-            "attack_dataset",
-            "models_to_attack",  # (we now no longer need this because we updated the eval run on W&B.)
-        ]
-    ],
+    right=attack_runs_configs_df[["attack_run_id", "attack_dataset"]],
     how="left",
-    left_on="wandb_attack_run_id",
+    left_on="attack_run_id",
     right_on="attack_run_id",
 )
+
+eval_runs_configs_df["one_minus_score_model=claude3opus"] = (
+    1.0 - eval_runs_configs_df["loss/score_model=claude3opus"]
+)
+eval_runs_configs_df["one_minus_score_model=harmbench"] = (
+    1.0 - eval_runs_configs_df["loss/score_model=harmbench"]
+)
+eval_runs_configs_df["one_minus_score_model=llamaguard2"] = (
+    1.0 - eval_runs_configs_df["loss/score_model=llamaguard2"]
+)
+
+eval_runs_configs_df = eval_runs_configs_df.melt(
+    id_vars=[
+        # "Attack Dataset (Train Split)",
+        # "Eval Dataset (Val Split)",
+        # "Same Data Distribution",
+        "Attack Topic (Train Split)",
+        "Eval Topic (Val Split)",
+        "Same Topic",
+        "optimizer_step_counter_epoch",
+    ],
+    value_vars=src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys(),
+    var_name="Metric",
+    value_name="Score",
+)
+
 
 # Load the heftier runs' histories dataframe.
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
+    wandb_username=wandb_username,
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    wandb_run_history_samples=10000,
+    # finished_only=finished_only,
+    wandb_run_history_samples=1000000,
     filetype="csv",
 )
-# This data wasn't consistently logged due to changing code, so let's retrieve it from the attack W&B runs.
+# This col is not populated on this df
 eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
+eval_runs_histories_df.rename(columns={"run_id": "eval_run_id"}, inplace=True)
 
 
 eval_runs_histories_df = eval_runs_histories_df.merge(
     right=eval_runs_configs_df[
         [
-            "run_id",
+            "eval_run_id",
             "attack_run_id",
             "model_to_eval",
             "models_to_attack",
             "attack_dataset",
             "eval_dataset",
-            "split",
         ]
     ],
     how="inner",
-    left_on="run_id",
-    right_on="run_id",
+    on="eval_run_id",
 )
+
+eval_runs_histories_df["Same Data Distribution"] = (
+    eval_runs_histories_df["attack_dataset"] == eval_runs_histories_df["eval_dataset"]
+)
+eval_runs_histories_df["Same Model"] = (
+    eval_runs_histories_df["models_to_attack"]
+    == eval_runs_histories_df["model_to_eval"]
+)
+
 
 eval_runs_histories_df["Same Data Distribution"] = (
     eval_runs_histories_df["attack_dataset"] == eval_runs_histories_df["eval_dataset"]
