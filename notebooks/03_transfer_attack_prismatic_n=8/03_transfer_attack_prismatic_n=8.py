@@ -96,13 +96,51 @@ eval_runs_configs_df["one_minus_score_model=llamaguard2"] = (
     1.0 - eval_runs_configs_df["loss/score_model=llamaguard2"]
 )
 
-for attack_dataset in eval_runs_configs_df["attack_dataset"].unique():
-    for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
-        for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys():
+attack_failure_rate_heatmaps_dir = os.path.join(
+    results_dir, "attack_failure_rate_heatmaps"
+)
+os.makedirs(attack_failure_rate_heatmaps_dir, exist_ok=True)
+for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
+    attack_failure_rate_heatmaps_eval_dataset_dir = os.path.join(
+        attack_failure_rate_heatmaps_dir, f"eval_dataset={eval_dataset}"
+    )
+    os.makedirs(attack_failure_rate_heatmaps_eval_dataset_dir, exist_ok=True)
+    for attack_dataset in eval_runs_configs_df["attack_dataset"].unique():
+        attack_failure_rate_heatmaps_eval_dataset_attack_dataset_dir = os.path.join(
+            attack_failure_rate_heatmaps_eval_dataset_dir,
+            f"attack_dataset={attack_dataset}",
+        )
+        os.makedirs(
+            attack_failure_rate_heatmaps_eval_dataset_attack_dataset_dir, exist_ok=True
+        )
+        for metric in [
+            "loss/avg_epoch",
+            "one_minus_score_model=claude3opus",
+            "one_minus_score_model=harmbench",
+            "one_minus_score_model=llamaguard2",
+        ]:
             eval_runs_configs_subset_df = eval_runs_configs_df[
                 (eval_runs_configs_df["attack_dataset"] == attack_dataset)
                 & (eval_runs_configs_df["eval_dataset"] == eval_dataset)
             ][["models_to_attack", "model_to_eval", metric]]
+
+            if len(eval_runs_configs_subset_df) == 0:
+                print(
+                    f"No data for attack_dataset={attack_dataset} and eval_dataset={eval_dataset} and metric={metric}."
+                )
+                continue
+
+            num_rows_before_dropping_duplicates = eval_runs_configs_subset_df.shape[0]
+            print(
+                f"Number of rows before dropping duplicates: {num_rows_before_dropping_duplicates}"
+            )
+            eval_runs_configs_subset_df.drop_duplicates(
+                subset=["models_to_attack", "model_to_eval"], inplace=True
+            )
+            num_rows_after_dropping_duplicates = eval_runs_configs_subset_df.shape[0]
+            print(
+                f"Number of rows after dropping duplicates: {num_rows_after_dropping_duplicates}"
+            )
 
             eval_runs_configs_subset_pivoted_df = eval_runs_configs_subset_df.pivot(
                 index="model_to_eval", columns="models_to_attack", values=metric
@@ -111,21 +149,59 @@ for attack_dataset in eval_runs_configs_df["attack_dataset"].unique():
             # Switch the rows (model_to_eval) to nice strings.
             eval_runs_configs_subset_pivoted_df.index = (
                 eval_runs_configs_subset_pivoted_df.index.map(
-                    lambda k: src.globals.MODELS_TO_NICE_STRINGS_DICT.get(k, k)
+                    src.analyze.map_string_set_of_models_to_nice_string
                 )
             )
 
+            # Reorder the rows to be alphabetical.
+            eval_runs_configs_subset_pivoted_df.sort_index(inplace=True)
+
+            eval_runs_configs_subset_pivoted_df.columns = (
+                eval_runs_configs_subset_pivoted_df.columns.map(
+                    src.analyze.map_string_set_of_models_to_nice_string
+                )
+            )
+
+            metric_bounds = src.globals.METRICS_TO_BOUNDS_DICT.get(metric, None)
             plt.close()
-            sns.heatmap(
+            plt.figure(figsize=(30, 15))  # Adjust the size as needed
+            g = sns.heatmap(
                 data=eval_runs_configs_subset_pivoted_df,
                 cmap="viridis",
                 annot=True,
                 fmt=".2f",
+                cbar=True,
+                vmin=metric_bounds[0] if metric_bounds else None,
+                vmax=metric_bounds[1] if metric_bounds else None,
+                cbar_kws={
+                    "label": src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric]
+                },
             )
-            plt.tight_layout()
-            plt.show()
+            g.set_xticklabels(g.get_xticklabels(), rotation=0)
+            # Add a black border around the heatmap.
+            ax = plt.gca()
+            ax.add_patch(
+                plt.Rectangle(
+                    (0, 0),
+                    1,
+                    1,
+                    fill=False,
+                    edgecolor="black",
+                    lw=5,
+                    transform=ax.transAxes,
+                )
+            )
+            plt.title("Jailbreaking Ensembles of $N=8$ VLMs", fontsize=50)
+            plt.xlabel("Attacked Ensemble of $N=8$ VLMs", fontsize=50)
+            plt.ylabel("Evaluated VLM", fontsize=50)
+            metric_as_filename = src.globals.METRICS_TO_FILENAME_STRINGS_DICT[metric]
+            src.plot.save_plot_with_multiple_extensions(
+                plot_dir=attack_failure_rate_heatmaps_eval_dataset_attack_dataset_dir,
+                plot_title=f"eval_data={eval_dataset}_attack_data={attack_dataset}_metric={metric_as_filename}_heatmap",
+            )
+            # plt.show()
 
-            print()
+print()
 
 
 # Load the heftier runs' histories dataframe.
