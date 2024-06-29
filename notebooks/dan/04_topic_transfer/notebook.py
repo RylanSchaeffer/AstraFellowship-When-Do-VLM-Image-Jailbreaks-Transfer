@@ -252,15 +252,11 @@ for attack_topic in topics:
 
 # Append mean values to the DataFrame
 loss_df_with_means = min_values["loss/avg_epoch"].copy()
-print("1")
 loss_df_with_means.loc["Mean per Eval"] = loss_df_with_means.mean(axis=0)
-print("2")
 loss_df_with_means["Mean per Attack"] = loss_df_with_means.mean(axis=1)
-print("3")
 loss_df_with_means.iloc[-1, -1] = np.nan
 # Convert the updated DataFrame to numeric, handling non-numeric values
 df_numeric_loss = loss_df_with_means.apply(pd.to_numeric, errors="coerce")
-print("4")
 # Step 1: Filter out rows where 'loss' is NaN
 cleaned_df = eval_runs_histories_df.dropna(subset=["loss/avg_epoch"])
 
@@ -283,20 +279,20 @@ baseline_row = pd.DataFrame(baseline_losses).transpose()
 baseline_row.index = ["Baseline"]  # Naming the index as 'Baseline'
 
 # Step 5: Append the baseline row to the df_numeric_loss DataFrame
-df_numeric_loss_with_baseline = pd.concat([df_numeric_loss, baseline_row])
+df_numeric_loss = pd.concat([baseline_row, df_numeric_loss])
 
 # Ensure columns match, if df_numeric_loss is summarized differently, adjust column names
 # df_numeric_loss_with_baseline = df_numeric_loss_with_baseline[df_numeric_loss.columns.tolist()]
 
 # Now you can plot df_numeric_loss_with_baseline with the baseline included
-breakpoint()
+# breakpoint()
 
 # Now you can plot df_numeric_loss_with_baseline with the baseline included
 # Increase figure size for better visibility
 plt.figure(figsize=(22, 18))
 
 # Define a custom color map
-cmap = sns.color_palette("YlGnBu", as_cmap=True)
+cmap = sns.color_palette("Reds_r", as_cmap=True)
 cmap.set_bad(color="white")
 
 # Create a mask to separate mean scores visually
@@ -304,7 +300,6 @@ cmap.set_bad(color="white")
 # mask[-1, :] = True
 # mask[:, -1] = True
 
-print("5")
 # Create the heatmap with a custom mask for the mean values
 ax = sns.heatmap(
     df_numeric_loss,
@@ -318,43 +313,143 @@ ax = sns.heatmap(
     linecolor="black",
     square=True,
     annot_kws={"size": 16},
+    vmax=1.05,
 )
-ax.hlines(len(loss_df_with_means) - 1, *ax.get_xlim(), color="white", linewidth=6)
+ax.hlines(len(loss_df_with_means), *ax.get_xlim(), color="white", linewidth=6)
 ax.vlines(
     len(loss_df_with_means.columns) - 1, *ax.get_ylim(), color="white", linewidth=6
 )
+ax.hlines(1, *ax.get_xlim(), color="white", linewidth=6)
+
 xticks_labels = [tick.get_text() for tick in ax.get_xticklabels()]
 xticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Attack}}$"
 yticks_labels = [tick.get_text() for tick in ax.get_yticklabels()]
+yticks_labels[0] = r"$\mathbf{\underline{Baseline}}$"
 yticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Eval}}$"
+
 ax.set_xticklabels(xticks_labels)
 ax.set_yticklabels(yticks_labels)
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 ax.spines["left"].set_visible(False)
 ax.spines["bottom"].set_visible(False)
-print("6")
 # # Set thicker lines to separate means
 # for edge, spine in plt.gca().spines.items():
 #     spine.set_visible(True)
 #     spine.set_linewidth(2)
 # for spine in ax.spines.values():
 #     spine.set_visible(False)
-print("7")
 plt.title("Minimum Attained Cross-Entropy Loss", fontsize=24)
 plt.xlabel("Topic Evaluated", fontsize=20)
 plt.ylabel("Topic Attacked", fontsize=20)
 plt.xticks(rotation=45, ha="right", fontsize=16)
 plt.yticks(fontsize=16)
-print("a")
 # Save and show plot
 plt.tight_layout()
-plt.savefig(f"{heatmaps_dir}/loss_with_means.png", dpi=300)
-print("b")
+plt.savefig(f"{heatmaps_dir}/loss.png", dpi=300)
 # plt.show()
 plt.close()
 
-print("8")
+# Claude
+claude_df = max_values["loss/score_model=claude3opus"].copy()
+claude_df.loc["Mean per Eval"] = claude_df.mean(axis=0)
+claude_df["Mean per Attack"] = claude_df.mean(axis=1)
+claude_df.iloc[-1, -1] = np.nan
+# Convert the updated DataFrame to numeric, handling non-numeric values
+df_numeric_loss = claude_df.apply(pd.to_numeric, errors="coerce")
+# Step 1: Filter out rows where 'loss' is NaN
+cleaned_df = eval_runs_histories_df.dropna(subset=["loss/score_model=claude3opus"])
+
+# Step 2: Group by 'eval_topic' and find the minimum '_step' for each topic where 'loss' is not NaN
+grouped = cleaned_df.groupby("Eval Topic (Val Split)")
+min_step_per_topic = grouped["_step"].min().reset_index()
+
+# Step 3: Merge to get rows that match the minimum step for each topic
+min_step_rows = pd.merge(
+    cleaned_df, min_step_per_topic, on=["Eval Topic (Val Split)", "_step"]
+)
+
+# Step 4: Calculate the mean loss for these rows if there are duplicates
+baseline_losses = min_step_rows.groupby("Eval Topic (Val Split)")[
+    "loss/score_model=claude3opus"
+].mean()
+
+# Convert baseline_losses to a DataFrame and transpose it for compatibility with df_numeric_loss
+baseline_row = pd.DataFrame(baseline_losses).transpose()
+baseline_row.index = ["Baseline"]  # Naming the index as 'Baseline'
+
+# Step 5: Append the baseline row to the df_numeric_loss DataFrame
+df_numeric_loss = pd.concat([baseline_row, df_numeric_loss])
+
+# Ensure columns match, if df_numeric_loss is summarized differently, adjust column names
+# df_numeric_loss_with_baseline = df_numeric_loss_with_baseline[df_numeric_loss.columns.tolist()]
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# breakpoint()
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# Increase figure size for better visibility
+plt.figure(figsize=(22, 18))
+
+# Define a custom color map
+cmap = sns.color_palette("Reds", as_cmap=True)
+cmap.set_bad(color="white")
+
+# Create a mask to separate mean scores visually
+# mask = np.zeros_like(df_numeric_loss, dtype=bool)
+# mask[-1, :] = True
+# mask[:, -1] = True
+
+# Create the heatmap with a custom mask for the mean values
+ax = sns.heatmap(
+    df_numeric_loss,
+    annot=True,
+    cmap=cmap,
+    fmt=".2f",
+    robust=True,
+    # mask=mask,
+    cbar_kws={"label": "Harmful-Yet-Helpful Score"},
+    linewidths=0.5,
+    linecolor="black",
+    square=True,
+    annot_kws={"size": 16},
+    vmin=0.85,
+)
+ax.hlines(len(claude_df), *ax.get_xlim(), color="white", linewidth=6)
+ax.vlines(len(claude_df.columns) - 1, *ax.get_ylim(), color="white", linewidth=6)
+ax.hlines(1, *ax.get_xlim(), color="white", linewidth=6)
+
+xticks_labels = [tick.get_text() for tick in ax.get_xticklabels()]
+xticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Attack}}$"
+yticks_labels = [tick.get_text() for tick in ax.get_yticklabels()]
+yticks_labels[0] = r"$\mathbf{\underline{Baseline}}$"
+yticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Eval}}$"
+for edge, spine in ax.spines.items():
+    spine.set_visible(False)
+ax.set_xticklabels(xticks_labels)
+ax.set_yticklabels(yticks_labels)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_visible(False)
+ax.spines["bottom"].set_visible(False)
+# # Set thicker lines to separate means
+# for edge, spine in plt.gca().spines.items():
+#     spine.set_visible(True)
+#     spine.set_linewidth(2)
+# for spine in ax.spines.values():
+#     spine.set_visible(False)
+plt.title("Maximum Attained Harmful-Yet-Helpful Score", fontsize=24)
+plt.xlabel("Topic Evaluated", fontsize=20)
+plt.ylabel("Topic Attacked", fontsize=20)
+plt.xticks(rotation=45, ha="right", fontsize=16)
+plt.yticks(fontsize=16)
+# Save and show plot
+plt.tight_layout()
+plt.savefig(f"{heatmaps_dir}/claude.png", dpi=300)
+# plt.show()
+plt.close()
+
+
 # Claude heatmap
 # Convert DataFrame to numeric type, replacing any remaining non-numeric values with NaN
 # claude_df = max_values["loss/score_model=claude3opus"]
