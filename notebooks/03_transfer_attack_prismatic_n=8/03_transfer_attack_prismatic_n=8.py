@@ -196,7 +196,7 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             )
 
             plt.close()
-            plt.figure(figsize=(22, 14))
+            plt.figure(figsize=(24, 16))
             g = sns.scatterplot(
                 data=eval_runs_configs_subset_df,
                 x="model_to_eval_categorical",
