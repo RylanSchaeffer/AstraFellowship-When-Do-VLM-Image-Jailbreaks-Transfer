@@ -6,8 +6,19 @@ DATASETS_TO_NICE_STRINGS_DICT = {
     "rylan_anthropic_hhh": "Anthropic HHH",
 }
 
+METRICS_TO_FILENAME_STRINGS_DICT = {
+    "loss/avg_epoch": "cross_entropy",
+    "loss/score_model=claude3opus": "claude3opus",
+    "loss/score_model=harmbench": "harmbench",
+    "loss/score_model=llamaguard2": "llamaguard2",
+    "one_minus_score_model=claude3opus": "one_minus_claude3opus",
+    "one_minus_score_model=harmbench": "one_minus_harmbench",
+    "one_minus_score_model=llamaguard2": "one_minus_llamaguard2",
+}
+
+
 METRICS_TO_TITLE_STRINGS_DICT = {
-    "loss/avg_epoch": "Cross Entropy",
+    "loss/avg_epoch": "Cross Entropy Loss",
     "loss/score_model=claude3opus": "Claude 3 Opus",
     "loss/score_model=harmbench": "HarmBench",
     "loss/score_model=llamaguard2": "LlamaGuard2",
@@ -17,10 +28,10 @@ METRICS_TO_TITLE_STRINGS_DICT = {
 }
 
 METRICS_TO_LABELS_NICE_STRINGS_DICT = {
-    "loss/avg_epoch": "Loss",
-    "loss/score_model=claude3opus": "Attack Success Rate",
-    "loss/score_model=harmbench": "Attack Success Rate",
-    "loss/score_model=llamaguard2": "Attack Success Rate",
+    "loss/avg_epoch": "Cross Entropy Loss",
+    "loss/score_model=claude3opus": "Harmful-Yet-Helpful",
+    "loss/score_model=harmbench": "Harmful-Yet-Helpful",
+    "loss/score_model=llamaguard2": "Harmful-Yet-Helpful",
     "one_minus_score_model=claude3opus": "Attack Failure Rate",
     "one_minus_score_model=harmbench": "Attack Failure Rate",
     "one_minus_score_model=llamaguard2": "Attack Failure Rate",
@@ -38,8 +49,37 @@ METRICS_TO_BOUNDS_DICT = {
 }
 
 MODELS_TO_NICE_STRINGS_DICT = {
-    "prism-reproduction-llava-v15+7b": "LLAVAv1.5+7B (Reproduction)",
-    "prism-reproduction-llava-v15+13b": "LLAVAv1.5+13B (Reproduction)",
+    "deepseek-vl-7b-chat": "DeepSeek-VL Chat 7B + SigLIP\&SAM-B",
+    "prism-clip+7b": "Llama2 7B + CLIP",
+    "prism-clip+13b": "Llama2 13B + CLIP",
+    "prism-siglip+7b": "Llama2 7B + SigLIP",
+    "prism-siglip+13b": "Llama2 13B + SigLIP",
+    "prism-dinosiglip+7b": "Llama2 7B + DINOv2\&SigLIP",
+    "prism-dinosiglip+13b": "Llama2 13B + DINOv2\&SigLIP",
+    "prism-clip-controlled+7b": "Llama2 7B + CLIP (Control)",
+    "prism-clip-controlled+13b": "Llama2 13B + CLIP (Control)",
+    "prism-siglip-controlled+7b": "Llama2 7B + SigLIP (Control)",
+    "prism-siglip-controlled+13b": "Llama2 13B + SigLIP (Control)",
+    "prism-dinosiglip-controlled+7b": "Llama2 7B + DINOv2\&SigLIP (Control)",
+    "prism-dinosiglip-controlled+13b": "Llama2 13B + DINOv2\&SigLIP (Control)",
+    "prism-reproduction-llava-v15+7b": "LLAVAv1.5 7B + CLIP (Repro)",
+    "prism-reproduction-llava-v15+13b": "LLAVAv1.513B + CLIP (Repro)",
+    "prism-gemma-instruct+2b+clip": "Gemma Instr 2B + CLIP",
+    "prism-gemma-instruct+2b+siglip": "Gemma Instr 2B + SigLIP",
+    "prism-gemma-instruct+2b+dinosiglip": "Gemma Instr 2B + DINOv2\&SigLIP",
+    "prism-gemma-instruct+8b+clip": "Gemma Instr 8B + CLIP",
+    "prism-gemma-instruct+8b+siglip": "Gemma Instr 8B + SigLIP",
+    "prism-gemma-instruct+8b+dinosiglip": "Gemma Instr 2B + DINOv2\&SigLIP",
+    "prism-llama2-chat+7b+clip": "Llama2 Chat 7B + CLIP",
+    "prism-llama2-chat+7b+siglip": "Llama2 Chat 7B + SigLIP",
+    "prism-llama2-chat+7b+dinosiglip": "Llama2 Chat 7B + DINOv2/SigLIP",
+    "prism-llama3-instruct+8b+clip": "Llama3 Instr 8B + CLIP",
+    "prism-llama3-instruct+8b+siglip": "Llama3 Instr 8B + SigLIP",
+    "prism-llama3-instruct+8b+dinosiglip": "Llama3 Instr 8B + DINOv2/SigLIP",
+    "prism-mistral-instruct-v0.2+7b+clip": "Mistral Instr v0.2 7B + CLIP",
+    "prism-mistral-instruct-v0.2+7b+siglip": "Mistral Instr v0.2 7B + SigLIP",
+    "prism-mistral-instruct-v0.2+7b+dinosiglip": "Mistral Instr v0.2 7B + DINOv2/SigLIP",
+    "Qwen-VL-Chat": "Qwen VL Chat",
 }
 
 
