@@ -4,9 +4,11 @@ import pandas as pd
 import pyarrow
 import requests
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 import wandb
 from tqdm import tqdm
+
+import src.globals
 
 
 def download_wandb_project_runs_configs(
@@ -326,6 +328,23 @@ def extract_key_value_from_df_col(
         else ast.literal_eval(x)[key_in_dict]
     )
     return df
+
+
+def map_string_set_of_models_to_nice_string(s: str) -> str:
+    model_str_or_set_of_model_strs: Union[str, Set[str]] = ast.literal_eval(s)
+    if isinstance(model_str_or_set_of_model_strs, str):
+        return src.globals.MODELS_TO_NICE_STRINGS_DICT.get(
+            model_str_or_set_of_model_strs, model_str_or_set_of_model_strs
+        )
+    elif isinstance(model_str_or_set_of_model_strs, set):
+        return "\n".join(
+            [
+                src.globals.MODELS_TO_NICE_STRINGS_DICT.get(ele, ele)
+                for ele in sorted(model_str_or_set_of_model_strs)
+            ]
+        )
+    else:
+        raise ValueError(f"Invalid type: {type(model_str_or_set_of_model_strs)}")
 
 
 def setup_notebook_dir(
