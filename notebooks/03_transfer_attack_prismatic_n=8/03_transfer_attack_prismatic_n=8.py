@@ -193,9 +193,11 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
                 y="model_to_eval_categorical",
                 col="models_to_attack",
                 hue="Eval VLM in\nAttacked Ensemble",
-                height=12,
-                aspect=0.5,
+                style="models_to_attack",
+                height=13,
+                aspect=0.55,
                 s=150,
+                legend=False,
             )
             g.set(
                 xlim=src.globals.METRICS_TO_BOUNDS_DICT[metric], ylabel="Evaluated VLMs"
@@ -204,7 +206,7 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
                 x_var=src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric]
             )
             g.set_titles(col_template="{col_name}")
-            sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
+            # sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
             # g.fig.suptitle("Jailbreaking Ensembles of $N=8$ VLMs", fontsize=50)
             g.fig.suptitle(
                 f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking $N=8$ Ensembled VLMs"
@@ -265,22 +267,22 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             # plt.show()
 
 
-# # Load the heftier runs' histories dataframe.
-# eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
-#     wandb_project_path="universal-vlm-jailbreak-eval",
-#     wandb_username=wandb_username,
-#     data_dir=data_dir,
-#     sweep_ids=sweep_ids,
-#     refresh=refresh,
-#     # finished_only=finished_only,
-#     wandb_run_history_samples=1000000,
-#     filetype="csv",
-# )
-# # This col is not populated on this df
-# eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
-# eval_runs_histories_df.rename(columns={"run_id": "eval_run_id"}, inplace=True)
-#
-#
+# Load the heftier runs' histories dataframe.
+eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
+    wandb_project_path="universal-vlm-jailbreak-eval",
+    wandb_username=wandb_username,
+    data_dir=data_dir,
+    sweep_ids=sweep_ids,
+    refresh=refresh,
+    # finished_only=finished_only,
+    wandb_run_history_samples=1000000,
+    filetype="csv",
+)
+# This col is not populated on this df.
+eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
+eval_runs_histories_df.rename(columns={"run_id": "eval_run_id"}, inplace=True)
+
+
 # eval_runs_histories_df = eval_runs_histories_df.merge(
 #     right=eval_runs_configs_df[
 #         [
