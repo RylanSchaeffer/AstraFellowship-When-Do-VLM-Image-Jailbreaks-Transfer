@@ -174,9 +174,51 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             ] = eval_runs_configs_subset_df.apply(
                 lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
             )
+            # Make a duplicate without the newline.
+            eval_runs_configs_subset_df[
+                "Eval VLM in Attacked VLMs Ensemble"
+            ] = eval_runs_configs_subset_df["Eval VLM in\nAttacked Ensemble"]
+
+            eval_runs_configs_subset_df[
+                "Attacked VLMs Ensemble"
+            ] = eval_runs_configs_subset_df["models_to_attack"]
 
             # Sort based on the evaluated VLMs.
             eval_runs_configs_subset_df.sort_values(by="model_to_eval", inplace=True)
+
+            # Create a categorical type with the sorted order
+            eval_runs_configs_subset_df["model_to_eval_categorical"] = pd.Categorical(
+                eval_runs_configs_subset_df["model_to_eval"],
+                categories=sorted(
+                    eval_runs_configs_subset_df["model_to_eval"].unique()
+                ),
+                ordered=True,
+            )
+
+            plt.close()
+            plt.figure(figsize=(22, 14))
+            g = sns.scatterplot(
+                data=eval_runs_configs_subset_df,
+                x="model_to_eval_categorical",
+                y=metric,
+                hue="Eval VLM in Attacked VLMs Ensemble",
+                style="Attacked VLMs Ensemble",
+                s=500,
+            )
+            plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
+            plt.xlabel("Evaluated VLMs")
+            plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
+            sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
+            plt.title(
+                f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking $N=8$ Ensembled VLMs"
+            )
+            # g.tick_params("x", rotation=90)
+            plt.xticks(rotation=45, ha="right")
+            src.plot.save_plot_with_multiple_extensions(
+                plot_dir=attack_failure_rate_scatterplots_eval_dataset_attack_dataset_dir,
+                plot_title=f"metric={metric_as_filename}_vs_eval_vlm_by_inclusion_by_attack_ensemble_scatter",
+            )
+            # plt.show()
 
             plt.close()
             # Create a categorical type with the sorted order
@@ -215,7 +257,7 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             plt.subplots_adjust(top=0.9)
             src.plot.save_plot_with_multiple_extensions(
                 plot_dir=attack_failure_rate_scatterplots_eval_dataset_attack_dataset_dir,
-                plot_title=f"eval_data={eval_dataset}_vs_metric={metric_as_filename}_split_attack_data={attack_dataset}_scatter",
+                plot_title=f"eval_vlm_vs_metric={metric_as_filename}_split_attack_ensemble_scatter",
             )
             # plt.show()
 
@@ -262,7 +304,7 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             plt.ylabel("Evaluated VLM", fontsize=50)
             src.plot.save_plot_with_multiple_extensions(
                 plot_dir=attack_failure_rate_heatmaps_eval_dataset_attack_dataset_dir,
-                plot_title=f"eval_data={eval_dataset}_attack_data={attack_dataset}_metric={metric_as_filename}_heatmap",
+                plot_title=f"eval_vlm_vs_attack_ensemble_by_metric={metric_as_filename}_heatmap",
             )
             # plt.show()
 

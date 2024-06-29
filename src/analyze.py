@@ -338,10 +338,10 @@ def map_string_set_of_models_to_nice_string(s: str) -> str:
         )
     elif isinstance(model_str_or_set_of_model_strs, set):
         return "\n".join(
-            [
+            list(sorted([
                 src.globals.MODELS_TO_NICE_STRINGS_DICT.get(ele, ele)
-                for ele in sorted(model_str_or_set_of_model_strs)
-            ]
+                for ele in model_str_or_set_of_model_strs
+            ]))
         )
     else:
         raise ValueError(f"Invalid type: {type(model_str_or_set_of_model_strs)}")
