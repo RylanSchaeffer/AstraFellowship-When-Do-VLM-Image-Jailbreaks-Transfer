@@ -179,15 +179,23 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             eval_runs_configs_subset_df.sort_values(by="model_to_eval", inplace=True)
 
             plt.close()
+            # Create a categorical type with the sorted order
+            eval_runs_configs_subset_df["model_to_eval_categorical"] = pd.Categorical(
+                eval_runs_configs_subset_df["model_to_eval"],
+                categories=sorted(
+                    eval_runs_configs_subset_df["model_to_eval"].unique()
+                ),
+                ordered=True,
+            )
             g = sns.relplot(
                 data=eval_runs_configs_subset_df,
                 x=metric,
-                y="model_to_eval",
+                y="model_to_eval_categorical",
                 col="models_to_attack",
                 hue="Eval VLM in\nAttacked Ensemble",
-                height=11,
+                height=12,
                 aspect=0.5,
-                s=125,
+                s=150,
             )
             g.set(
                 xlim=src.globals.METRICS_TO_BOUNDS_DICT[metric], ylabel="Evaluated VLMs"
