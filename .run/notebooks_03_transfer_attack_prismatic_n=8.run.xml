@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="03_transfer_attack_prismatic_n=8" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="notebooks/03_transfer_attack_prismatic_n=8" type="PythonConfigurationType" factoryName="Python">
     <module name="PerezAstraFellowship-Image-DAN-VLM-Attack" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />

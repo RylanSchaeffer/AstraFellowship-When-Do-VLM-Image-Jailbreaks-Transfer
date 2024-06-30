@@ -153,8 +153,8 @@ eval_model_order = [
     "{'reproduction-llava-v15+7b'}",
 ]
 eval_model_one_or_two_stages = {
-    "{'one-stage+7b'}": "One-Stage",
-    "{'reproduction-llava-v15+7b'}": "Two-Stage",
+    "{'one-stage+7b'}": "1 Stage",
+    "{'reproduction-llava-v15+7b'}": "2 Stage",
 }
 
 additional_epochs_eval_runs_histories_df = eval_runs_histories_df[
@@ -162,15 +162,13 @@ additional_epochs_eval_runs_histories_df = eval_runs_histories_df[
     & (eval_runs_histories_df["Evaluated Model"].isin(eval_model_order))
 ].copy()
 additional_epochs_eval_runs_histories_df[
-    "VLM Training Stages"
+    "Eval VLM\nTraining Stages"
 ] = additional_epochs_eval_runs_histories_df["Evaluated Model"].map(
     eval_model_one_or_two_stages
 )
 unique_metrics_order = [
     "loss/avg_epoch",
-    "one_minus_score_model=claude3opus",
-    "one_minus_score_model=harmbench",
-    "one_minus_score_model=llamaguard2",
+    "loss/score_model=claude3opus",
 ]
 unique_metrics_nice_strings_order = [
     src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric] for metric in unique_metrics_order
@@ -182,7 +180,7 @@ additional_epochs_eval_runs_histories_tall_df = (
         id_vars=[
             "Attack Dataset (Train Split)",
             "Eval Dataset (Val Split)",
-            "VLM Training Stages",
+            "Eval VLM\nTraining Stages",
             "optimizer_step_counter_epoch",
         ],
         value_vars=unique_metrics_order,
@@ -201,6 +199,9 @@ additional_epochs_eval_runs_histories_tall_df[
     lambda k: src.globals.METRICS_TO_TITLE_STRINGS_DICT.get(k, k)
 )
 
+additional_epochs_eval_runs_histories_tall_df[
+    "Attacked VLM\nTraining Stages"
+] = "1 Stage"
 
 plt.close()
 g = sns.relplot(
@@ -211,8 +212,10 @@ g = sns.relplot(
     col="Metric",
     col_order=unique_metrics_nice_strings_order,
     col_wrap=2,
-    hue="VLM Training Stages",
+    hue="Eval VLM\nTraining Stages",
+    style="Attacked VLM\nTraining Stages",
     palette="seismic",
+    aspect=0.75,
     linewidth=3,
     facet_kws={"margin_titles": True, "sharey": False},
 )
