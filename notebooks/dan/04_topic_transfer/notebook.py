@@ -1,4 +1,5 @@
 import ast
+import math
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 import numpy as np
@@ -189,7 +190,148 @@ heatmaps_dir = os.path.join(results_dir, "heatmaps")
 os.makedirs(heatmaps_dir, exist_ok=True)
 plt.close()
 
+# line plots
+#
+
+
+unique_and_ordered_eval_topic_strs = np.sort(
+    eval_runs_histories_df["Eval Topic (Val Split)"].unique()
+).tolist()
+
+metrics = ["loss/avg_epoch", "loss/score_model=claude3opus"]
+
+lines_dir = os.path.join(results_dir, "lines_dir")
+os.makedirs(lines_dir, exist_ok=True)
+n_eval_topics = len(eval_runs_histories_df["Eval Topic (Val Split)"].unique())
+
+bounds = {
+    "loss/avg_epoch": (0.65, 1.45),
+    "loss/score_model=claude3opus": (0.0, 1.0),
+}
+
+for metric in metrics:
+    # Create a new figure for each metric
+    # Adjust figure width based on the number of eval topics
+    fig_width = 5 * n_eval_topics  # 5 inches per subplot width
+    fig_height = 6  # Fixed height for the row
+
+    fig, axes = plt.subplots(
+        1, n_eval_topics, figsize=(fig_width, fig_height), squeeze=False
+    )
+
+    # Flatten the axes array for easier indexing
+    axes = axes.flatten()
+
+    for idx, (eval_topic, df_by_eval_topic) in enumerate(
+        eval_runs_histories_df.groupby("Eval Topic (Val Split)")
+    ):
+        ax = axes[idx]
+
+        sns.lineplot(
+            data=df_by_eval_topic,
+            x="optimizer_step_counter_epoch",
+            y=metric,
+            hue="Attack Topic (Train Split)",
+            hue_order=unique_and_ordered_eval_topic_strs,
+            style="Same Topic",
+            style_order=[False, True],
+            ax=ax,
+            legend=False,  # Remove legend
+        )
+
+        # Set y-axis limits
+        ax.set_ylim(bounds[metric])
+
+        if "epoch" in metric:
+            ticks = np.arange(0.7, 1.5, 0.1)
+            ax.set_yticks(ticks)
+
+        # Remove y-axis ticks for all but the first plot
+        if idx != 0:
+            ax.set_yticklabels(["" for _ in ax.get_yticks()])
+        else:
+            ax.yaxis.set_tick_params(labelleft=True)
+
+        # Keep x-axis ticks for all plots
+        ax.xaxis.set_tick_params(labelbottom=True)
+
+        # Rotate x-axis labels for better readability
+        # ax.tick_params(axis="x", rotation=45)
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+
+    # Adjust the layout to maximize plot area and reduce spacing between subplots
+    plt.tight_layout()
+    plt.subplots_adjust(
+        wspace=0.1, bottom=0.3, left=0.05
+    )  # Reduce horizontal space between subplots and add space at the bottom
+
+    # Add overall x-axis label
+    fig.text(0.5, -0.05, "Gradient Step", ha="center", va="center", fontsize=24)
+
+    # Add overall y-axis label
+    fig.text(
+        -0.01,
+        0.5,
+        src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric],
+        ha="center",
+        va="center",
+        rotation="vertical",
+        fontsize=24,
+    )
+
+    # Save the figure
+    src.plot.save_plot_with_multiple_extensions(
+        plot_dir=lines_dir,
+        plot_title=f"combined_eval_topics_{metric.replace('/', '_')}_single_row_with_labels",
+    )
+
+    plt.close(fig)
 # idx = 0
+# for eval_topic, df_by_eval_topic in eval_runs_histories_df.groupby(
+#     "Eval Topic (Val Split)"
+# ):
+#     for metric in metrics:
+#         plt.close()
+#         g = sns.relplot(
+#             data=df_by_eval_topic,
+#             kind="line",
+#             x="optimizer_step_counter_epoch",
+#             y=metric,
+#             hue="Attack Topic (Train Split)",
+#             hue_order=unique_and_ordered_eval_topic_strs,
+#             style="Same Topic",
+#             style_order=[False, True],
+#             col="Eval Topic (Val Split)",
+#             # row="Eval Dataset (Val Split)",
+#             facet_kws={"margin_titles": True},
+#         )
+#         g.set_axis_labels(
+#             "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
+#         )
+#         g.fig.suptitle("Lines by attack topic", y=1.0)
+#         # g.set_titles(col_template="{col_name}", row_template="{row_name}")
+#         # g._legend.set_title("Evaluated Model")
+#         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+#         g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
+#         src.plot.save_plot_with_multiple_extensions(
+#             plot_dir=lines_dir,
+#             plot_title=f"{idx}_{eval_topic}",
+#         )
+#         idx += 1
+#         # if metric == "loss/avg_epoch":
+#         # g.set(
+#         #     xscale="log",
+#         #     yscale="log",
+#         #     ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
+#         # )
+#         # src.plot.save_plot_with_multiple_extensions(
+#         #     plot_dir=lines_dir,
+#         #     plot_title=f"{idx}_{eval_topic}_log",
+#         # )
+#         # plt.show()
+#         # idx += 1
+# plt.close()
 # for (
 #     topics_to_attack,
 #     eval_runs_histories_by_attack_topic_df,
@@ -448,7 +590,6 @@ plt.tight_layout()
 plt.savefig(f"{heatmaps_dir}/claude.png", dpi=300)
 # plt.show()
 plt.close()
-
 
 # Claude heatmap
 # Convert DataFrame to numeric type, replacing any remaining non-numeric values with NaN
