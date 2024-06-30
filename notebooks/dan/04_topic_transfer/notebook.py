@@ -225,155 +225,488 @@ for attack_topic in topics:
 
                 min_values[metric].loc[attack_topic, eval_topic] = min_value
 
-# Create heatmaps
-for metric, df in min_values.items():
-    # Convert DataFrame to numeric type, replacing any remaining non-numeric values with NaN
-    df_numeric = df.apply(pd.to_numeric, errors="coerce")
+max_values = {
+    metric: pd.DataFrame(index=topics, columns=topics)
+    for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT
+}
+# Double loop to find max values
+for attack_topic in topics:
+    attack_df = eval_runs_histories_df[
+        eval_runs_histories_df["Attack Topic (Train Split)"] == attack_topic
+    ]
 
-    # Increase figure size for larger boxes
-    plt.figure(figsize=(20, 16))
+    for eval_topic in topics:
+        eval_df = attack_df[attack_df["Eval Topic (Val Split)"] == eval_topic]
 
-    # Create a custom colormap from blue to green to yellow
-    cmap = sns.color_palette("YlGnBu", as_cmap=True)
-    cmap.set_bad(color="lightgray")
+        for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys():
+            if eval_df.empty:
+                max_values[metric].loc[attack_topic, eval_topic] = np.nan
+            else:
+                # Convert to numeric, coercing errors to NaN
+                numeric_values = pd.to_numeric(eval_df[metric], errors="coerce")
 
-    # Use robust=True to compute color scale robustly to outliers
-    sns.heatmap(
-        df_numeric,
-        annot=True,
-        cmap=cmap,
-        fmt=".2f",
-        robust=True,
-        mask=df_numeric.isnull(),
-        cbar_kws={"label": "Minimum Value"},
-        square=True,
-        linewidths=0.5,
-        annot_kws={"size": 14},
-    )
+                # Calculate min, ignoring NaN values
+                max_value = numeric_values.max()
 
-    plt.title(
-        f"Minimum {src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Values",
-        fontsize=20,
-    )
-    plt.xlabel("Eval Topic", fontsize=20)
-    plt.ylabel("Attack Topic", fontsize=20)
-    plt.xticks(rotation=45, ha="right", fontsize=16)
-    plt.yticks(fontsize=16)
+                max_values[metric].loc[attack_topic, eval_topic] = max_value
 
-    # Add more padding
-    plt.tight_layout(pad=3.0)
+# Append mean values to the DataFrame
+loss_df_with_means = min_values["loss/avg_epoch"].copy()
+loss_df_with_means.loc["Mean per Eval"] = loss_df_with_means.mean(axis=0)
+loss_df_with_means["Mean per Attack"] = loss_df_with_means.mean(axis=1)
+loss_df_with_means.iloc[-1, -1] = np.nan
+# Convert the updated DataFrame to numeric, handling non-numeric values
+df_numeric_loss = loss_df_with_means.apply(pd.to_numeric, errors="coerce")
+# Step 1: Filter out rows where 'loss' is NaN
+cleaned_df = eval_runs_histories_df.dropna(subset=["loss/avg_epoch"])
 
-    plt.savefig(
-        f'{heatmaps_dir}/{metric.replace("/", "_")}.png', dpi=300, bbox_inches="tight"
-    )
-    plt.close()
+# Step 2: Group by 'eval_topic' and find the minimum '_step' for each topic where 'loss' is not NaN
+grouped = cleaned_df.groupby("Eval Topic (Val Split)")
+min_step_per_topic = grouped["_step"].min().reset_index()
 
-print("Heatmaps have been generated and saved in the results directory.")
+# Step 3: Merge to get rows that match the minimum step for each topic
+min_step_rows = pd.merge(
+    cleaned_df, min_step_per_topic, on=["Eval Topic (Val Split)", "_step"]
+)
 
-# Diagnostic information
-print("\nDiagnostic Information:")
-for metric, df in min_values.items():
-    print(f"\nMetric: {metric}")
-    print("Data types:")
-    print(df.dtypes)
-    print("\nNumber of NaN values:")
-    print(df.isna().sum())
-    print("\nSample data:")
-    print(df.head())
-    print(
-        "\nPercentage of missing values:", (df.isna().sum().sum() / df.size) * 100, "%"
-    )
-# idx = 0
-#
-# for (
-#     topics_to_attack,
-#     eval_runs_histories_by_attack_topic_df,
-# ) in eval_runs_histories_df.groupby("Attack Topic (Train Split)"):
-#     for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT:
-#         print(metric)
-#         plt.close()
-#         g = sns.relplot(
-#             data=eval_runs_histories_by_attack_topic_df,
-#             kind="line",
-#             x="optimizer_step_counter_epoch",
-#             y=metric,
-#             hue="Eval Topic (Val Split)",
-#             hue_order=unique_and_ordered_eval_topic_strs,
-#             style="Same Topic",
-#             style_order=[False, True],
-#             col="Attack Topic (Train Split)",
-#             row="models_to_attack",
-#             facet_kws={"margin_titles": True},
-#         )
-#         g.set_axis_labels(
-#             "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
-#         )
-#         g.fig.suptitle("Attacked Topics", y=1.0)
-#         g.set_titles(col_template="{col_name}", row_template="{row_name}")
-#         # g._legend.set_title("Evaluated Model")
-#         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-#         g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
-#         src.plot.save_plot_with_multiple_extensions(
-#             plot_dir=learning_curves_by_attack_model_dir,
-#             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}",
-#         )
-#         idx += 1
-#         # if metric == "loss/avg_epoch":
-#         g.set(
-#             xscale="log",
-#             yscale="log",
-#             ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
-#         )
-#         src.plot.save_plot_with_multiple_extensions(
-#             plot_dir=learning_curves_by_attack_model_dir,
-#             plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={idx}",
-#         )
-#         # plt.show()
-#         idx += 1
+# Step 4: Calculate the mean loss for these rows if there are duplicates
+baseline_losses = min_step_rows.groupby("Eval Topic (Val Split)")[
+    "loss/avg_epoch"
+].mean()
 
-# idx = 0
-# for (
-#     topics_to_eval,
-#     eval_runs_histories_by_eval_topic_df,
-# ) in eval_runs_histories_df.groupby("Eval Topic (Val Split)"):
-#     for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT:
-#         print(metric)
-#         plt.close()
-#         g = sns.relplot(
-#             data=eval_runs_histories_by_eval_topic_df,
-#             kind="line",
-#             x="optimizer_step_counter_epoch",
-#             y=metric,
-#             hue="Attack Topic (Train Split)",
-#             hue_order=unique_and_ordered_eval_topic_strs,
-#             style="Same Topic",
-#             style_order=[False, True],
-#             col="Eval Topic (Val Split)",
-#             row="models_to_attack",
-#             facet_kws={"margin_titles": True},
-#         )
-#         g.set_axis_labels(
-#             "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
-#         )
-#         g.fig.suptitle("Evaluated Topics", y=1.0)
-#         g.set_titles(col_template="{col_name}", row_template="{row_name}")
-#         # g._legend.set_title("Evaluated Model")
-#         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-#         g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
-#         src.plot.save_plot_with_multiple_extensions(
-#             plot_dir=learning_curves_by_eval_model_dir,
-#             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}",
-#         )
-#         idx += 1
-#         # if metric == "loss/avg_epoch":
-#         g.set(
-#             xscale="log",
-#             yscale="log",
-#             ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
-#         )
-#         src.plot.save_plot_with_multiple_extensions(
-#             plot_dir=learning_curves_by_eval_model_dir,
-#             plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={idx}",
-#         )
-#         # plt.show()
-#         idx += 1
+# Convert baseline_losses to a DataFrame and transpose it for compatibility with df_numeric_loss
+baseline_row = pd.DataFrame(baseline_losses).transpose()
+baseline_row.index = ["Baseline"]  # Naming the index as 'Baseline'
+
+# Step 5: Append the baseline row to the df_numeric_loss DataFrame
+df_numeric_loss = pd.concat([baseline_row, df_numeric_loss])
+
+# Ensure columns match, if df_numeric_loss is summarized differently, adjust column names
+# df_numeric_loss_with_baseline = df_numeric_loss_with_baseline[df_numeric_loss.columns.tolist()]
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# breakpoint()
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# Increase figure size for better visibility
+plt.figure(figsize=(22, 18))
+
+# Define a custom color map
+cmap = sns.color_palette("Reds_r", as_cmap=True)
+cmap.set_bad(color="white")
+
+# Create a mask to separate mean scores visually
+# mask = np.zeros_like(df_numeric_loss, dtype=bool)
+# mask[-1, :] = True
+# mask[:, -1] = True
+
+# Create the heatmap with a custom mask for the mean values
+ax = sns.heatmap(
+    df_numeric_loss,
+    annot=True,
+    cmap=cmap,
+    fmt=".2f",
+    robust=True,
+    # mask=mask,
+    cbar_kws={"label": "Cross-Entropy Loss"},
+    linewidths=0.5,
+    linecolor="black",
+    square=True,
+    annot_kws={"size": 16},
+    vmax=1.05,
+)
+ax.hlines(len(loss_df_with_means), *ax.get_xlim(), color="white", linewidth=6)
+ax.vlines(
+    len(loss_df_with_means.columns) - 1, *ax.get_ylim(), color="white", linewidth=6
+)
+ax.hlines(1, *ax.get_xlim(), color="white", linewidth=6)
+
+xticks_labels = [tick.get_text() for tick in ax.get_xticklabels()]
+xticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Attack}}$"
+yticks_labels = [tick.get_text() for tick in ax.get_yticklabels()]
+yticks_labels[0] = r"$\mathbf{\underline{Baseline}}$"
+yticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Eval}}$"
+
+ax.set_xticklabels(xticks_labels)
+ax.set_yticklabels(yticks_labels)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_visible(False)
+ax.spines["bottom"].set_visible(False)
+# # Set thicker lines to separate means
+# for edge, spine in plt.gca().spines.items():
+#     spine.set_visible(True)
+#     spine.set_linewidth(2)
+# for spine in ax.spines.values():
+#     spine.set_visible(False)
+plt.title("Minimum Attained Cross-Entropy Loss", fontsize=24)
+plt.xlabel("Topic Evaluated", fontsize=20)
+plt.ylabel("Topic Attacked", fontsize=20)
+plt.xticks(rotation=45, ha="right", fontsize=16)
+plt.yticks(fontsize=16)
+# Save and show plot
+plt.tight_layout()
+plt.savefig(f"{heatmaps_dir}/loss.png", dpi=300)
+# plt.show()
+plt.close()
+
+# Claude
+claude_df = max_values["loss/score_model=claude3opus"].copy()
+claude_df.loc["Mean per Eval"] = claude_df.mean(axis=0)
+claude_df["Mean per Attack"] = claude_df.mean(axis=1)
+claude_df.iloc[-1, -1] = np.nan
+# Convert the updated DataFrame to numeric, handling non-numeric values
+df_numeric_loss = claude_df.apply(pd.to_numeric, errors="coerce")
+# Step 1: Filter out rows where 'loss' is NaN
+cleaned_df = eval_runs_histories_df.dropna(subset=["loss/score_model=claude3opus"])
+
+# Step 2: Group by 'eval_topic' and find the minimum '_step' for each topic where 'loss' is not NaN
+grouped = cleaned_df.groupby("Eval Topic (Val Split)")
+min_step_per_topic = grouped["_step"].min().reset_index()
+
+# Step 3: Merge to get rows that match the minimum step for each topic
+min_step_rows = pd.merge(
+    cleaned_df, min_step_per_topic, on=["Eval Topic (Val Split)", "_step"]
+)
+
+# Step 4: Calculate the mean loss for these rows if there are duplicates
+baseline_losses = min_step_rows.groupby("Eval Topic (Val Split)")[
+    "loss/score_model=claude3opus"
+].mean()
+
+# Convert baseline_losses to a DataFrame and transpose it for compatibility with df_numeric_loss
+baseline_row = pd.DataFrame(baseline_losses).transpose()
+baseline_row.index = ["Baseline"]  # Naming the index as 'Baseline'
+
+# Step 5: Append the baseline row to the df_numeric_loss DataFrame
+df_numeric_loss = pd.concat([baseline_row, df_numeric_loss])
+
+# Ensure columns match, if df_numeric_loss is summarized differently, adjust column names
+# df_numeric_loss_with_baseline = df_numeric_loss_with_baseline[df_numeric_loss.columns.tolist()]
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# breakpoint()
+
+# Now you can plot df_numeric_loss_with_baseline with the baseline included
+# Increase figure size for better visibility
+plt.figure(figsize=(22, 18))
+
+# Define a custom color map
+cmap = sns.color_palette("Reds", as_cmap=True)
+cmap.set_bad(color="white")
+
+# Create a mask to separate mean scores visually
+# mask = np.zeros_like(df_numeric_loss, dtype=bool)
+# mask[-1, :] = True
+# mask[:, -1] = True
+
+# Create the heatmap with a custom mask for the mean values
+ax = sns.heatmap(
+    df_numeric_loss,
+    annot=True,
+    cmap=cmap,
+    fmt=".2f",
+    robust=True,
+    # mask=mask,
+    cbar_kws={"label": "Harmful-Yet-Helpful Score"},
+    linewidths=0.5,
+    linecolor="black",
+    square=True,
+    annot_kws={"size": 16},
+    vmin=0.85,
+)
+ax.hlines(len(claude_df), *ax.get_xlim(), color="white", linewidth=6)
+ax.vlines(len(claude_df.columns) - 1, *ax.get_ylim(), color="white", linewidth=6)
+ax.hlines(1, *ax.get_xlim(), color="white", linewidth=6)
+
+xticks_labels = [tick.get_text() for tick in ax.get_xticklabels()]
+xticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Attack}}$"
+yticks_labels = [tick.get_text() for tick in ax.get_yticklabels()]
+yticks_labels[0] = r"$\mathbf{\underline{Baseline}}$"
+yticks_labels[-1] = r"$\mathbf{\underline{Mean~per~Eval}}$"
+for edge, spine in ax.spines.items():
+    spine.set_visible(False)
+ax.set_xticklabels(xticks_labels)
+ax.set_yticklabels(yticks_labels)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_visible(False)
+ax.spines["bottom"].set_visible(False)
+# # Set thicker lines to separate means
+# for edge, spine in plt.gca().spines.items():
+#     spine.set_visible(True)
+#     spine.set_linewidth(2)
+# for spine in ax.spines.values():
+#     spine.set_visible(False)
+plt.title("Maximum Attained Harmful-Yet-Helpful Score", fontsize=24)
+plt.xlabel("Topic Evaluated", fontsize=20)
+plt.ylabel("Topic Attacked", fontsize=20)
+plt.xticks(rotation=45, ha="right", fontsize=16)
+plt.yticks(fontsize=16)
+# Save and show plot
+plt.tight_layout()
+plt.savefig(f"{heatmaps_dir}/claude.png", dpi=300)
+# plt.show()
+plt.close()
+
+
+# Claude heatmap
+# Convert DataFrame to numeric type, replacing any remaining non-numeric values with NaN
+# claude_df = max_values["loss/score_model=claude3opus"]
+# df_numeric = claude_df.apply(pd.to_numeric, errors="coerce")
+
+# # Increase figure size for larger boxes
+# plt.figure(figsize=(20, 16))
+
+# # Create a custom colormap from blue to green to yellow
+# cmap = sns.color_palette("YlGnBu", as_cmap=True)
+# cmap.set_bad(color="lightgray")
+
+# # Use robust=True to compute color scale robustly to outliers
+# sns.heatmap(
+#     df_numeric,
+#     annot=True,
+#     cmap=cmap,
+#     fmt=".2f",
+#     robust=True,
+#     mask=df_numeric.isnull(),
+#     cbar_kws={"label": "Harmful-Yet-Helpful Score"},
+#     square=True,
+#     linewidths=0.5,
+#     annot_kws={"size": 14},
+# )
+
+# plt.title(
+#     f"Maximum Attained Harmful-Yet-Helpful Score",
+#     fontsize=20,
+# )
+# plt.xlabel("Topic Evaluated", fontsize=20)
+# plt.ylabel("Topic Attacked", fontsize=20)
+# plt.xticks(rotation=45, ha="right", fontsize=16)
+# plt.yticks(fontsize=16)
+
+# # Add more padding
+# plt.tight_layout(pad=3.0)
+
+# plt.savefig(f"{heatmaps_dir}/claude.pdf", dpi=300, bbox_inches="tight")
+# plt.close()
+
+
+# loss_df = min_values["loss/avg_epoch"]
+# df_numeric = loss_df.apply(pd.to_numeric, errors="coerce")
+
+# # Increase figure size for larger boxes
+# plt.figure(figsize=(20, 16))
+
+# # Create a custom colormap from blue to green to yellow
+# cmap = sns.color_palette("YlGnBu", as_cmap=True)
+# cmap.set_bad(color="lightgray")
+
+# # Use robust=True to compute color scale robustly to outliers
+# sns.heatmap(
+#     df_numeric,
+#     annot=True,
+#     cmap=cmap,
+#     fmt=".2f",
+#     robust=True,
+#     mask=df_numeric.isnull(),
+#     cbar_kws={"label": "Cross-Entropy Loss"},
+#     square=True,
+#     linewidths=0.5,
+#     annot_kws={"size": 14},
+# )
+
+# plt.title(
+#     f"Minimum Attained Cross-Entropy Loss",
+#     fontsize=20,
+# )
+# plt.xlabel("Topic Evaluated", fontsize=20)
+# plt.ylabel("Topic Attacked", fontsize=20)
+# plt.xticks(rotation=45, ha="right", fontsize=16)
+# plt.yticks(fontsize=16)
+
+# # Add more padding
+# plt.tight_layout(pad=3.0)
+
+# plt.savefig(f"{heatmaps_dir}/loss.pdf", dpi=300, bbox_inches="tight")
+# plt.close()
+# print("Heatmaps have been generated and saved in the results directory.")
+
+# # Diagnostic information
+# print("\nDiagnostic Information:")
+# for metric, df in min_values.items():
+#     print(f"\nMetric: {metric}")
+#     print("Data types:")
+#     print(df.dtypes)
+#     print("\nNumber of NaN values:")
+#     print(df.isna().sum())
+#     print("\nSample data:")
+#     print(df.head())
+#     print(
+#         "\nPercentage of missing values:", (df.isna().sum().sum() / df.size) * 100, "%"
+#     )
+
+# # Compute mean scores per attack topic for Minimum Loss and Maximum Claude
+# mean_scores_attack_topic = {
+#     "Min Loss": min_values["loss/avg_epoch"].mean(
+#         axis=1
+#     ),  # Mean across columns (eval topics)
+#     "Max Claude": max_values["loss/score_model=claude3opus"].mean(axis=1),
+# }
+
+# # Compute mean scores per eval topic for Minimum Loss and Maximum Claude
+# mean_scores_eval_topic = {
+#     "Min Loss": min_values["loss/avg_epoch"].mean(
+#         axis=0
+#     ),  # Mean across rows (attack topics)
+#     "Max Claude": max_values["loss/score_model=claude3opus"].mean(axis=0),
+# }
+
+# # Convert the mean scores dictionaries to DataFrame for better tabular presentation
+# mean_scores_attack_topic_df = pd.DataFrame(mean_scores_attack_topic)
+# mean_scores_eval_topic_df = pd.DataFrame(mean_scores_eval_topic)
+
+# # Print the mean scores tables
+# print("Mean Scores per Attack Topic:")
+# print(mean_scores_attack_topic_df)
+# print("\nMean Scores per Eval Topic:")
+# print(mean_scores_eval_topic_df)
+
+# # # Function to calculate mean scores
+# # def calculate_mean_scores(data, metric, value_type):
+# #     # Calculate means for attack topics and eval topics
+# #     attack_means = data[metric].mean(axis=1)
+# #     eval_means = data[metric].mean(axis=0)
+
+# #     # Calculate statistics of these means
+# #     attack_stats = pd.Series(
+# #         {
+# #             "Mean of Means": attack_means.mean(),
+# #             "Std.Dev of Means": attack_means.std(),
+# #             "Variance of Means": attack_means.var(),
+# #         }
+# #     )
+
+# #     eval_stats = pd.Series(
+# #         {
+# #             "Mean of Means": eval_means.mean(),
+# #             "Std.Dev of Means": eval_means.std(),
+# #             "Variance of Means": eval_means.var(),
+# #         }
+# #     )
+
+# #     print(f"\n{value_type} {metric} - Statistics of Attack Topic Means:")
+# #     print(attack_stats.to_string())
+# #     print(f"\n{value_type} {metric} - Statistics of Eval Topic Means:")
+# #     print(eval_stats.to_string())
+
+# #     # Optional: Print all means for reference
+# #     print(f"\nAll Attack Topic Means:")
+# #     print(attack_means.sort_values(ascending=False).to_string())
+# #     print(f"\nAll Eval Topic Means:")
+# #     print(eval_means.sort_values(ascending=False).to_string())
+
+
+# # # Calculate for minimum loss
+# # calculate_mean_scores(min_values, "loss/avg_epoch", "Minimum")
+
+# # # Calculate for maximum Claude score
+# # calculate_mean_scores(
+# #     max_values,
+# #     "loss/score_model=claude3opus",
+# #     "Maximum",
+# # )
+# # idx = 0
+# #
+# # for (
+# #     topics_to_attack,
+# #     eval_runs_histories_by_attack_topic_df,
+# # ) in eval_runs_histories_df.groupby("Attack Topic (Train Split)"):
+# #     for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT:
+# #         print(metric)
+# #         plt.close()
+# #         g = sns.relplot(
+# #             data=eval_runs_histories_by_attack_topic_df,
+# #             kind="line",
+# #             x="optimizer_step_counter_epoch",
+# #             y=metric,
+# #             hue="Eval Topic (Val Split)",
+# #             hue_order=unique_and_ordered_eval_topic_strs,
+# #             style="Same Topic",
+# #             style_order=[False, True],
+# #             col="Attack Topic (Train Split)",
+# #             row="models_to_attack",
+# #             facet_kws={"margin_titles": True},
+# #         )
+# #         g.set_axis_labels(
+# #             "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
+# #         )
+# #         g.fig.suptitle("Attacked Topics", y=1.0)
+# #         g.set_titles(col_template="{col_name}", row_template="{row_name}")
+# #         # g._legend.set_title("Evaluated Model")
+# #         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+# #         g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
+# #         src.plot.save_plot_with_multiple_extensions(
+# #             plot_dir=learning_curves_by_attack_model_dir,
+# #             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}",
+# #         )
+# #         idx += 1
+# #         # if metric == "loss/avg_epoch":
+# #         g.set(
+# #             xscale="log",
+# #             yscale="log",
+# #             ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
+# #         )
+# #         src.plot.save_plot_with_multiple_extensions(
+# #             plot_dir=learning_curves_by_attack_model_dir,
+# #             plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={idx}",
+# #         )
+# #         # plt.show()
+# #         idx += 1
+
+# # idx = 0
+# # for (
+# #     topics_to_eval,
+# #     eval_runs_histories_by_eval_topic_df,
+# # ) in eval_runs_histories_df.groupby("Eval Topic (Val Split)"):
+# #     for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT:
+# #         print(metric)
+# #         plt.close()
+# #         g = sns.relplot(
+# #             data=eval_runs_histories_by_eval_topic_df,
+# #             kind="line",
+# #             x="optimizer_step_counter_epoch",
+# #             y=metric,
+# #             hue="Attack Topic (Train Split)",
+# #             hue_order=unique_and_ordered_eval_topic_strs,
+# #             style="Same Topic",
+# #             style_order=[False, True],
+# #             col="Eval Topic (Val Split)",
+# #             row="models_to_attack",
+# #             facet_kws={"margin_titles": True},
+# #         )
+# #         g.set_axis_labels(
+# #             "Gradient Step", src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]
+# #         )
+# #         g.fig.suptitle("Evaluated Topics", y=1.0)
+# #         g.set_titles(col_template="{col_name}", row_template="{row_name}")
+# #         # g._legend.set_title("Evaluated Model")
+# #         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+# #         g.set(ylim=src.globals.METRICS_TO_BOUNDS_DICT[metric])
+# #         src.plot.save_plot_with_multiple_extensions(
+# #             plot_dir=learning_curves_by_eval_model_dir,
+# #             plot_title=f"prismatic_{metric[5:]}_vs_gradient_step_cols=eval_models_rows=attack_models={idx}",
+# #         )
+# #         idx += 1
+# #         # if metric == "loss/avg_epoch":
+# #         g.set(
+# #             xscale="log",
+# #             yscale="log",
+# #             ylim=(0.95 * eval_runs_histories_df[metric].min(), None),
+# #         )
+# #         src.plot.save_plot_with_multiple_extensions(
+# #             plot_dir=learning_curves_by_eval_model_dir,
+# #             plot_title=f"prismatic_{metric[5:]}_log_vs_gradient_step_log_cols=eval_models_rows=attack_models={idx}",
+# #         )
+# #         # plt.show()
+# #         idx += 1
