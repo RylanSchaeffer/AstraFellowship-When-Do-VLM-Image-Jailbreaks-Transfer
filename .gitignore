@@ -7,3 +7,4 @@ wandb/
 .env
 eval_data
 runs
+**/data/
