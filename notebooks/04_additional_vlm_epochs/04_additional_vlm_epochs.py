@@ -169,15 +169,13 @@ additional_epochs_eval_runs_histories_df = eval_runs_histories_df[
     & (eval_runs_histories_df["Evaluated Model"].isin(eval_model_order))
 ].copy()
 additional_epochs_eval_runs_histories_df[
-    "VLM Training Epochs"
+    "Eval VLM\nTraining Epochs"
 ] = additional_epochs_eval_runs_histories_df["Evaluated Model"].map(
     eval_model_num_epochs
 )
 unique_metrics_order = [
     "loss/avg_epoch",
-    "one_minus_score_model=claude3opus",
-    "one_minus_score_model=harmbench",
-    "one_minus_score_model=llamaguard2",
+    "loss/score_model=claude3opus",
 ]
 unique_metrics_nice_strings_order = [
     src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric] for metric in unique_metrics_order
@@ -189,7 +187,7 @@ additional_epochs_eval_runs_histories_tall_df = (
         id_vars=[
             "Attack Dataset (Train Split)",
             "Eval Dataset (Val Split)",
-            "VLM Training Epochs",
+            "Eval VLM\nTraining Epochs",
             "optimizer_step_counter_epoch",
         ],
         value_vars=unique_metrics_order,
@@ -208,6 +206,7 @@ additional_epochs_eval_runs_histories_tall_df[
     lambda k: src.globals.METRICS_TO_TITLE_STRINGS_DICT.get(k, k)
 )
 
+additional_epochs_eval_runs_histories_tall_df["Attacked VLM\nTraining Epochs"] = 1.0
 
 plt.close()
 g = sns.relplot(
@@ -217,11 +216,11 @@ g = sns.relplot(
     y="Score",
     col="Metric",
     col_order=unique_metrics_nice_strings_order,
-    col_wrap=2,
-    hue="VLM Training Epochs",
+    hue="Eval VLM\nTraining Epochs",
+    style="Attacked VLM\nTraining Epochs",
     # palette=custom_palette,
     palette="cool",
-    # palette="copper",
+    aspect=0.75,
     linewidth=3,
     facet_kws={"margin_titles": True, "sharey": False},
 )
