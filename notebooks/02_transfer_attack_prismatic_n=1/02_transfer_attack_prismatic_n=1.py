@@ -224,7 +224,7 @@ for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
             style="Attacked",
             style_order=[False, True],
             hue="Eval VLM",
-            col_wrap=6,
+            col_wrap=5,
             linewidth=3,
             aspect=0.75,
         )
@@ -232,7 +232,7 @@ for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
         g.set(xlim=(0, 50000), ylim=(0.0, 1.0))
         g.set_titles(col_template="{col_name}")
         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-        g.fig.suptitle(f"Transfer From VLM to New VLM", y=1.0)
+        g.fig.suptitle(f"Transfer From Single VLM to New VLM", y=1.0, fontsize=50)
         # Make space for the title.
         plt.subplots_adjust(top=0.9)
         src.plot.save_plot_with_multiple_extensions(
