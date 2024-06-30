@@ -67,11 +67,6 @@ eval_runs_configs_df["Eval VLM in\nAttacked Ensemble"] = eval_runs_configs_df.ap
     lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
 )
 
-# Add a column to indicate whether the eval model is in the attack models.
-eval_runs_configs_df["Eval VLM in\nAttacked Ensemble"] = eval_runs_configs_df.apply(
-    lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
-)
-
 # Download attack runs.
 attack_run_ids = eval_runs_configs_df["attack_run_id"].unique()
 print("Attack Run IDs: ", attack_run_ids.tolist())

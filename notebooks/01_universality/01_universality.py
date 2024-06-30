@@ -12,8 +12,8 @@ import src.globals
 import src.plot
 
 
-refresh = True
-# refresh = False
+# refresh = True
+refresh = False
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
     notebook_dir=os.path.dirname(os.path.abspath(__file__)),
@@ -30,11 +30,13 @@ sweep_ids = [
     "8nrhoa2q",  # Prismatic with N-Choose-1 Jailbreaks, AdvBench & Rylan Anthropic HHH (Part 6)
 ]
 
+wandb_username = "rylan"
 eval_runs_configs_df = src.analyze.download_wandb_project_runs_configs(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
+    wandb_username=wandb_username,
     finished_only=True,
 )
 eval_runs_configs_df["eval_dataset"] = eval_runs_configs_df["data"].apply(
@@ -93,9 +95,7 @@ universality_runs_configs_df = eval_runs_configs_df[
 
 unique_metrics_order = [
     "loss/avg_epoch",
-    "one_minus_score_model=claude3opus",
-    "one_minus_score_model=harmbench",
-    "one_minus_score_model=llamaguard2",
+    "loss/score_model=claude3opus",
 ]
 unique_datasets_order = ["advbench", "rylan_anthropic_hhh"]
 
@@ -109,37 +109,14 @@ unique_datasets_nice_strings_order = [
     for dataset in unique_datasets_order
 ]
 
-
-# universality_runs_configs_tall_df = universality_runs_configs_df.melt(
-#     id_vars=["attack_dataset", "eval_dataset"],
-#     value_vars=unique_metrics_order,
-#     var_name="Metric",
-#     value_name="Score",
-# )
-# universality_runs_configs_tall_df["Same Data Distribution"] = (
-#     universality_runs_configs_tall_df["attack_dataset"]
-#     == universality_runs_configs_tall_df["eval_dataset"]
-# )
-# universality_runs_configs_tall_df.rename(
-#     columns={
-#         "attack_dataset": "Attack Dataset (Train Split)",
-#         "eval_dataset": "Eval Dataset (Val Split)",
-#     },
-#     inplace=True,
-# )
-# # Convert metrics to nice strings.
-# universality_runs_configs_tall_df["Metric"] = universality_runs_configs_tall_df[
-#     "Metric"
-# ].replace(src.globals.METRICS_TO_NICE_STRINGS_DICT)
-
-
 # Load the heftier runs' histories dataframe.
 eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     wandb_project_path="universal-vlm-jailbreak-eval",
     data_dir=data_dir,
     sweep_ids=sweep_ids,
     refresh=refresh,
-    wandb_run_history_samples=50000,
+    wandb_run_history_samples=100000,
+    wandb_username=wandb_username,
     filetype="csv",
 )
 # Drop the vestigal "models_to_attack" column.
@@ -147,16 +124,6 @@ eval_runs_histories_df.drop(columns=["models_to_attack"], inplace=True)
 eval_runs_histories_df.rename(
     columns={"run_id": "eval_run_id", "wandb_attack_run_id": "attack_run_id"},
     inplace=True,
-)
-
-eval_runs_histories_df["one_minus_score_model=claude3opus"] = (
-    1.0 - eval_runs_histories_df["loss/score_model=claude3opus"]
-)
-eval_runs_histories_df["one_minus_score_model=harmbench"] = (
-    1.0 - eval_runs_histories_df["loss/score_model=harmbench"]
-)
-eval_runs_histories_df["one_minus_score_model=llamaguard2"] = (
-    1.0 - eval_runs_histories_df["loss/score_model=llamaguard2"]
 )
 
 
@@ -231,6 +198,7 @@ g = sns.relplot(
     col_wrap=2,
     style="Eval Dataset (Val Split)",
     style_order=unique_datasets_nice_strings_order,
+    aspect=0.75,
     hue="Attack Dataset (Train Split)",
     hue_order=unique_datasets_nice_strings_order,
     facet_kws={"margin_titles": True, "sharey": False},
@@ -262,6 +230,7 @@ g = sns.relplot(
     col_wrap=2,
     style="Eval Dataset (Val Split)",
     style_order=unique_datasets_nice_strings_order,
+    aspect=0.75,
     hue="Attack Dataset (Train Split)",
     hue_order=unique_datasets_nice_strings_order,
     facet_kws={"margin_titles": True, "sharey": False},
