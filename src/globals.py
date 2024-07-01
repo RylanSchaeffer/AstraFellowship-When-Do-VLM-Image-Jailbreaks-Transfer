@@ -80,6 +80,15 @@ MODELS_TO_NICE_STRINGS_DICT = {
     "prism-mistral-instruct-v0.2+7b+siglip": "Mistral Instr v0.2 7B + SigLIP",
     "prism-mistral-instruct-v0.2+7b+dinosiglip": "Mistral Instr v0.2 7B + DINOv2/SigLIP",
     "Qwen-VL-Chat": "Qwen VL Chat",
+    "one-stage+7b": "One Stage Training",
+    "reproduction-llava-v15+7b": "LLAVAv1.5 7B + CLIP (Repro)",
+    "train-1.25-epochs+7b": "1.25 Epochs",
+    "train-1.5-epochs+7b": "1.5 Epochs",
+    "train-2-epochs+7b": "2 Epochs",
+    "train-3-epochs+7b": "3 Epochs",
+    "llava-lvis4v+7b": "LVIS4V",
+    "llava-lrv+7b": "LRV",
+    "llava-lvis4v-lrv+7b": "LVIS4V+LRV",
 }
 
 

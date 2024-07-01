@@ -377,8 +377,43 @@ for attack_topic in topics:
 
                 max_values[metric].loc[attack_topic, eval_topic] = max_value
 
+# Dictionary to store the mean values for each metric
+mean_values = {
+    metric: pd.DataFrame(index=topics, columns=topics)
+    for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT
+}
+
+# Double loop to calculate mean values
+for attack_topic in topics:
+    attack_df = eval_runs_histories_df[
+        eval_runs_histories_df["Attack Topic (Train Split)"] == attack_topic
+    ]
+
+    for eval_topic in topics:
+        eval_df = attack_df[attack_df["Eval Topic (Val Split)"] == eval_topic]
+
+        for metric in src.globals.METRICS_TO_TITLE_STRINGS_DICT.keys():
+            if eval_df.empty:
+                mean_values[metric].loc[attack_topic, eval_topic] = np.nan
+            else:
+                filtered_eval_df = eval_df.dropna(subset=[metric])
+                # use 20% most recent steps
+                recent_steps = filtered_eval_df.nlargest(
+                    int(len(filtered_eval_df) * 0.2), "_step"
+                )
+
+                # Calculate mean, converting to numeric and ignoring NaN values
+                mean_value = pd.to_numeric(recent_steps[metric], errors="coerce").mean()
+
+                mean_values[metric].loc[attack_topic, eval_topic] = mean_value
+
+# Example of how to access the DataFrame for a specific metric
+print(
+    mean_values["loss/avg_epoch"]
+)  # Replace 'loss/avg_epoch' with your specific metric
+
 # Append mean values to the DataFrame
-loss_df_with_means = min_values["loss/avg_epoch"].copy()
+loss_df_with_means = mean_values["loss/avg_epoch"].copy()
 loss_df_with_means.loc["Mean per Eval"] = loss_df_with_means.mean(axis=0)
 loss_df_with_means["Mean per Attack"] = loss_df_with_means.mean(axis=1)
 loss_df_with_means.iloc[-1, -1] = np.nan
@@ -466,7 +501,7 @@ ax.spines["bottom"].set_visible(False)
 #     spine.set_linewidth(2)
 # for spine in ax.spines.values():
 #     spine.set_visible(False)
-plt.title("Minimum Attained Cross-Entropy Loss", fontsize=24)
+plt.title("Cross-Entropy Loss", fontsize=24)
 plt.xlabel("Topic Evaluated", fontsize=20)
 plt.ylabel("Topic Attacked", fontsize=20)
 plt.xticks(rotation=45, ha="right", fontsize=16)
@@ -478,7 +513,7 @@ plt.savefig(f"{heatmaps_dir}/loss.png", dpi=300)
 plt.close()
 
 # Claude
-claude_df = max_values["loss/score_model=claude3opus"].copy()
+claude_df = mean_values["loss/score_model=claude3opus"].copy()
 claude_df.loc["Mean per Eval"] = claude_df.mean(axis=0)
 claude_df["Mean per Attack"] = claude_df.mean(axis=1)
 claude_df.iloc[-1, -1] = np.nan
@@ -566,7 +601,7 @@ ax.spines["bottom"].set_visible(False)
 #     spine.set_linewidth(2)
 # for spine in ax.spines.values():
 #     spine.set_visible(False)
-plt.title("Maximum Attained Harmful-Yet-Helpful Score", fontsize=24)
+plt.title("Harmful-Yet-Helpful Score", fontsize=24)
 plt.xlabel("Topic Evaluated", fontsize=20)
 plt.ylabel("Topic Attacked", fontsize=20)
 plt.xticks(rotation=45, ha="right", fontsize=16)
