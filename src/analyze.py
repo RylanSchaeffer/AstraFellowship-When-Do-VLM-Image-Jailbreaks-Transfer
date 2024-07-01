@@ -1,4 +1,5 @@
 import ast
+import hashlib
 import os
 import pandas as pd
 import pyarrow
@@ -123,8 +124,10 @@ def download_wandb_project_runs_configs_by_run_ids(
     filetype: str = "csv",
 ) -> pd.DataFrame:
     assert filetype in {"csv", "feather", "parquet"}
+    # hashed_run_ds = hashlib.md5("".join(run_ids).encode()).hexdigest()
+    # TODO: Keeping only the first 10 to keep a short length is not a good general solution.
     runs_configs_df_path = os.path.join(
-        data_dir, "runs=" + ",".join(run_ids) + f"_runs_configs.{filetype}"
+        data_dir, "runs=" + ",".join(run_ids[:10]) + f"_runs_configs.{filetype}"
     )
     if refresh or not os.path.isfile(runs_configs_df_path):
         # Download sweep results
@@ -226,6 +229,7 @@ def download_wandb_project_runs_histories(
     keys: List[str] = None,
     wandb_username: str = None,
     filetype: str = "csv",
+    nrows_to_read: Optional[int] = None,
 ) -> pd.DataFrame:
     if keys is None:
         keys = ["losses_train/loss_epoch", "losses_val/loss"]
@@ -300,7 +304,7 @@ def download_wandb_project_runs_histories(
 
     print(f"Loading {runs_histories_df_path} from disk.")
     if filetype == "csv":
-        runs_histories_df = pd.read_csv(runs_histories_df_path)
+        runs_histories_df = pd.read_csv(runs_histories_df_path, nrows=nrows_to_read)
     elif filetype == "feather":
         runs_histories_df = pd.read_feather(runs_histories_df_path)
     elif filetype == "parquet":

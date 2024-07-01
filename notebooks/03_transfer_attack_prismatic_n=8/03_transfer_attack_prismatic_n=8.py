@@ -67,11 +67,6 @@ eval_runs_configs_df["Eval VLM in\nAttacked Ensemble"] = eval_runs_configs_df.ap
     lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
 )
 
-# Add a column to indicate whether the eval model is in the attack models.
-eval_runs_configs_df["Eval VLM in\nAttacked Ensemble"] = eval_runs_configs_df.apply(
-    lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
-)
-
 # Download attack runs.
 attack_run_ids = eval_runs_configs_df["attack_run_id"].unique()
 print("Attack Run IDs: ", attack_run_ids.tolist())
@@ -208,8 +203,11 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
             sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
             plt.title(
-                f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking $N=8$ Ensembled VLMs"
+                f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking Ensemble of $N=8$ VLMs",
+                fontsize=50,
             )
+            # Make space for the title.
+            plt.subplots_adjust(top=0.9)
             plt.xticks(rotation=45, ha="right")
             src.plot.save_plot_with_multiple_extensions(
                 plot_dir=attack_failure_rate_scatterplots_eval_dataset_attack_dataset_dir,
@@ -412,7 +410,7 @@ for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
         )
         g.set(xlim=(0, 50000))
         g.set_axis_labels("Gradient Step")
-        g.fig.suptitle("Transfer From VLM Ensemble to New VLM", y=1.0)
+        g.fig.suptitle("Transfer From Ensemble of VLMs to New VLM", y=1.0)
         g.set_titles(col_template="{col_name}")
         # Set the y-lim per axis
         for ax, key in zip(g.axes.flat, unique_metrics_order):

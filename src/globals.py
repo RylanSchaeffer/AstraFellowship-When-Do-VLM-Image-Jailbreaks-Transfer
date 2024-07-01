@@ -6,6 +6,11 @@ DATASETS_TO_NICE_STRINGS_DICT = {
     "rylan_anthropic_hhh": "Anthropic HHH",
 }
 
+IMAGE_INITIALIZATION_TO_STRINGS_DICT = {
+    "random": "Random",
+    "trina": "Natural",
+}
+
 METRICS_TO_FILENAME_STRINGS_DICT = {
     "loss/avg_epoch": "cross_entropy",
     "loss/score_model=claude3opus": "claude3opus",
