@@ -268,7 +268,7 @@ for metric in metrics:
 
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=lines_dir,
-        plot_title=f"{metric[5:]}_lines",
+        plot_title=f"topic_lines_{metric[5:]}",
     )
 
     plt.close(fig)

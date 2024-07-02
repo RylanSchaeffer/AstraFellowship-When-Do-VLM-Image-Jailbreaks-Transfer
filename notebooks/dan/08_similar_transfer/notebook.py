@@ -190,6 +190,15 @@ for metric in [
         )
     )
 
+    # Add a column to indicate whether the eval model is in the attack models.
+    df["Eval VLM in\nAttacked Ensemble"] = df.apply(
+        lambda row: list(ast.literal_eval(row["model_to_eval"]))[0]
+        in ast.literal_eval(row["models_to_attack"]),
+        axis=1,
+    )
+    # Make a duplicate without the newline.
+    df["Eval VLM in Attacked VLMs Ensemble"] = df["Eval VLM in\nAttacked Ensemble"]
+
     # Switch attack_model_names and eval_model_name to nice strings.
     df["model_to_eval"] = df["model_to_eval"].apply(
         src.analyze.map_string_set_of_models_to_nice_string
@@ -197,14 +206,6 @@ for metric in [
     df["models_to_attack"] = df["models_to_attack"].apply(
         src.analyze.map_string_set_of_models_to_nice_string
     )
-
-    # Add a column to indicate whether the eval model is in the attack models.
-    df["Eval VLM in\nAttacked Ensemble"] = df.apply(
-        lambda row: row["model_to_eval"] in row["models_to_attack"], axis=1
-    )
-    # Make a duplicate without the newline.
-    df["Eval VLM in Attacked VLMs Ensemble"] = df["Eval VLM in\nAttacked Ensemble"]
-
     df["Attacked VLMs Ensemble"] = df["models_to_attack"]
     # for the n=8's, each model has an in-ensemble result from each of 8 attack model combos. aggregate these to reduce clutter.
     condition = (df["num_attack_models"] == 8) & (
@@ -234,15 +235,15 @@ for metric in [
     subset_not_to_aggregate["aggregated"] = False
 
     model_order = [
-        "One Stage Training",
-        "LLAVAv1.5 7B + CLIP (Repro)",
-        "1.25 Epochs",
-        "1.5 Epochs",
-        "2 Epochs",
-        "3 Epochs",
-        "LVIS4V",
-        "LRV",
-        "LVIS4V+LRV",
+        "One-Stage Training (1S)",
+        "Two-Stage Training",
+        "1S, 1.25 Epochs",
+        "1S, 1.5 Epochs",
+        "1S, 2 Epochs",
+        "1S, 3 Epochs",
+        "1S + LVIS-Instruct-4V",
+        "1S + LRV-Instruct",
+        "1S + LVIS + LRV",
     ]
     final_df = pd.concat(
         [aggregated_subset, subset_not_to_aggregate], ignore_index=True
@@ -274,13 +275,13 @@ for metric in [
     plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
     sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
     plt.title(
-        f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking Similar VLMs with ensembles of different sizes"
+        f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores when Attacking Similar VLMs with ensembles of different sizes"
     )
     # g.tick_params("x", rotation=90)
     plt.xticks(rotation=45, ha="right")
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
-        plot_title=f"metric={metric_as_filename}_scatter",
+        plot_title=f"similar_model_scatter_{metric_as_filename}",
     )
     # plt.show()
 

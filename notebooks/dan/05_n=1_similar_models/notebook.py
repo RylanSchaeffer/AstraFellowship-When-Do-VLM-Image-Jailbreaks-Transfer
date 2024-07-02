@@ -208,7 +208,6 @@ eval_runs_histories_df["Attack Model Type"] = eval_runs_histories_df[
 learning_curves_from_base_dir = os.path.join(results_dir, "learning_curves_from_base")
 
 learning_curves_to_base_dir = os.path.join(results_dir, "learning_curves_to_base")
-
 os.makedirs(learning_curves_from_base_dir, exist_ok=True)
 os.makedirs(learning_curves_to_base_dir, exist_ok=True)
 
