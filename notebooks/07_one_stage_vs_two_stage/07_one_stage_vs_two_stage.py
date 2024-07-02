@@ -221,7 +221,9 @@ g = sns.relplot(
 )
 g.set(xlim=(0, 50000))
 g.set_axis_labels("Gradient Step")
-g.fig.suptitle("Transfer Between VLM Trained for 1 Stage vs 2 Stages", y=1.0)
+g.fig.suptitle(
+    "Transfer Between VLM Trained for 1 Stage vs 2 Stages", y=1.0, fontsize=35
+)
 g.set_titles(col_template="{col_name}")
 # Set the y-lim per axis
 for ax, key in zip(g.axes.flat, unique_metrics_order):
