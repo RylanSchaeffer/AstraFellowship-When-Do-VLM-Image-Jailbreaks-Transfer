@@ -6,17 +6,19 @@ import pandas as pd
 import seaborn as sns
 
 
+sns.set_style("whitegrid")
+
+
 # Enable LaTeX rendering.
 # https://stackoverflow.com/a/23856968
 # plt.rc('text', usetex=True)
-# plt.rc('text.latex', preamble=r'\usepackage{amsmath}\usepackage {foo - name}`...')
 plt.rcParams["text.usetex"] = True
-preamble_commands = [r"\usepackage{amsmath}"]  # Can add more commands to this list
-plt.rcParams["text.latex.preamble"] = "\n".join(preamble_commands)
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = "Computer Modern"
+# Can add more commands to this list
+plt.rcParams["text.latex.preamble"] = "\n".join([r"\usepackage{amsmath}"])
 # Increase font size.
-plt.rcParams.update({"font.size": 22})
-
-sns.set_style("whitegrid")
+plt.rcParams["font.size"] = 22
 
 
 def save_plot_with_multiple_extensions(plot_dir: str, plot_title: str):

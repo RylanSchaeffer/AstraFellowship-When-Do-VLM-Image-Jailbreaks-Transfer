@@ -203,7 +203,7 @@ for eval_dataset in eval_runs_configs_df["eval_dataset"].unique():
             plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
             sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
             plt.title(
-                f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking Ensemble of $N=8$ VLMs",
+                f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores of Attacking Ensemble of $N=8$  VLMs",
                 fontsize=50,
             )
             # Make space for the title.
