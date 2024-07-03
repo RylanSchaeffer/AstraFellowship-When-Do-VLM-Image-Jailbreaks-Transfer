@@ -171,6 +171,12 @@ for metric in [
         ["models_to_attack", "model_to_eval", metric, "num_attack_models"]
     ]
 
+    aggregation_cols = {
+        metric: "mean",
+        "model_to_eval": "first",
+        "models_to_attack": "first",
+        "num_attack_models": "first",
+    }
     df = eval_runs_histories_df.copy()
     df = df.dropna(subset=[metric])
     df = (
@@ -180,14 +186,7 @@ for metric in [
         )  # limit to the final 20% of eval steps
         .reset_index(drop=True)
         .groupby("eval_run_id")
-        .agg(
-            {
-                metric: "mean",
-                "model_to_eval": "first",
-                "models_to_attack": "first",
-                "num_attack_models": "first",
-            }
-        )
+        .agg(aggregation_cols)
     )
 
     # Add a column to indicate whether the eval model is in the attack models.
@@ -198,6 +197,7 @@ for metric in [
     )
     # Make a duplicate without the newline.
     df["Eval VLM in Attacked VLMs Ensemble"] = df["Eval VLM in\nAttacked Ensemble"]
+    aggregation_cols.update({"Eval VLM in Attacked VLMs Ensemble": "first"})
 
     # Switch attack_model_names and eval_model_name to nice strings.
     df["model_to_eval"] = df["model_to_eval"].apply(
@@ -207,32 +207,11 @@ for metric in [
         src.analyze.map_string_set_of_models_to_nice_string
     )
     df["Attacked VLMs Ensemble"] = df["models_to_attack"]
-    # for the n=8's, each model has an in-ensemble result from each of 8 attack model combos. aggregate these to reduce clutter.
-    condition = (df["num_attack_models"] == 8) & (
-        df["Eval VLM in Attacked VLMs Ensemble"]
-    )
-    subset_to_aggregate = df[condition]
-    subset_not_to_aggregate = df[~condition]
-    aggregation_methods = {
-        col: "first"
-        for col in subset_to_aggregate.columns
-        if col
-        not in [
-            "loss/avg_epoch",
-            "loss/score_model=claude3opus",
-        ]
-    }
-    aggregation_methods.update(
-        {
-            metric: "mean",
-        }
-    )
 
-    aggregated_subset = subset_to_aggregate.groupby(
-        "model_to_eval", as_index=False
-    ).agg(aggregation_methods)
-    aggregated_subset["aggregated"] = True
-    subset_not_to_aggregate["aggregated"] = False
+    df = df.groupby(
+        ["model_to_eval", "num_attack_models", "Eval VLM in Attacked VLMs Ensemble"],
+        as_index=False,
+    ).agg(aggregation_cols)
 
     model_order = [
         "One-Stage Training (1S)",
@@ -245,45 +224,140 @@ for metric in [
         "1S + LRV-Instruct",
         "1S + LVIS + LRV",
     ]
-    final_df = pd.concat(
-        [aggregated_subset, subset_not_to_aggregate], ignore_index=True
-    )
 
     # Sort based on the evaluated VLMs.
-    final_df.sort_values(by="model_to_eval", inplace=True)
+    df.sort_values(by="model_to_eval", inplace=True)
 
     # Create a categorical type with the sorted order
-    final_df["model_to_eval_categorical"] = pd.Categorical(
-        final_df["model_to_eval"],
+    df["model_to_eval_categorical"] = pd.Categorical(
+        df["model_to_eval"],
         categories=model_order,
         ordered=True,
     )
 
     plt.close()
+    # plt.figure(figsize=(24, 16))
+    # g = sns.scatterplot(
+    #     data=df,
+    #     x="model_to_eval_categorical",
+    #     y=metric,
+    #     hue="Eval VLM in Attacked VLMs Ensemble",
+    #     style="num_attack_models",
+    #     markers=["o", "X", "D"],
+    #     s=500,
+    # )
+    # plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
+    # plt.xlabel("Evaluated VLMs")
+    # plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
+    # sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
+    # plt.title(
+    #     f"Impact of Ensemble Size on Similar-Model Transfer",
+    #     fontsize=35,
+    # )
+    # # g.tick_params("x", rotation=90)
+    # plt.xticks(rotation=45, ha="right")
+    # src.plot.save_plot_with_multiple_extensions(
+    #     plot_dir=results_dir,
+    #     plot_title=f"similar_model_scatter_{metric_as_filename}",
+    # )
+    # # # plt.show()
+
+    # # plt.close()
+    # plt.close()
+    # plt.figure(figsize=(24, 16))
+    # # First, create the line plot
+    # sns.lineplot(
+    #     data=df,
+    #     x="num_attack_models",
+    #     y=metric,
+    #     hue="model_to_eval_categorical",
+    #     style="Eval VLM in Attacked VLMs Ensemble",
+    #     markers=False,
+    #     alpha=0.7,
+    # )
+
+    # # Then, overlay the scatter plot
+    # g = sns.scatterplot(
+    #     data=df,
+    #     x="num_attack_models",
+    #     y=metric,
+    #     hue="model_to_eval_categorical",
+    #     style="Eval VLM in Attacked VLMs Ensemble",
+    #     markers=["o", "X"],
+    #     s=500,
+    #     legend=False,  # We don't need a second legend
+    # )
+
+    # plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
+    # plt.xlabel("Number of Attack Models")
+    # plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
+    # sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
+    # plt.title(
+    #     f"Impact of Ensemble Size on Similar-Model Transfer",
+    #     fontsize=35,
+    # )
+    # plt.xticks(rotation=0)
+
+    # # Adjust x-axis to show only integer values
+    # x_ticks = sorted(df["num_attack_models"].unique())
+    # plt.xticks(x_ticks)
+    # src.plot.save_plot_with_multiple_extensions(
+    #     plot_dir=results_dir,
+    #     plot_title=f"alt_similar_model_scatter_{metric_as_filename}",
+    # )
+    # # plt.show()
+
+    # plt.close()
     plt.figure(figsize=(24, 16))
-    g = sns.scatterplot(
-        data=final_df,
+
+    df_plot = df.copy()
+    df_plot["bar_group"] = (
+        df_plot["num_attack_models"].astype(str)
+        + "_"
+        + df_plot["Eval VLM in Attacked VLMs Ensemble"].astype(str)
+    )
+
+    # Create the grouped bar chart
+    ax = sns.barplot(
         x="model_to_eval_categorical",
         y=metric,
-        hue="Eval VLM in Attacked VLMs Ensemble",
-        style="num_attack_models",
-        markers=["o", "X", "D"],
-        s=500,
+        hue="bar_group",
+        data=df_plot,
+        palette="Set2",
     )
-    plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
-    plt.xlabel("Evaluated VLMs")
-    plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
-    sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
+
     plt.title(
-        f"Impact of Ensemble Size on Similar-Model Transfer",
+        f"Impact of Ensemble Size on Similar-Model Transfer\nGrouped by Evaluated VLMs",
         fontsize=35,
     )
-    # g.tick_params("x", rotation=90)
+    plt.xlabel("Evaluated VLMs")
+    plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
+
+    # Customize legend
+    handles, labels = ax.get_legend_handles_labels()
+    new_labels = [
+        f"Attack Models: {l.split('_')[0]}, In Ensemble: {l.split('_')[1]}"
+        for l in labels
+    ]
+    plt.legend(
+        handles,
+        new_labels,
+        title="Number of Attack Models and Ensemble Inclusion",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+    )
+
+    # Rotate x-axis labels
     plt.xticks(rotation=45, ha="right")
+
+    # Add value labels on top of each bar
+    for container in ax.containers:
+        ax.bar_label(container, fmt="%.2f", padding=3)
+
+    plt.tight_layout()
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
-        plot_title=f"similar_model_scatter_{metric_as_filename}",
+        plot_title=f"grouped_bar_chart_correct_{metric_as_filename}",
     )
-    # plt.show()
 
     plt.close()
