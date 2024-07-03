@@ -275,7 +275,8 @@ for metric in [
     plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
     sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
     plt.title(
-        f"{src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric]} Scores when Attacking Similar VLMs with ensembles of different sizes"
+        f"Impact of Ensemble Size on Similar-Model Transfer",
+        fontsize=35,
     )
     # g.tick_params("x", rotation=90)
     plt.xticks(rotation=45, ha="right")
