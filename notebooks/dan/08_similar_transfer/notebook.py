@@ -207,7 +207,6 @@ for metric in [
         src.analyze.map_string_set_of_models_to_nice_string
     )
     df["Attacked VLMs Ensemble"] = df["models_to_attack"]
-
     df = df.groupby(
         ["model_to_eval", "num_attack_models", "Eval VLM in Attacked VLMs Ensemble"],
         as_index=False,
@@ -235,129 +234,53 @@ for metric in [
         ordered=True,
     )
 
+    in_ensemble = df[df["Eval VLM in Attacked VLMs Ensemble"] == True]
+    out_of_ensemble = df[df["Eval VLM in Attacked VLMs Ensemble"] == False]
     plt.close()
-    # plt.figure(figsize=(24, 16))
-    # g = sns.scatterplot(
-    #     data=df,
-    #     x="model_to_eval_categorical",
-    #     y=metric,
-    #     hue="Eval VLM in Attacked VLMs Ensemble",
-    #     style="num_attack_models",
-    #     markers=["o", "X", "D"],
-    #     s=500,
-    # )
-    # plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
-    # plt.xlabel("Evaluated VLMs")
-    # plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
-    # sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
-    # plt.title(
-    #     f"Impact of Ensemble Size on Similar-Model Transfer",
-    #     fontsize=35,
-    # )
-    # # g.tick_params("x", rotation=90)
-    # plt.xticks(rotation=45, ha="right")
-    # src.plot.save_plot_with_multiple_extensions(
-    #     plot_dir=results_dir,
-    #     plot_title=f"similar_model_scatter_{metric_as_filename}",
-    # )
-    # # # plt.show()
-
-    # # plt.close()
-    # plt.close()
-    # plt.figure(figsize=(24, 16))
-    # # First, create the line plot
-    # sns.lineplot(
-    #     data=df,
-    #     x="num_attack_models",
-    #     y=metric,
-    #     hue="model_to_eval_categorical",
-    #     style="Eval VLM in Attacked VLMs Ensemble",
-    #     markers=False,
-    #     alpha=0.7,
-    # )
-
-    # # Then, overlay the scatter plot
-    # g = sns.scatterplot(
-    #     data=df,
-    #     x="num_attack_models",
-    #     y=metric,
-    #     hue="model_to_eval_categorical",
-    #     style="Eval VLM in Attacked VLMs Ensemble",
-    #     markers=["o", "X"],
-    #     s=500,
-    #     legend=False,  # We don't need a second legend
-    # )
-
-    # plt.ylim(src.globals.METRICS_TO_BOUNDS_DICT[metric])
-    # plt.xlabel("Number of Attack Models")
-    # plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
-    # sns.move_legend(g, "upper left", bbox_to_anchor=(1, 1))
-    # plt.title(
-    #     f"Impact of Ensemble Size on Similar-Model Transfer",
-    #     fontsize=35,
-    # )
-    # plt.xticks(rotation=0)
-
-    # # Adjust x-axis to show only integer values
-    # x_ticks = sorted(df["num_attack_models"].unique())
-    # plt.xticks(x_ticks)
-    # src.plot.save_plot_with_multiple_extensions(
-    #     plot_dir=results_dir,
-    #     plot_title=f"alt_similar_model_scatter_{metric_as_filename}",
-    # )
-    # # plt.show()
-
-    # plt.close()
     plt.figure(figsize=(24, 16))
-
-    df_plot = df.copy()
-    df_plot["bar_group"] = (
-        df_plot["num_attack_models"].astype(str)
-        + "_"
-        + df_plot["Eval VLM in Attacked VLMs Ensemble"].astype(str)
-    )
-
-    # Create the grouped bar chart
-    ax = sns.barplot(
-        x="model_to_eval_categorical",
+    g = sns.lineplot(
+        data=out_of_ensemble,
+        x="num_attack_models",
         y=metric,
-        hue="bar_group",
-        data=df_plot,
-        palette="Set2",
+        hue="model_to_eval_categorical",
+        style="Eval VLM in Attacked VLMs Ensemble",
+        markers=True,
+        markersize=15,
+        linewidth=2.0,
+        # alpha=0.7,
+    )
+    g.set_xscale("log", base=2)
+
+    # Calculate the maximum power of 2 in your data
+    max_power = int(np.log2(df["num_attack_models"].max()))
+
+    # Create tick locations: 2, 4, 8, 16, etc.
+    tick_locations = [2**i for i in range(1, max_power + 1)]
+
+    # Set x-axis ticks
+    plt.xticks(tick_locations, tick_locations)
+
+    # Add the horizontal band
+    plt.axhspan(
+        in_ensemble[metric].min(), in_ensemble[metric].max(), alpha=0.2, color="gray"
     )
 
-    plt.title(
-        f"Impact of Ensemble Size on Similar-Model Transfer\nGrouped by Evaluated VLMs",
-        fontsize=35,
-    )
-    plt.xlabel("Evaluated VLMs")
-    plt.ylabel(src.globals.METRICS_TO_LABELS_NICE_STRINGS_DICT[metric])
+    # Optionally, add text to label the band
+    # plt.text(
+    #     plt.xlim()[1],
+    #     (min_value + max_value) / 2,
+    #     "Range",
+    #     verticalalignment="center",
+    #     horizontalalignment="left",
+    # )
 
-    # Customize legend
-    handles, labels = ax.get_legend_handles_labels()
-    new_labels = [
-        f"Attack Models: {l.split('_')[0]}, In Ensemble: {l.split('_')[1]}"
-        for l in labels
-    ]
-    plt.legend(
-        handles,
-        new_labels,
-        title="Number of Attack Models and Ensemble Inclusion",
-        bbox_to_anchor=(1.05, 1),
-        loc="upper left",
-    )
+    # Adjust the y-axis limits if necessary
+    # y_min, y_max = plt.ylim()
+    # plt.ylim(min(y_min, min_value), max(y_max, max_value))
 
-    # Rotate x-axis labels
-    plt.xticks(rotation=45, ha="right")
-
-    # Add value labels on top of each bar
-    for container in ax.containers:
-        ax.bar_label(container, fmt="%.2f", padding=3)
-
-    plt.tight_layout()
+    # plt.tight_layout()
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
-        plot_title=f"grouped_bar_chart_correct_{metric_as_filename}",
+        plot_title=f"similar_model_scatter_{metric_as_filename}",
     )
-
     plt.close()
