@@ -161,6 +161,10 @@ eval_runs_histories_df["one_minus_score_model=llamaguard2"] = (
 # )
 
 print(4)
+bounds = {
+    "loss/avg_epoch": (0.90, 1.85),
+    "loss/score_model=claude3opus": (0.0, 1.0),
+}
 for metric in [
     "loss/avg_epoch",
     "loss/score_model=claude3opus",
@@ -227,8 +231,9 @@ for metric in [
     # Sort based on the evaluated VLMs.
     df.sort_values(by="model_to_eval", inplace=True)
 
+    df["Number of Attacked Models"] = df["num_attack_models"]
     # Create a categorical type with the sorted order
-    df["model_to_eval_categorical"] = pd.Categorical(
+    df["Evaluated Model"] = pd.Categorical(
         df["model_to_eval"],
         categories=model_order,
         ordered=True,
@@ -240,45 +245,29 @@ for metric in [
     plt.figure(figsize=(24, 16))
     g = sns.lineplot(
         data=out_of_ensemble,
-        x="num_attack_models",
+        x="Number of Attacked Models",
         y=metric,
-        hue="model_to_eval_categorical",
-        style="Eval VLM in Attacked VLMs Ensemble",
-        markers=True,
-        markersize=15,
+        hue="Evaluated Model",
         linewidth=2.0,
-        # alpha=0.7,
     )
     g.set_xscale("log", base=2)
+    g.set_ylim(bounds[metric])
+    g.set_ylabel(src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric])
+    g.set_title("Out-of-Ensemble Transfer with Increasing Ensemble Size", fontsize=35)
 
-    # Calculate the maximum power of 2 in your data
-    max_power = int(np.log2(df["num_attack_models"].max()))
-
-    # Create tick locations: 2, 4, 8, 16, etc.
-    tick_locations = [2**i for i in range(1, max_power + 1)]
+    tick_locations = [1, 2, 4, 8]
 
     # Set x-axis ticks
     plt.xticks(tick_locations, tick_locations)
-
-    # Add the horizontal band
-    plt.axhspan(
-        in_ensemble[metric].min(), in_ensemble[metric].max(), alpha=0.2, color="gray"
+    sns.scatterplot(
+        data=out_of_ensemble,
+        x="Number of Attacked Models",
+        y=metric,
+        hue="Evaluated Model",
+        s=400,
+        legend=False,
     )
 
-    # Optionally, add text to label the band
-    # plt.text(
-    #     plt.xlim()[1],
-    #     (min_value + max_value) / 2,
-    #     "Range",
-    #     verticalalignment="center",
-    #     horizontalalignment="left",
-    # )
-
-    # Adjust the y-axis limits if necessary
-    # y_min, y_max = plt.ylim()
-    # plt.ylim(min(y_min, min_value), max(y_max, max_value))
-
-    # plt.tight_layout()
     src.plot.save_plot_with_multiple_extensions(
         plot_dir=results_dir,
         plot_title=f"similar_model_scatter_{metric_as_filename}",
