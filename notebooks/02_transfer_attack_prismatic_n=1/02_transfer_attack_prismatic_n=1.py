@@ -121,6 +121,7 @@ eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     sweep_ids=sweep_ids,
     refresh=refresh,
     wandb_run_history_samples=1000000,
+    # nrows_to_read=500000,
     # nrows_to_read=5000000,
     filetype="csv",
     # filetype="feather",
@@ -187,8 +188,99 @@ eval_runs_histories_tall_df["Metric"] = eval_runs_histories_tall_df["Metric"].ma
     lambda k: src.globals.METRICS_TO_TITLE_STRINGS_DICT.get(k, k)
 )
 
+# Obtain the first optimizer_step_counter_epoch per eval_run_id.
+first_optimizer_step = (
+    eval_runs_histories_tall_df.groupby("eval_run_id")["optimizer_step_counter_epoch"]
+    .min()
+    .reset_index()
+)
+last_optimizer_step = (
+    eval_runs_histories_tall_df.groupby("eval_run_id")["optimizer_step_counter_epoch"]
+    .max()
+    .reset_index()
+)
+
+
+# Merge these with the original dataframe to get the corresponding rows
+first_optimizer_step_rows_df = (
+    pd.merge(
+        eval_runs_histories_tall_df,
+        first_optimizer_step,
+        on=["eval_run_id", "optimizer_step_counter_epoch"],
+        how="inner",
+    )
+    .rename(columns={"Score": "Initial Score"})
+    .drop(columns=["optimizer_step_counter_epoch"])
+)
+
+last_optimizer_step_rows_df = (
+    pd.merge(
+        eval_runs_histories_tall_df,
+        last_optimizer_step,
+        on=["eval_run_id", "optimizer_step_counter_epoch"],
+        how="inner",
+    )
+    .rename(columns={"Score": "Final Score"})
+    .drop(columns=["optimizer_step_counter_epoch"])
+)
+
+# Combine first and last rows into a single dataframe
+first_and_last_optimizer_step_df = pd.merge(
+    first_optimizer_step_rows_df,
+    last_optimizer_step_rows_df,
+    on=[
+        "eval_run_id",
+        "attack_run_id",
+        "attack_dataset",
+        "eval_dataset",
+        "Eval VLM",
+        "models_to_attack",
+        "Image Initialization",
+        "Attacked",
+        "Metric",
+        "Original Metric",
+    ],
+    how="inner",
+)
+
+
+plt.close()
+g = sns.relplot(
+    data=first_and_last_optimizer_step_df,
+    kind="scatter",
+    x="Initial Score",
+    y="Final Score",
+    col="models_to_attack",
+    col_order=sorted_unique_attacked_models,
+    style="Attacked",
+    style_order=[False, True],
+    hue="Eval VLM",
+    col_wrap=5,
+    s=250,
+    aspect=0.75,
+)
+line = np.linspace(0.0, 1.0, 100)
+for ax in g.axes.flat:
+    ax.plot(line, line, "k--")
+g.set_axis_labels("Harmful-Yet-Helpful (Initial)", "Harmful-Yet-Helpful (Final)")
+g.set(xlim=(0.0, 1.0), ylim=(0.0, 1.0))
+# Add identity line to each axis.
+g.set_titles(col_template="{col_name}")
+sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
+g.fig.suptitle("Transfer From Single VLM to New VLM", y=1.0, fontsize=60)
+# Make space for the title.
+plt.subplots_adjust(top=0.9)
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title=f"final_score_vs_initial_score_by_attacked_split_models_to_attack",
+)
+# plt.show()
+
+
 learning_curves_results_dir = os.path.join(results_dir, "learning_curves")
 os.makedirs(learning_curves_results_dir, exist_ok=True)
+
+
 for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
     learning_curves_eval_dataset_results_dir = os.path.join(
         learning_curves_results_dir, f"eval_dataset={eval_dataset}"
@@ -237,7 +329,7 @@ for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
         plt.subplots_adjust(top=0.9)
         src.plot.save_plot_with_multiple_extensions(
             plot_dir=learning_curves_eval_dataset_attack_dataset_results_dir,
-            plot_title=f"score_vs_optimizer_step_by_in_ensemble_split_metric_lineplot",
+            plot_title=f"score_vs_optimizer_step_by_attacked_split_models_to_attack",
         )
         # plt.show()
 
