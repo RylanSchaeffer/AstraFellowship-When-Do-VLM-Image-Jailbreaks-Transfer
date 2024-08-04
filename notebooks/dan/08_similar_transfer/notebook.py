@@ -160,20 +160,33 @@ eval_runs_histories_df["one_minus_score_model=llamaguard2"] = (
 #     inplace=True,
 # )
 
-print(4)
+plt.close()
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(36, 16))
+
+metrics = [
+    "loss/avg_epoch",
+    "loss/score_model=claude3opus",
+]
+
 bounds = {
     "loss/avg_epoch": (0.90, 1.85),
     "loss/score_model=claude3opus": (0.0, 1.0),
 }
-for metric in [
-    "loss/avg_epoch",
-    "loss/score_model=claude3opus",
-]:
-    metric_as_filename = src.globals.METRICS_TO_FILENAME_STRINGS_DICT[metric]
 
-    df = eval_runs_configs_df[
-        ["models_to_attack", "model_to_eval", metric, "num_attack_models"]
-    ]
+model_order = [
+    "One-Stage Training (1S)",
+    "Two-Stage Training",
+    "1S, 1.25 Epochs",
+    "1S, 1.5 Epochs",
+    "1S, 2 Epochs",
+    "1S, 3 Epochs",
+    "1S + LVIS-Instruct-4V",
+    "1S + LRV-Instruct",
+    "1S + LVIS + LRV",
+]
+
+for i, (metric, ax) in enumerate(zip(metrics, [ax1, ax2])):
+    metric_as_filename = src.globals.METRICS_TO_FILENAME_STRINGS_DICT[metric]
 
     aggregation_cols = {
         metric: "mean",
@@ -185,25 +198,19 @@ for metric in [
     df = df.dropna(subset=[metric])
     df = (
         df.groupby("eval_run_id")
-        .apply(
-            lambda x: x.nlargest(max(1, int(np.ceil(0.20 * len(x)))), "_step")
-        )  # limit to the final 20% of eval steps
+        .apply(lambda x: x.nlargest(max(1, int(np.ceil(0.20 * len(x)))), "_step"))
         .reset_index(drop=True)
         .groupby("eval_run_id")
         .agg(aggregation_cols)
     )
 
-    # Add a column to indicate whether the eval model is in the attack models.
-    df["Eval VLM in\nAttacked Ensemble"] = df.apply(
+    df["Eval VLM in Attacked VLMs Ensemble"] = df.apply(
         lambda row: list(ast.literal_eval(row["model_to_eval"]))[0]
         in ast.literal_eval(row["models_to_attack"]),
         axis=1,
     )
-    # Make a duplicate without the newline.
-    df["Eval VLM in Attacked VLMs Ensemble"] = df["Eval VLM in\nAttacked Ensemble"]
     aggregation_cols.update({"Eval VLM in Attacked VLMs Ensemble": "first"})
 
-    # Switch attack_model_names and eval_model_name to nice strings.
     df["model_to_eval"] = df["model_to_eval"].apply(
         src.analyze.map_string_set_of_models_to_nice_string
     )
@@ -216,49 +223,47 @@ for metric in [
         as_index=False,
     ).agg(aggregation_cols)
 
-    model_order = [
-        "One-Stage Training (1S)",
-        "Two-Stage Training",
-        "1S, 1.25 Epochs",
-        "1S, 1.5 Epochs",
-        "1S, 2 Epochs",
-        "1S, 3 Epochs",
-        "1S + LVIS-Instruct-4V",
-        "1S + LRV-Instruct",
-        "1S + LVIS + LRV",
-    ]
-
-    # Sort based on the evaluated VLMs.
     df.sort_values(by="model_to_eval", inplace=True)
 
     df["Number of Attacked Models"] = df["num_attack_models"]
-    # Create a categorical type with the sorted order
     df["Evaluated Model"] = pd.Categorical(
         df["model_to_eval"],
         categories=model_order,
         ordered=True,
     )
 
-    in_ensemble = df[df["Eval VLM in Attacked VLMs Ensemble"] == True]
     out_of_ensemble = df[df["Eval VLM in Attacked VLMs Ensemble"] == False]
-    plt.close()
-    plt.figure(figsize=(24, 16))
+
     g = sns.lineplot(
         data=out_of_ensemble,
         x="Number of Attacked Models",
         y=metric,
         hue="Evaluated Model",
         linewidth=2.0,
+        ax=ax,
     )
     g.set_xscale("log", base=2)
-    g.set_ylim(bounds[metric])
-    g.set_ylabel(src.globals.METRICS_TO_TITLE_STRINGS_DICT[metric])
-    g.set_title("Out-of-Ensemble Transfer with Increasing Ensemble Size", fontsize=35)
+    # if "loss" in metric:
+    #     g.set_yscale("log")
+    # g.set_ylim(bounds[metric])
+    g.set_ylabel("Cross Entropy Loss" if i == 0 else "Harmful-Yet-Helpful", fontsize=36)
+    g.set_title("Cross Entropy Loss" if i == 0 else "Claude 3 Opus", fontsize=40)
+    g.set_xlabel("Number of Attacked Models", fontsize=36)
+    if i == 1:
+        g.legend(
+            fontsize=32,
+            title_fontsize=32,
+            bbox_to_anchor=(1.05, 1),
+            loc="upper left",
+            title="Target VLM",
+        )
+    else:
+        g.legend().remove()
 
     tick_locations = [1, 2, 4, 8]
+    g.set_xticks(tick_locations)
+    g.set_xticklabels(tick_locations)
 
-    # Set x-axis ticks
-    plt.xticks(tick_locations, tick_locations)
     sns.scatterplot(
         data=out_of_ensemble,
         x="Number of Attacked Models",
@@ -266,10 +271,14 @@ for metric in [
         hue="Evaluated Model",
         s=400,
         legend=False,
+        ax=ax,
     )
+# plt.subplots_adjust(wspace=1)
+# plt.tight_layout()
+fig.suptitle("Transfer When Attacking Highly-Similar Ensembles", fontsize=50, y=1.05)
 
-    src.plot.save_plot_with_multiple_extensions(
-        plot_dir=results_dir,
-        plot_title=f"similar_model_scatter_{metric_as_filename}",
-    )
-    plt.close()
+src.plot.save_plot_with_multiple_extensions(
+    plot_dir=results_dir,
+    plot_title="combined_metrics_scatter",
+)
+plt.close()
