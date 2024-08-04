@@ -15,10 +15,12 @@ This repository contains the code for the paper
 
 There are 3-4 main components to this repository:
 
-1. Optimizing image jailbreaks against sets of VLMs
-2. Evaluating the transfer of jailbreaks to new VLMs
-3. Setting/sweeping hyperparameters for both
-4. Evaluating the results
+1. Optimizing image jailbreaks against sets of VLMs: [optimize_jailbreak_attacks_against_vlms.py](optimize_jailbreak_attacks_against_vlms.py).
+2. Evaluating the transfer of jailbreaks to new VLMs: [evaluate_jailbreak_attacks_against_vlms.py](evaluate_jailbreak_attacks_against_vlms.py).
+3. Setting/sweeping hyperparameters for both. This is done in two places. By default, the hyperparameters are set in [globals.py](src/globals.py) but can be overwritten with [W&B sweeps](sweeps). 
+4. Evaluating the results in [notebooks](notebooks).
+
+The project is built primarily on top of [PyTorch](https://pytorch.org/), [Lightning](https://lightning.ai/docs/pytorch/stable/), [W&B](https://wandb.ai) and the [Prismatic suite of VLMs](https://github.com/TRI-ML/prismatic-vlms).
 
 ## Training New VLMs
 
@@ -45,7 +47,7 @@ and the following language models:
 To cite this work, please use:
 
 ```bibtex
-@article{schaeffer2024universal,
+@article{schaeffer2024universaltransferableimagejailbreaks,
   title={When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?},
   author={Schaeffer, Rylan and Valentine, Dan and Bailey, Luke and Chua, James and Eyzaguirre, Crist{\'o}bal and Durante, Zane and Benton, Joe and Miranda, Brando and Sleight, Henry and Hughes, John and others},
   journal={arXiv preprint arXiv:2407.15211},
