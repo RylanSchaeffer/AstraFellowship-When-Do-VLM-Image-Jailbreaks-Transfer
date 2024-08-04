@@ -56,12 +56,14 @@ Note: Adding `--config-settings editable_mode=compat` is optional - it is for vs
 
 ## Usage
 
-There are 3-4 main components to this repository:
+There are 4 main components to this repository:
 
 1. Optimizing image jailbreaks against sets of VLMs: [optimize_jailbreak_attacks_against_vlms.py](optimize_jailbreak_attacks_against_vlms.py).
 2. Evaluating the transfer of jailbreaks to new VLMs: [evaluate_jailbreak_attacks_against_vlms.py](evaluate_jailbreak_attacks_against_vlms.py).
 3. Setting/sweeping hyperparameters for both. This is done in two places: default hyperparameters are set in [globals.py](src/globals.py) but can be overwritten with [W&B sweeps](sweeps). 
 4. Evaluating the results in [notebooks](notebooks).
+
+With the currently set hyperparameters, each VLM requires its own 80GB VRAM GPU (e.g., A100, H100). 
 
 The project is built primarily on top of [PyTorch](https://pytorch.org/), [Lightning](https://lightning.ai/docs/pytorch/stable/), [W&B](https://wandb.ai) and the [Prismatic suite of VLMs](https://github.com/TRI-ML/prismatic-vlms).
 
