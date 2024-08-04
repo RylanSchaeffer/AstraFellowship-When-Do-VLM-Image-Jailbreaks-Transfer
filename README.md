@@ -19,17 +19,17 @@ This repository contains code and figures for our paper
 
 `conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
 
-4. Update pip in preparation of the next step.
+4. Update pip.
 
 `pip install --upgrade pip`
 
 5. Install Pytorch:
 
-`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y`
+`conda install pytorch=2.3.0 torchvision=0.18.0 torchaudio=2.3.0 pytorch-cuda=12.1 -c pytorch -c nvidia -y`
 
 6. Install Lightning:
 
-`conda install lightning -c conda-forge -y`
+`conda install lightning=2.2.4 -c conda-forge -y`
 
 7. Grab the git submodules:
 
@@ -37,17 +37,18 @@ This repository contains code and figures for our paper
 
 8. Install Prismatic and (optionally) Deepseek (currently broken):
 
-Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
 `cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
 `cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
 
-9. Then follow their instructions:
+Note: Adding `--config-settings editable_mode=compat` is optional - it is for vscode to recognize the packages
 
-`pip install packaging ninja && pip install flash-attn --no-build-isolation`
+9. Then follow the Prismatic installation instructions:
+
+`pip install packaging ninja && pip install flash-attn==2.5.8 --no-build-isolation`
 
 10. Manually install a few additional packages:
 
-`conda install joblib pandas matplotlib seaborn black tiktoken nvidia-htop sentencepiece hf_transfer anthropic termcolor -y`
+`conda install joblib pandas matplotlib seaborn black tiktoken sentencepiece anthropic termcolor -y`
 
 11. Make sure to log in to W&B by running `wandb login`
 12. Login to Huggingface with `huggingface-cli login`
@@ -59,7 +60,7 @@ There are 3-4 main components to this repository:
 
 1. Optimizing image jailbreaks against sets of VLMs: [optimize_jailbreak_attacks_against_vlms.py](optimize_jailbreak_attacks_against_vlms.py).
 2. Evaluating the transfer of jailbreaks to new VLMs: [evaluate_jailbreak_attacks_against_vlms.py](evaluate_jailbreak_attacks_against_vlms.py).
-3. Setting/sweeping hyperparameters for both. This is done in two places. By default, the hyperparameters are set in [globals.py](src/globals.py) but can be overwritten with [W&B sweeps](sweeps). 
+3. Setting/sweeping hyperparameters for both. This is done in two places: default hyperparameters are set in [globals.py](src/globals.py) but can be overwritten with [W&B sweeps](sweeps). 
 4. Evaluating the results in [notebooks](notebooks).
 
 The project is built primarily on top of [PyTorch](https://pytorch.org/), [Lightning](https://lightning.ai/docs/pytorch/stable/), [W&B](https://wandb.ai) and the [Prismatic suite of VLMs](https://github.com/TRI-ML/prismatic-vlms).
@@ -84,6 +85,10 @@ and the following language models:
 - Llama 3 Instruct 8B
 - Mistral Instruct v0.2 7B
 - Phi 3 Instruct 4B
+
+## Contributing
+
+Contributions are welcome! Please format your code with [black](https://github.com/psf/black).
 
 ## Citation
 
