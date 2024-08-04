@@ -1,6 +1,6 @@
 # When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?
 
-This repository contains the code for the paper
+This repository contains code and figures for our paper
 [When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?](https://www.arxiv.org/abs/2407.15211).
 
 [![arXiv](https://img.shields.io/badge/arXiv-2407.15211-df2a2a.svg?style=for-the-badge)](https://arxiv.org/abs/2407.15211)
@@ -10,6 +10,48 @@ This repository contains the code for the paper
 
 
 ## Installation
+
+1. (Optional) Update conda:
+
+`conda update -n base -c defaults conda -y`
+
+2. Create and activate the conda environment:
+
+`conda create -n universal_vlm_jailbreak_env python=3.11 -y && conda activate universal_vlm_jailbreak_env`
+
+4. Update pip in preparation of the next step.
+
+`pip install --upgrade pip`
+
+5. Install Pytorch:
+
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y`
+
+6. Install Lightning:
+
+`conda install lightning -c conda-forge -y`
+
+7. Grab the git submodules:
+
+`git submodule update --init --recursive`
+
+8. Install Prismatic and (optionally) Deepseek (currently broken):
+
+Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
+`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
+
+9. Then follow their instructions:
+
+`pip install packaging ninja && pip install flash-attn --no-build-isolation`
+
+10. Manually install a few additional packages:
+
+`conda install joblib pandas matplotlib seaborn black tiktoken nvidia-htop sentencepiece hf_transfer anthropic termcolor -y`
+
+11. Make sure to log in to W&B by running `wandb login`
+12. Login to Huggingface with `huggingface-cli login`
+
 
 ## Usage
 
@@ -36,7 +78,8 @@ and include the following vision backbones:
 
 and the following language models:
 
-- Gemma Instruct 2B and 8B
+- Gemma Instruct 2B
+- Gemma Instruct 8B
 - Llama 2 Chat 7B
 - Llama 3 Instruct 8B
 - Mistral Instruct v0.2 7B
