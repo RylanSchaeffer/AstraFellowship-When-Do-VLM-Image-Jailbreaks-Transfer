@@ -11,8 +11,8 @@ import src.globals
 import src.plot
 
 
-# refresh = True
-refresh = False
+refresh = True
+# refresh = False
 finished_only = True
 
 data_dir, results_dir = src.analyze.setup_notebook_dir(
@@ -121,7 +121,6 @@ eval_runs_histories_df = src.analyze.download_wandb_project_runs_histories(
     sweep_ids=sweep_ids,
     refresh=refresh,
     wandb_run_history_samples=1000000,
-    # nrows_to_read=500000,
     # nrows_to_read=5000000,
     filetype="csv",
     # filetype="feather",
@@ -254,7 +253,11 @@ g = sns.relplot(
     col_order=sorted_unique_attacked_models,
     style="Attacked",
     style_order=[False, True],
+    size="Attacked",
+    size_order=[False, True],
+    sizes=[100, 400],
     hue="Eval VLM",
+    hue_order=sorted_unique_attacked_models,
     col_wrap=5,
     s=250,
     aspect=0.75,
@@ -267,9 +270,11 @@ g.set(xlim=(0.0, 1.0), ylim=(0.0, 1.0))
 # Add identity line to each axis.
 g.set_titles(col_template="{col_name}")
 sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-g.fig.suptitle("Transfer From Single VLM to New VLM", y=1.0, fontsize=60)
+g.fig.suptitle(
+    "Claude 3 Opus Scores of Transfer From Single VLM to New VLM", y=1.0, fontsize=65
+)
 # Make space for the title.
-plt.subplots_adjust(top=0.9)
+plt.subplots_adjust(top=0.8)
 src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title=f"final_score_vs_initial_score_by_attacked_split_models_to_attack",
@@ -324,7 +329,11 @@ for eval_dataset in eval_runs_histories_tall_df["eval_dataset"].unique():
         g.set(xlim=(0, 50000), ylim=(0.0, 1.0))
         g.set_titles(col_template="{col_name}")
         sns.move_legend(g, "upper left", bbox_to_anchor=(1.0, 1.0))
-        g.fig.suptitle("Transfer From Single VLM to New VLM", y=1.0, fontsize=60)
+        g.fig.suptitle(
+            "Claude 3 Opus Scores of Transfer From Single VLM to New VLM",
+            y=1.0,
+            fontsize=60,
+        )
         # Make space for the title.
         plt.subplots_adjust(top=0.9)
         src.plot.save_plot_with_multiple_extensions(
