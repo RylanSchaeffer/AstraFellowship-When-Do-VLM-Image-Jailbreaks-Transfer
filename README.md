@@ -53,6 +53,9 @@ Note: Adding `--config-settings editable_mode=compat` is optional - it is for vs
 11. Make sure to log in to W&B by running `wandb login`
 12. Login to Huggingface with `huggingface-cli login`
 
+13. (Critical) Install the correct `timm` version:
+
+`pip install timm==0.9.16`
 
 ## Usage
 
@@ -86,7 +89,7 @@ and the following language models:
 - Llama 2 Chat 7B
 - Llama 3 Instruct 8B
 - Mistral Instruct v0.2 7B
-- Phi 3 Instruct 4B
+- Phi 3 Instruct 4B (Note: Config is currently broken - needs minor fix)
 
 ## Contributing
 
