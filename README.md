@@ -35,7 +35,7 @@ This repository contains code and figures for our paper
 
 `git submodule update --init --recursive`
 
-8. Install Prismatic and (optionally) Deepseek (currently broken):
+8. Install [Prismatic](https://github.com/RylanSchaeffer/prismatic-vlms) and (optionally) Deepseek (currently broken):
 
 `cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
 `cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
