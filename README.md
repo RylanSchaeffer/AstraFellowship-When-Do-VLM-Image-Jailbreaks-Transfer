@@ -6,7 +6,7 @@ This repository contains code and figures for our paper
 [![arXiv](https://img.shields.io/badge/arXiv-2407.15211-df2a2a.svg?style=for-the-badge)](https://arxiv.org/abs/2407.15211)
 
 
-[**Installation**](#installation) | [**Usage**](#usage) | [**Training New VLMs**](#training-new-vlms) | [**Citation**](#citation) | [**Contact**](#contact)
+[**Installation**](#installation) | [**Usage**](#usage) | [**Training New VLMs**](#training-new-vlms) | [**Contributing**](#contributing) | [**Citation**](#citation) | [**Contact**](#contact)
 
 
 ## Installation
