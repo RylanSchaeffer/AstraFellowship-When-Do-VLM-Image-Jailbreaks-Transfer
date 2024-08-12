@@ -3,6 +3,8 @@
 This repository contains code and figures for our paper
 [When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?](https://www.arxiv.org/abs/2407.15211).
 
+Spoiler: We found transfer was hard to obtain and only succeeded very narrowly 😬
+
 ![](images/figures/vlm_transfer_figure_1_draft_12.png)
 
 [![arXiv](https://img.shields.io/badge/arXiv-2407.15211-df2a2a.svg?style=for-the-badge)](https://arxiv.org/abs/2407.15211)
