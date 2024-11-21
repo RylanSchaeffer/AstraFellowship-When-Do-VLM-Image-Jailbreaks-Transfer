@@ -1,3 +1,4 @@
+from enum import Enum, auto
 import numpy as np
 import lightning
 import torch
@@ -9,6 +10,13 @@ import wandb
 from src.models.ensemble import VLMEnsemble
 from src.models.evaluators import HarmBenchEvaluator, LlamaGuard2Evaluator
 from src.utils import create_initial_image
+
+
+
+class AttackType(Enum):
+    UNCONSTRAINED = "unconstrained"
+    PGD = "pgd"
+    APGD = "apgd"
 
 
 class VLMEnsembleAttackingSystem(lightning.LightningModule):
@@ -23,6 +31,7 @@ class VLMEnsembleAttackingSystem(lightning.LightningModule):
             model_generation_kwargs=wandb_config["model_generation_kwargs"],
             precision=wandb_config["lightning_kwargs"]["precision"],
         )
+
         # Load initial image plus prompt and target data.
         tensor_image: torch.Tensor = create_initial_image(
             image_kwargs=wandb_config["image_kwargs"],
