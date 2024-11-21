@@ -8,18 +8,20 @@ apt-get update && apt-get install vim -y && apt-get install nano -y && apt-get i
 cd /workspace && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh
 ```
 
+Make sure to save `miniconda3` to `/workspace/miniconda3`!
+
 Create SSH key and register it with GitHub:
 ```bash
 ssh-keygen -t ed25519 -C "rylanschaeffer@gmail.com"
 mkdir /workspace/.ssh && cp /root/.ssh/* /workspace/.ssh/ && ls /workspace/.ssh/
 eval "$(ssh-agent -s)"
-ssh-add /workspace/.ssh/id_ed25519
+ssh-add /root/.ssh/id_ed25519
 cat ~/.ssh/id_ed25519.pub
 ```
 
 Then go to GitHub and add the SSH key to your account. Once you're setup, clone the repo:
 
-`git clone git@github.com:RylanSchaeffer/PerezAstraFellowship-Universal-VLM-Jailbreak.git`
+`cd /workspace/ && git clone git@github.com:RylanSchaeffer/AstraFellowship-When-Do-VLM-Image-Jailbreaks-Transfer.git`
 
 Then modify your `.bashrc` to add:
 
@@ -57,6 +59,7 @@ Adding `--config-settings editable_mode=compat` is optionable - its for your vsc
 6. Login to Huggingface with `huggingface-cli login`
 
 ## Setup Method 2 - Manual
+
 1. (Optional) Update conda:
 
 `conda update -n base -c defaults conda -y`
@@ -84,8 +87,8 @@ Adding `--config-settings editable_mode=compat` is optionable - its for your vsc
 8. Install Prismatic and Deepseek
 
 Adding `--config-settings editable_mode=compat` is optionable - its for your vscode language to recognize the packages
-`cd submodules/prismatic-vlms && pip install -e . --config-settings editable_mode=compat && cd ../..`
-`cd submodules/DeepSeek-VL && pip install -e . --config-settings editable_mode=compat && cd ../..`
+`cd submodules/prismatic-vlms && pip install -e . && cd ../..`
+`cd submodules/DeepSeek-VL && pip install -e .  && cd ../..`
 
 
 9. Then follow their instructions:
