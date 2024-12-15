@@ -27,6 +27,7 @@ df = pd.DataFrame.from_dict(
         + [1.0, 1.25, 1.5, 2.0, 3.0],
         "Score": [0.925, 1.225, 1.3, 1.375, 1.75] + [0.875, 0.85, 0.8, 0.675, 0.375],
         "Metric": ["Cross Entropy Loss"] * 5 + ["Claude 3 Opus"] * 5,
+        "Attacked": [True, False, False, False, False] * 2,
     }
 )
 df["Eval VLM\nTraining Epoch"] = df["Eval VLM Training Epoch"]
@@ -39,11 +40,14 @@ g = sns.relplot(
     x="Eval VLM Training Epoch",
     y="Score",
     hue="Eval VLM\nTraining Epoch",
+    style="Attacked",
+    style_order=[True, False],
     col="Metric",
     col_order=["Cross Entropy Loss", "Claude 3 Opus"],
     palette="cool",
     facet_kws=dict(sharey=False),
-    s=100,
+    s=250,
+    markers={True: "o", False: "X"},
 )
 g.set_titles(col_template="{col_name}")
 # Set the y-lim per axis
@@ -59,4 +63,4 @@ src.plot.save_plot_with_multiple_extensions(
     plot_dir=results_dir,
     plot_title="y=score_x=vlm_training_epoch_hue=vlm_training_epoch",
 )
-plt.show()
+# plt.show()
