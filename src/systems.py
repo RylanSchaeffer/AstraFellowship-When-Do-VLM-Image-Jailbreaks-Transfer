@@ -12,7 +12,6 @@ from src.models.evaluators import HarmBenchEvaluator, LlamaGuard2Evaluator
 from src.utils import create_initial_image
 
 
-
 class AttackType(Enum):
     UNCONSTRAINED = "unconstrained"
     PGD = "pgd"
