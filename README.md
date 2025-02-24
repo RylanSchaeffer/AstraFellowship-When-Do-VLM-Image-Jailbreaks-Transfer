@@ -104,12 +104,14 @@ Contributions are welcome! Please format your code with [black](https://github.c
 To cite this work, please use:
 
 ```bibtex
-@article{schaeffer2024universaltransferableimagejailbreaks,
-  title={When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?},
-  author={Schaeffer, Rylan and Valentine, Dan and Bailey, Luke and Chua, James and Eyzaguirre, Crist{\'o}bal and Durante, Zane and Benton, Joe and Miranda, Brando and Sleight, Henry and Hughes, John and others},
-  journal={arXiv preprint arXiv:2407.15211},
-  year={2024}
-}
+@inproceedings{schaeffer2025failures,
+     title={Failures to Find Transferable Image Jailbreaks Between Vision-Language Models},
+     author={Rylan Schaeffer and Dan Valentine and Luke Bailey and James Chua and Cristobal Eyzaguirre and Zane Durante and Joe Benton and Brando Miranda and Henry Sleight and Tony Tong Wang and John Hughes and Rajashree Agrawal and Mrinank Sharma and Scott Emmons and Sanmi Koyejo and Ethan Perez},
+     booktitle={International Conference on Learning Representations},
+     year={2025},
+     url={https://openreview.net/forum?id=wvFnqVVUhN},
+     organization={ICLR}
+ }
 ```
 
 ## Contact
