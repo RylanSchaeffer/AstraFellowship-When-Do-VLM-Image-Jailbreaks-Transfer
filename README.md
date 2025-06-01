@@ -1,7 +1,7 @@
-# When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?
+# Failures to Find Transferable Image Jailbreaks Between Vision-Language Models
 
 This repository contains code and figures for our paper
-[When Do Universal Image Jailbreaks Transfer Between Vision-Language Models?](https://www.arxiv.org/abs/2407.15211).
+[Failures to Find Transferable Image Jailbreaks Between Vision-Language Models](https://arxiv.org/abs/2407.15211).
 
 Spoiler: We found transfer was hard to obtain and only succeeded very narrowly 😬
 
